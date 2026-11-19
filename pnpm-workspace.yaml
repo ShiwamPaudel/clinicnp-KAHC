@@ -1,0 +1,10 @@
+allowBuilds:
+  core-js: false
+  es5-ext: false
+  esbuild: true
+  protobufjs: false
+  sharp: true
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+verifyDepsBeforeRun: false

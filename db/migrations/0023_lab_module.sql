@@ -1,0 +1,11 @@
+-- 0023_lab_module.sql — the third switch: an in-house Laboratory.
+--
+-- Append-only: never edit once applied.
+--
+-- Pharmacy and Clinic were the two halves of the product. A clinic with its
+-- own laboratory runs a third: samples drawn, results entered and approved, a
+-- signed report the patient can open from the QR code on their bill. It is a
+-- module like the other two — switched on per install, enforced on the server
+-- with requireModule('lab'), and switching it off hides it without deleting
+-- anything. Off by default: an install has to ask for it.
+ALTER TABLE company ADD COLUMN module_lab INTEGER NOT NULL DEFAULT 0;
