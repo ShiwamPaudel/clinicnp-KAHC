@@ -126,8 +126,18 @@ async function labServiceGroupId(): Promise<string> {
     const g = await db().execute({ sql: "SELECT id FROM service_groups WHERE id = ?", args: [existing] });
     if (g.rows[0]) return existing;
   }
-  const id = ulid();
   const now = new Date().toISOString();
+  // The seeded "Laboratory" group (grp_lab, 0009) is the one to use when it is
+  // still there; making a second group of the same name splits the counter.
+  const seeded = await db().execute("SELECT id FROM service_groups WHERE id = 'grp_lab'");
+  if (seeded.rows[0]) {
+    await db().execute({
+      sql: "UPDATE lab_settings SET service_group_id = 'grp_lab', updated_at = ? WHERE id = 1",
+      args: [now],
+    });
+    return "grp_lab";
+  }
+  const id = ulid();
   await db().batch(
     [
       {
