@@ -58,6 +58,7 @@ export function homeFor(user: SessionUser): string {
   if (can(user, "lab.results")) return "/lab/results";
   if (can(user, "lab.approve")) return "/lab/approval";
   if (can(user, "lab.reports")) return "/lab/reports";
+  if (can(user, ["accounts.view", "accounts.post", "accounts.setup"])) return "/accounts";
   return NO_ACCESS;
 }
 

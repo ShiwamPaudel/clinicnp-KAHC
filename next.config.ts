@@ -38,7 +38,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  serverExternalPackages: ["@libsql/client", "exceljs", "web-push"],
+  serverExternalPackages: ["@libsql/client", "exceljs", "web-push", "bwip-js", "qrcode"],
   poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

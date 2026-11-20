@@ -1,5 +1,5 @@
 import { requirePermission } from "@/lib/session";
-import { requireModulePage } from "@/lib/modules";
+import { requireAnyModulePage, PATIENT_MODULES } from "@/lib/modules";
 import { recentPatients } from "@/lib/repos/patients";
 import { PageShell } from "@/components/app/page-shell";
 import { MergePatients } from "@/components/clinic/merge-patients";
@@ -12,7 +12,7 @@ export default async function MergePatientsPage({
   searchParams: Promise<{ keep?: string }>;
 }) {
   await requirePermission("patients.merge");
-  await requireModulePage("clinic");
+  await requireAnyModulePage(PATIENT_MODULES);
 
   const { keep } = await searchParams;
   const patients = await recentPatients(2000);

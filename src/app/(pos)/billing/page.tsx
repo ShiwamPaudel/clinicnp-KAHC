@@ -18,7 +18,8 @@ export default async function BillingPage() {
     roundingOn: company.roundingOn,
     rackDisplay: company.rackDisplay,
     minRateIsCost: company.minRateIsCost,
-    clinicOn: modules.clinic,
+    // patients and services at the counter: Clinic or Laboratory
+    clinicOn: modules.clinic || modules.lab,
     canEditRate: can(user, "counter.change_rate"),
     isAdmin: can(user, "bills.cancel"),
     userName: user.name,

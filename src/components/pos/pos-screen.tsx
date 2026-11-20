@@ -41,6 +41,7 @@ import {
   applyLocalAllocation,
 } from "@/offline/catalog-cache";
 import { enqueueBill, flushOutbox, startOutboxLoop } from "@/offline/outbox";
+import { mintReportToken, reportUrl } from "@/lib/lab-token";
 import { holdBill, listHeld, resumeHeld, MAX_HELD } from "@/offline/held";
 import { SearchBox, type SearchBoxHandle } from "@/components/pos/search-box";
 import { BillTable, type PosConfig } from "@/components/pos/bill-table";
@@ -340,6 +341,23 @@ export function PosScreen({ config }: { config: PosConfig }) {
       await applyLocalAllocation(line.item.id, preview.allocations);
     }
 
+    // A bill with an in-house lab test carries the code for its report QR,
+    // made here so the QR prints even with no connection (Lab.md).
+    const hasLabTest = s.serviceLines.some((l) => services.find((x) => x.id === l.serviceId)?.isLabTest);
+    const labReportToken = hasLabTest ? mintReportToken() : undefined;
+    let labReport: PrintBill["labReport"] = null;
+    if (labReportToken) {
+      const url = reportUrl(window.location.origin, labReportToken);
+      let qrDataUrl = "";
+      try {
+        const QR = (await import("qrcode")).default;
+        qrDataUrl = await QR.toDataURL(url, { width: 140, margin: 1 });
+      } catch {
+        // the address still prints in words under where the QR would be
+      }
+      labReport = { url, qrDataUrl };
+    }
+
     const outbox: OutboxBill = {
       id,
       dateBs: config.todayBsText,
@@ -382,6 +400,7 @@ export function PosScreen({ config }: { config: PosConfig }) {
           }
         : undefined,
       visitId: s.visitId ?? undefined,
+      labReportToken,
       clientCreatedAt: nowIso,
       attempts: 0,
     };
@@ -428,6 +447,7 @@ export function PosScreen({ config }: { config: PosConfig }) {
       paidNowMethod: onDues && paidNowPaisa > 0 ? s.paidNowMethod : undefined,
       duePaisa: onDues ? duePaisa : undefined,
       userName: config.userName,
+      labReport,
     });
 
     // print on the next frame, then reset for the next customer

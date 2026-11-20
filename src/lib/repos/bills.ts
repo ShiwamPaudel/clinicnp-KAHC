@@ -1036,8 +1036,9 @@ export async function cancelBill(id: string, userId: string): Promise<void> {
       });
     }
     await tx.execute({
-      sql: "UPDATE bills SET status = 'cancelled' WHERE id = ?",
-      args: [id],
+      // the day it was cancelled is the day the books reverse it (0025)
+      sql: "UPDATE bills SET status = 'cancelled', cancelled_at = ? WHERE id = ?",
+      args: [now, id],
     });
     await cancelLabOrderForBill(tx, id, "Bill cancelled");
     await tx.execute({

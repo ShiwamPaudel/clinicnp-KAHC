@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requirePermission } from "@/lib/session";
-import { requireModulePage } from "@/lib/modules";
+import { requireAnyModulePage, PATIENT_MODULES } from "@/lib/modules";
 import { possibleDuplicatePairs } from "@/lib/repos/patients";
 import { formatPatientNo, provisionalPatientLabel } from "@/lib/patient-no";
 import { PageShell } from "@/components/app/page-shell";
@@ -20,7 +20,7 @@ export const metadata = { title: "Possible duplicate patients" };
  */
 export default async function DuplicatesPage() {
   await requirePermission("patients.merge");
-  await requireModulePage("clinic");
+  await requireAnyModulePage(PATIENT_MODULES);
 
   const pairs = await possibleDuplicatePairs();
 

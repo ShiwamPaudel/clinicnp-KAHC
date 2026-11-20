@@ -20,6 +20,7 @@ import {
   Send,
   HandCoins,
   Banknote,
+  Landmark,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Permission } from "@/lib/permissions";
@@ -32,6 +33,8 @@ interface NavItem {
   icon: LucideIcon;
   /** Shown to anybody holding any one of these. */
   perm: Permission | Permission[];
+  /** shown only when the Clinic module is off (it lives in the Clinic group otherwise) */
+  withoutClinic?: boolean;
 }
 
 /**
@@ -42,7 +45,7 @@ interface NavItem {
  */
 interface NavGroup {
   /** null = ungrouped, always shown. */
-  module: "clinic" | "pharmacy" | null;
+  module: "clinic" | "lab" | "pharmacy" | null;
   label?: string;
   items: NavItem[];
 }
@@ -67,6 +70,19 @@ const GROUPS: NavGroup[] = [
     ],
   },
   {
+    module: "lab",
+    label: "Laboratory",
+    items: [
+      {
+        href: "/lab",
+        label: "Lab work",
+        icon: FlaskConical,
+        perm: ["lab.samples", "lab.results", "lab.approve", "lab.reports", "lab.dispatch", "lab.catalog", "lab.reopen"],
+      },
+      { href: "/patients", label: "Patients", icon: Users, perm: "patients.view", withoutClinic: true },
+    ],
+  },
+  {
     module: "pharmacy",
     label: "Pharmacy",
     items: [
@@ -85,6 +101,7 @@ const GROUPS: NavGroup[] = [
       { href: "/dues", label: "Dues", icon: HandCoins, perm: "dues.view" },
       // What the clinic owes: suppliers and outside laboratories together.
       { href: "/payables", label: "Payables", icon: Banknote, perm: "suppliers.manage" },
+      { href: "/accounts", label: "Accounts", icon: Landmark, perm: ["accounts.view", "accounts.post", "accounts.setup"] },
       { href: "/reports", label: "Reports", icon: BarChart3, perm: ["reports.view", "reports.all"] },
       { href: "/settings", label: "Settings", icon: Settings, perm: ["settings.manage", "users.manage", "audit.view", "clinic.setup", "stock.adjust", "lab.catalog"] },
     ],
@@ -110,6 +127,7 @@ export function Nav({
     items: g.items.filter(
       (i) =>
         allowed(i.perm) &&
+        (!i.withoutClinic || !modules.clinic) &&
         (g.module === null || modules[g.module]),
     ),
   })).filter((g) => g.items.length > 0);
@@ -146,7 +164,7 @@ export function Nav({
               <div
                 className={cn(
                   "mt-3 px-3 pb-0.5 text-[11px] font-semibold uppercase tracking-[0.06em]",
-                  group.module === "clinic"
+                  group.module !== "pharmacy"
                     ? "text-clinic-150"
                     : "text-sage-300",
                 )}

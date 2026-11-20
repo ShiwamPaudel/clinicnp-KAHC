@@ -41,6 +41,18 @@ const ACTION_LABEL: Record<string, string> = {
   "lab_partner.updated": "Laboratory details changed",
   "lab_partner.payment": "Laboratory paid",
 
+  // the laboratory
+  "lab.approved": "Lab results approved",
+  "lab.sent_back": "Lab results sent back",
+  "lab.reopened": "Approved lab results reopened",
+  "lab_test.created": "Lab test added",
+  "lab_test.updated": "Lab test changed",
+  "lab_profile.created": "Lab profile added",
+  "lab_profile.updated": "Lab profile changed",
+  "lab.report_settings": "Lab report letterhead changed",
+  "lab.signature_added": "Report signature added",
+  "lab.signature_changed": "Report signature changed",
+
   // who can do what
   "user.created": "Person added",
   "user.updated": "Person's details or role changed",

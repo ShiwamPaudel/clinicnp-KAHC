@@ -26,10 +26,13 @@ export function PartnerPaymentForm({
   partnerId,
   partnerName,
   owedPaisa,
+  banks = [],
 }: {
   partnerId: string;
   partnerName: string;
   owedPaisa: number;
+  /** the clinic's bank accounts (Accounts > Chart of accounts) */
+  banks?: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -38,7 +41,9 @@ export function PartnerPaymentForm({
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("cash");
   const [note, setNote] = useState("");
+  const [bankId, setBankId] = useState("");
   const [busy, setBusy] = useState(false);
+  const bankPaid = method === "bank" || method === "cheque";
 
   async function submit() {
     const amt = toPaisa(Number(amount) || 0);
@@ -53,6 +58,7 @@ export function PartnerPaymentForm({
       amountPaisa: amt,
       method,
       note,
+      accountId: bankPaid && bankId ? bankId : null,
     });
     setBusy(false);
     if (res.ok) {
@@ -111,6 +117,19 @@ export function PartnerPaymentForm({
               </Select>
             </Field>
           </div>
+
+          {bankPaid && banks.length > 0 && (
+            <Field label="From which bank">
+              <Select value={bankId} onChange={(e) => setBankId(e.target.value)}>
+                <option value="">Choose…</option>
+                {banks.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
 
           <Field label="Note" hint="Cheque number, or what it settles">
             <Input value={note} onChange={(e) => setNote(e.target.value)} />

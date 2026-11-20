@@ -27,6 +27,7 @@ const fullBill: Required<
   patientName: "Anita Shrestha",
   patientId: "01PATIENT",
   visitId: "01VISIT",
+  labReportToken: "AbCdEfGh23",
   paymentMethod: "credit",
   tenderedPaisa: 20_000,
   paidNowPaisa: 10_000,

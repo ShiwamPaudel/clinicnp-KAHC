@@ -10,6 +10,7 @@ import {
 } from "@/lib/repos/suppliers";
 import { supplierSchema, supplierPaymentSchema } from "@/lib/validators";
 import { adToIso, toAD, bsFromDbText } from "@/lib/bs";
+import { isUsableBank } from "@/lib/repos/accounts";
 
 export interface ActionResult {
   ok: boolean;
@@ -60,7 +61,12 @@ export async function recordPaymentAction(input: unknown): Promise<ActionResult>
       return fail(parsed.error.issues[0]?.message ?? "Please check the details.");
     }
     const d = parsed.data;
+    // Only a bank or cheque payment names a bank, and only a bank that is on.
+    const bankPaid = d.method === "bank" || d.method === "cheque";
+    const accountId = bankPaid && d.accountId ? d.accountId : null;
+    if (accountId && !(await isUsableBank(accountId))) return fail("Choose the bank again.");
     await recordSupplierPayment({
+      accountId,
       supplierId: d.supplierId,
       dateBs: d.dateBs,
       dateAd: adToIso(toAD(bsFromDbText(d.dateBs))),

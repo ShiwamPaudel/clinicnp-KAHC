@@ -61,6 +61,22 @@ for (const f of [".env.local", ".env"]) {
  * UPDATE ... RETURNING that matched nothing. It is reset below instead.
  */
 const TABLES_CHILD_FIRST = [
+  // laboratory work, deepest first (it hangs from bills and service lines)
+  "lab_report_views",
+  "lab_report_dispatches",
+  "lab_result_approvals",
+  "lab_result_versions",
+  "lab_result_values",
+  "lab_results",
+  "lab_sample_events",
+  "lab_samples",
+  "lab_order_tests",
+  "lab_orders",
+
+  // vouchers entered by hand (0025)
+  "voucher_lines",
+  "vouchers",
+
   // money, deepest first
   "due_payments",
   "sale_return_service_lines",
@@ -91,6 +107,13 @@ const TABLES_CHILD_FIRST = [
   "patients",
 
   // catalogs
+  "lab_test_group_items",
+  "lab_test_groups",
+  "lab_test_parameters",
+  "lab_tests",
+  "lab_sample_types",
+  "lab_departments",
+  "lab_signatories",
   "services",
   "service_groups",
   "doctors",
@@ -100,6 +123,7 @@ const TABLES_CHILD_FIRST = [
   "items",
   "racks",
   "suppliers",
+  "parties",
 
   // housekeeping and settings
   "audit_log",
@@ -130,6 +154,14 @@ async function main() {
   // room those shelves stand in, the test list and the outside laboratory are
   // all work somebody did with a keyboard, and none of it is a transaction.
   const SETUP_TABLES = [
+    "parties",
+    "lab_test_group_items",
+    "lab_test_groups",
+    "lab_test_parameters",
+    "lab_tests",
+    "lab_sample_types",
+    "lab_departments",
+    "lab_signatories",
     "services",
     "service_groups",
     "doctors",
@@ -203,8 +235,10 @@ async function main() {
   // counters is handled separately below, not left behind.
   // `roles` is kept on every reset: the Admin and Doctor roles are part of
   // the product (0022), and a reset that removed them would leave nobody able
-  // to sign in after the next bootstrap.
-  const HANDLED_ELSEWHERE = ["_migrations", "counters", "roles"];
+  // to sign in after the next bootstrap. `accounts` is kept for the same
+  // reason: the app posts to the accounts 0025 created, and the bank
+  // accounts a clinic added are set-up, not transactions.
+  const HANDLED_ELSEWHERE = ["_migrations", "counters", "roles", "lab_settings", "accounts"];
   const unknown = [...present].filter(
     (t) => !HANDLED_ELSEWHERE.includes(t) && !TABLES_CHILD_FIRST.includes(t),
   );
@@ -230,21 +264,34 @@ async function main() {
 
   // One transaction: either the database is empty afterwards or it is
   // untouched. A half-emptied database is the worst of the three outcomes.
+  // lab_settings is kept, but it points at a service group that is about to
+  // go (unless the setup is kept): let go of it first, inside the same batch.
+  const releaseLabGroup =
+    present.has("lab_settings") && doomed.includes("service_groups")
+      ? [{ sql: "UPDATE lab_settings SET service_group_id = NULL", args: [] }]
+      : [];
   await client.batch(
-    doomed.filter((t) => present.has(t)).map((t) => ({
-      sql: `DELETE FROM "${t}"`,
-      args: [],
-    })),
+    [
+      ...releaseLabGroup,
+      ...doomed.filter((t) => present.has(t)).map((t) => ({
+        sql: `DELETE FROM "${t}"`,
+        args: [],
+      })),
+    ],
     "write",
   );
 
   // Counters are reset, not deleted — see the note on TABLES_CHILD_FIRST. A
   // clinic starting fresh should start at patient 1.
   if (present.has("counters")) {
-    await client.execute(
-      "INSERT INTO counters (name, next_value) VALUES ('patient_no', 1) " +
-        "ON CONFLICT(name) DO UPDATE SET next_value = 1",
-    );
+    // voucher numbering starts again with the vouchers (0025)
+    if (doomed.includes("vouchers")) await client.execute("DELETE FROM counters WHERE name LIKE 'voucher:%'");
+    for (const name of ["patient_no", "lab_order_no", "lab_sample_no"]) {
+      await client.execute({
+        sql: "INSERT INTO counters (name, next_value) VALUES (?, 1) ON CONFLICT(name) DO UPDATE SET next_value = 1",
+        args: [name],
+      });
+    }
   }
 
   console.log(`Emptied ${total} row(s); patient numbering restarts at 1.`);

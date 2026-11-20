@@ -21,7 +21,7 @@ export async function GET(req: Request) {
   }
 
   const modules = await getModules();
-  if (!modules.clinic) return NextResponse.json({ ok: false }, { status: 404 });
+  if (!modules.clinic && !modules.lab) return NextResponse.json({ ok: false }, { status: 404 });
 
   const q = new URL(req.url).searchParams.get("q") ?? "";
   if (q.trim().length < 2) return NextResponse.json({ ok: true, patients: [] });

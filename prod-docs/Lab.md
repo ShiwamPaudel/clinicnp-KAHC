@@ -19,7 +19,7 @@ product's name appears nowhere in ClinicNP (owner's instruction).
 | Dues | The QR link shows nothing until the bill is **fully paid**. Staff can still print inside ClinicNP. |
 | Referring doctor | **Typed name only** on the order and the report. No commission. |
 | Reference ranges | Entered by KAHC's **lab in-charge**. Never seeded, guessed or copied in (Rules §2.2). |
-| Sent-out tests | The existing send-out workflow stays as it is until the owner's official answer on in-house vs outside. |
+| Sent-out tests | KAHC does **both**: its own laboratory, and some samples sent out (owner, 2083-08-03). Sent-out tests keep the send-out workflow at `/sendout`. |
 
 ## How a bill becomes a lab order
 

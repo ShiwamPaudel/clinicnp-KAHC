@@ -1,4 +1,4 @@
-import { can, requireUser } from "@/lib/session";
+import { can, requirePermission } from "@/lib/session";
 import { requireModulePage } from "@/lib/modules";
 import { listItems } from "@/lib/repos/items";
 import { expiredBatches, stockCounts } from "@/lib/repos/batches";
@@ -18,7 +18,7 @@ function daysAheadIso(days: number): string {
 }
 
 export default async function ExpiredStockPage() {
-  const user = await requireUser();
+  const user = await requirePermission("stock.view");
   await requireModulePage("pharmacy");
   const isAdmin = can(user, "stock.adjust");
   const todayIso = adToIso(new Date());

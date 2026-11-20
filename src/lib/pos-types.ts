@@ -137,6 +137,8 @@ export interface OutboxBill {
     overrideBatchId?: string;
   }[];
   serviceLines?: OutboxServiceLine[];
+  /** the code behind the lab-report QR printed on this bill (Lab.md) */
+  labReportToken?: string;
   clientCreatedAt: string;
   attempts: number;
   lastError?: string;
@@ -230,6 +232,8 @@ export interface PosService {
   vatApplicable: boolean;
   /** the rate came from the sample seed, so the counter can say so out loud */
   sampleRate: boolean;
+  /** an in-house lab test or profile (Laboratory module on): the bill gets a report QR */
+  isLabTest?: boolean;
 }
 
 /** A doctor, reduced to what the counter needs to show and to snapshot. */

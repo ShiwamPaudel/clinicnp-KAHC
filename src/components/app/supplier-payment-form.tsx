@@ -12,14 +12,23 @@ import { toPaisa } from "@/lib/money";
 import { bsToDbText, today } from "@/lib/bs";
 import { strings } from "@/lib/strings";
 
-export function SupplierPaymentForm({ supplierId }: { supplierId: string }) {
+export function SupplierPaymentForm({
+  supplierId,
+  banks = [],
+}: {
+  supplierId: string;
+  /** the clinic's bank accounts (Accounts > Chart of accounts) */
+  banks?: { id: string; name: string }[];
+}) {
   const router = useRouter();
   const toast = useToast();
   const [dateBs, setDateBs] = useState(bsToDbText(today()));
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("cash");
   const [note, setNote] = useState("");
+  const [bankId, setBankId] = useState("");
   const [busy, setBusy] = useState(false);
+  const bankPaid = method === "bank" || method === "cheque";
 
   async function submit() {
     const amt = toPaisa(Number(amount) || 0);
@@ -34,6 +43,7 @@ export function SupplierPaymentForm({ supplierId }: { supplierId: string }) {
       amountPaisa: amt,
       method,
       note,
+      accountId: bankPaid && bankId ? bankId : null,
     });
     setBusy(false);
     if (res.ok) {
@@ -70,6 +80,18 @@ export function SupplierPaymentForm({ supplierId }: { supplierId: string }) {
             <option value="cheque">Cheque</option>
           </Select>
         </Field>
+        {bankPaid && banks.length > 0 && (
+          <Field label="From which bank">
+            <Select value={bankId} onChange={(e) => setBankId(e.target.value)}>
+              <option value="">Choose…</option>
+              {banks.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
         <Field label="Note">
           <Input value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>

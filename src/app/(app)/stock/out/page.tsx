@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { can, requireUser } from "@/lib/session";
+import { can, requirePermission } from "@/lib/session";
 import { requireModulePage } from "@/lib/modules";
 import {
   listStockOuts,
@@ -35,7 +35,7 @@ export default async function StockOutRegisterPage({
     reason?: string;
   }>;
 }) {
-  const user = await requireUser();
+  const user = await requirePermission("stock.view");
   await requireModulePage("pharmacy");
 
   const sp = await searchParams;

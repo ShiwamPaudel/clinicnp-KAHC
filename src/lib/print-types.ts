@@ -77,4 +77,6 @@ export interface PrintBill {
   paidNowMethod?: "cash" | "qr";
   duePaisa?: number;
   userName: string;
+  /** a bill with lab tests: where the patient opens the report, and its QR */
+  labReport?: { url: string; qrDataUrl: string } | null;
 }

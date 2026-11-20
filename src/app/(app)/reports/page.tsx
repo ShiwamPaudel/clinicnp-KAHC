@@ -19,7 +19,7 @@ import {
   MapPin,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { can, requireUser } from "@/lib/session";
+import { can, requirePermission } from "@/lib/session";
 import { getCompany } from "@/lib/repos/company";
 import { getModules } from "@/lib/modules";
 import { PageShell } from "@/components/app/page-shell";
@@ -58,7 +58,7 @@ const REPORTS: ReportCard[] = [
 ];
 
 export default async function ReportsHubPage() {
-  const user = await requireUser();
+  const user = await requirePermission(["reports.view", "reports.all"]);
   const company = await getCompany();
   const modules = await getModules();
   const isAdmin = can(user, "reports.all");

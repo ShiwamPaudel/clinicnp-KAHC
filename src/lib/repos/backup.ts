@@ -32,6 +32,10 @@ const TABLES = [
   "roles",
   "users",
 
+  // the chart of accounts and other parties (0025): payments name a bank
+  "accounts",
+  "parties",
+
   // pharmacy
   "suppliers",
   // A restore inserts in this order, so a table comes after everything it
@@ -54,6 +58,16 @@ const TABLES = [
   "lab_partners",
   "services",
 
+  // laboratory catalogue (0024) — each test and profile points at its service
+  "lab_departments",
+  "lab_sample_types",
+  "lab_tests",
+  "lab_test_parameters",
+  "lab_test_groups",
+  "lab_test_group_items",
+  "lab_settings",
+  "lab_signatories",
+
   // clinic records
   "patients",
   "visits",
@@ -69,6 +83,22 @@ const TABLES = [
   "sale_return_service_lines",
   "due_payments",
   "lab_partner_payments",
+
+  // vouchers entered by hand (0025)
+  "vouchers",
+  "voucher_lines",
+
+  // laboratory work, after the bills and service lines it hangs from
+  "lab_orders",
+  "lab_order_tests",
+  "lab_samples",
+  "lab_sample_events",
+  "lab_results",
+  "lab_result_values",
+  "lab_result_versions",
+  "lab_result_approvals",
+  "lab_report_dispatches",
+  "lab_report_views",
 
   // stock movement and adjustments
   "stock_moves",
@@ -198,12 +228,18 @@ export async function restoreAll(archive: BackupArchive): Promise<void> {
     // Defer FK checks to COMMIT so the full replace is validated only against
     // the final, consistent snapshot (not intermediate delete/insert states).
     await tx.execute("PRAGMA defer_foreign_keys = ON");
+    // A copy taken before the chart of accounts existed (0025) has none to
+    // put back; the accounts the app posts to stay as they are rather than
+    // being emptied with nothing to replace them.
+    const keep = new Set(["accounts"].filter((t) => !(t in archive.tables)));
     // clear existing data
     for (const t of [...TABLES].reverse()) {
+      if (keep.has(t)) continue;
       await tx.execute(`DELETE FROM ${t}`);
     }
     // insert from the snapshot
     for (const t of TABLES) {
+      if (keep.has(t)) continue;
       const rows = archive.tables[t] ?? [];
       for (const row of rows) {
         const cols = Object.keys(row);

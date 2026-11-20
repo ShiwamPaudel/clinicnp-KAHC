@@ -11,6 +11,7 @@ import "server-only";
 import { ulid } from "ulid";
 import { db } from "@/lib/db";
 import type { Row } from "@/lib/db";
+import { openingTotal } from "@/lib/repos/party-openings";
 
 export interface LabPartner {
   id: string;
@@ -108,10 +109,16 @@ export async function updateLabPartner(
   });
 }
 
-/** Outstanding balance with one partner: tests sent, less payments made. */
+/**
+ * Outstanding balance with one partner: tests sent (less any refunded, as the
+ * statement and Payables count them), less payments made, plus what was owed
+ * when the books started here.
+ */
 export async function partnerBalancePaisa(partnerId: string): Promise<number> {
   const sent = await db().execute({
-    sql: `SELECT COALESCE(SUM(sl.partner_cost_paisa * sl.qty), 0) AS n
+    sql: `SELECT COALESCE(SUM(sl.partner_cost_paisa * (sl.qty - COALESCE((
+                   SELECT SUM(r.qty) FROM sale_return_service_lines r
+                    WHERE r.bill_service_line_id = sl.id), 0))), 0) AS n
             FROM bill_service_lines sl
             JOIN bills b ON b.id = sl.bill_id
            WHERE sl.lab_partner_id = ? AND b.status = 'saved'`,
@@ -121,5 +128,5 @@ export async function partnerBalancePaisa(partnerId: string): Promise<number> {
     sql: "SELECT COALESCE(SUM(amount_paisa), 0) AS n FROM lab_partner_payments WHERE lab_partner_id = ?",
     args: [partnerId],
   });
-  return Number(sent.rows[0]!.n) - Number(paid.rows[0]!.n);
+  return Number(sent.rows[0]!.n) - Number(paid.rows[0]!.n) + (await openingTotal("lab_partner", partnerId));
 }

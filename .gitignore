@@ -24,5 +24,3 @@ backups/prod-*.json
 # the WebAssembly runtime for the invoice reader, copied out of node_modules
 public/ort/
 
-# reference copy for building the Lab module; deleted once the Lab module is done
-nidanyo-nhp/

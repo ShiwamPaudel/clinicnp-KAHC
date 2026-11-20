@@ -23,6 +23,8 @@ export const SETTINGS_TABS: SettingsTab[] = [
   { href: "/settings/services", label: "Services", module: "clinic", perm: "clinic.setup" },
   { href: "/settings/doctors", label: "Doctors", module: "clinic", perm: "clinic.setup" },
   { href: "/settings/lab-partners", label: "Lab partners", module: "clinic", perm: "clinic.setup" },
+  { href: "/settings/lab", label: "Laboratory", module: "lab", perm: "lab.catalog" },
+  { href: "/settings/lab-report", label: "Lab report", module: "lab", perm: "lab.catalog" },
   { href: "/settings/racks", label: "Shop layout", module: "pharmacy", perm: "stock.adjust" },
   { href: "/settings/fiscal-years", label: "Fiscal years", perm: "settings.manage" },
   { href: "/settings/users", label: "Users", perm: "users.manage" },

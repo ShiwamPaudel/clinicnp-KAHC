@@ -236,6 +236,22 @@ export function InvoiceA4({ bill }: { bill: PrintBill }) {
       {/* The one line after the total. No signature blocks: nobody signs a
           pharmacy counter bill, and two ruled lines at the bottom of every
           sheet is a form asking to be filled in that never is. */}
+      {/* Lab tests on the bill: where the patient opens the report (Lab.md).
+          Only on a bill that carries one. */}
+      {bill.labReport && (
+        <div className="a4-labqr">
+          {bill.labReport.qrDataUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={bill.labReport.qrDataUrl} alt="" />
+          )}
+          <div>
+            <div className="a4-labqr-title">Your lab report</div>
+            <div>Scan this code, or open the address below, once your report is ready and the bill is paid.</div>
+            <div className="a4-labqr-url">{bill.labReport.url}</div>
+          </div>
+        </div>
+      )}
+
       {c.invoiceFooter && <div className="a4-thanks">{c.invoiceFooter}</div>}
     </div>
   );

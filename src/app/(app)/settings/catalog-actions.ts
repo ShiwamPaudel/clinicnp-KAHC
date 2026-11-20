@@ -43,6 +43,7 @@ import {
   labPartnerPaymentSchema,
 } from "@/lib/validators";
 import { recordPartnerPayment } from "@/lib/repos/clinic-reports";
+import { isUsableBank } from "@/lib/repos/accounts";
 import {
   getFiscalYearByLabel,
   assertYearOpen,
@@ -309,6 +310,7 @@ export async function recordPartnerPaymentAction(input: {
   amountPaisa: number;
   method: string;
   note: string;
+  accountId?: string | null;
 }): Promise<ActionResult> {
   try {
     const user = await guard();
@@ -330,7 +332,13 @@ export async function recordPartnerPaymentAction(input: {
     const year = await getFiscalYearByLabel(fiscalYearOf(bs).label);
     if (year) await assertYearOpen(year.id);
 
+    // Only a bank or cheque payment names a bank, and only a bank that is on.
+    const bankPaid = data.method === "bank" || data.method === "cheque";
+    const accountId = bankPaid && data.accountId ? data.accountId : null;
+    if (accountId && !(await isUsableBank(accountId))) return fail("Choose the bank again.");
+
     const id = await recordPartnerPayment({
+      accountId,
       partnerId: data.partnerId,
       dateAd,
       dateBs: data.dateBs,

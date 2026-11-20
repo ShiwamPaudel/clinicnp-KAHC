@@ -1,5 +1,5 @@
 import { requirePermission } from "@/lib/session";
-import { requireModulePage } from "@/lib/modules";
+import { requireAnyModulePage, PATIENT_MODULES } from "@/lib/modules";
 import { recentPatients } from "@/lib/repos/patients";
 import { adToIso } from "@/lib/bs";
 import { PageShell } from "@/components/app/page-shell";
@@ -9,7 +9,7 @@ export const metadata = { title: "Patients" };
 
 export default async function PatientsPage() {
   await requirePermission("patients.view");
-  await requireModulePage("clinic");
+  await requireAnyModulePage(PATIENT_MODULES);
 
   // The whole recent slice goes to the browser so typing filters instantly;
   // Phase 5 extends this to the counter's cached 2,000.

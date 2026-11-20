@@ -7,6 +7,7 @@ import { PageShell } from "@/components/app/page-shell";
 import { Table, THead, TR, TH, TD } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { SupplierPaymentForm } from "@/components/app/supplier-payment-form";
+import { listBankAccounts } from "@/lib/repos/accounts";
 
 export default async function SupplierDetailPage({
   params,
@@ -69,6 +70,8 @@ export default async function SupplierDetailPage({
                           <Badge tone="neutral">Purchase</Badge>
                         ) : e.kind === "payment" ? (
                           <Badge tone="ok">Payment</Badge>
+                        ) : e.kind === "opening" ? (
+                          <Badge tone="neutral">Opening</Badge>
                         ) : (
                           <Badge tone="info">Return</Badge>
                         )}
@@ -86,7 +89,7 @@ export default async function SupplierDetailPage({
           </div>
         </div>
 
-        <SupplierPaymentForm supplierId={id} />
+        <SupplierPaymentForm supplierId={id} banks={await listBankAccounts()} />
       </div>
     </PageShell>
   );

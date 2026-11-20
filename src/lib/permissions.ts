@@ -91,6 +91,14 @@ export const PERMISSION_GROUPS = [
     ],
   },
   {
+    label: "Accounts",
+    items: [
+      { key: "accounts.view", label: "See the books: ledgers, parties, aging, profit and loss, balance sheet", module: null },
+      { key: "accounts.post", label: "Enter and cancel vouchers (expenses, bank, payouts)", module: null },
+      { key: "accounts.setup", label: "Chart of accounts, other parties and opening balances", module: null },
+    ],
+  },
+  {
     label: "Reports",
     items: [
       { key: "reports.view", label: "Day close and everyday reports", module: null },
@@ -112,6 +120,20 @@ export type Permission = (typeof PERMISSION_GROUPS)[number]["items"][number]["ke
 export const ALL_PERMISSIONS: readonly Permission[] = PERMISSION_GROUPS.flatMap((g) =>
   g.items.map((i) => i.key),
 );
+
+/** Any one of these opens the Laboratory. */
+export const LAB_PERMISSIONS: readonly Permission[] = [
+  "lab.samples",
+  "lab.results",
+  "lab.approve",
+  "lab.reports",
+  "lab.dispatch",
+  "lab.catalog",
+  "lab.reopen",
+];
+
+/** Any one of these opens Accounts. */
+export const ACCOUNTS_PERMISSIONS: readonly Permission[] = ["accounts.view", "accounts.post", "accounts.setup"];
 
 const KNOWN = new Set<string>(ALL_PERMISSIONS);
 

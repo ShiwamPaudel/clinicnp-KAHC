@@ -26,7 +26,7 @@ export async function GET() {
   }
 
   const modules = await getModules();
-  if (!modules.clinic) return NextResponse.json({ ok: false }, { status: 404 });
+  if (!modules.clinic && !modules.lab) return NextResponse.json({ ok: false }, { status: 404 });
 
   const limit = await checkRateLimit(CATALOG_SYNC, session.user.id);
   if (!limit.ok) {

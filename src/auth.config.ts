@@ -19,6 +19,9 @@ export const authConfig = {
       // reachable without a session, because the service worker serves it when
       // there is no connection to check a session against.
       if (pathname === "/offline") return true;
+      // A patient's lab report, opened from the QR on their bill. The page
+      // checks the code, the bill and the results itself (Lab.md).
+      if (pathname.startsWith("/r/")) return true;
       // API routes enforce their own auth (session check or cron secret) and
       // must return JSON, not an HTML redirect.
       if (pathname.startsWith("/api")) return true;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { requireModule, ModuleDisabledError } from "@/lib/modules";
+import { requireAnyModule, PATIENT_MODULES, ModuleDisabledError } from "@/lib/modules";
 import { getAttachmentWithKey } from "@/lib/repos/attachments";
 import { getFile } from "@/lib/file-store";
 import { isImage } from "@/lib/files";
@@ -27,7 +27,7 @@ export async function GET(
   }
 
   try {
-    await requireModule("clinic");
+    await requireAnyModule(PATIENT_MODULES);
   } catch (err) {
     if (err instanceof ModuleDisabledError) {
       return new NextResponse(null, { status: 404 });

@@ -261,6 +261,12 @@ export async function updateService(id: string, input: ServiceInput): Promise<vo
 // The counter's view
 // ---------------------------------------------------------------------------
 
+/** True for an in-house lab test or profile while the Laboratory module is on. */
+const IS_LAB_TEST_SQL = `(CASE WHEN (SELECT module_lab FROM company WHERE id = 1) = 1
+   AND (EXISTS (SELECT 1 FROM lab_tests lt WHERE lt.service_id = s.id)
+     OR EXISTS (SELECT 1 FROM lab_test_groups lg WHERE lg.service_id = s.id))
+  THEN 1 ELSE 0 END)`;
+
 /**
  * Active services in the shape the counter caches. Inactive services drop out
  * of search but stay in history, which is why every bill line snapshots the
@@ -268,7 +274,7 @@ export async function updateService(id: string, input: ServiceInput): Promise<vo
  */
 export async function listPosServices(): Promise<PosService[]> {
   const res = await db().execute(
-    `SELECT s.*, g.name AS group_name, g.is_consultation
+    `SELECT s.*, g.name AS group_name, g.is_consultation, ${IS_LAB_TEST_SQL} AS is_lab_test
        FROM services s
        JOIN service_groups g ON g.id = s.group_id
       WHERE s.active = 1 AND g.active = 1
@@ -292,6 +298,7 @@ export async function listPosServices(): Promise<PosService[]> {
     followupRatePaisa: Number(r.followup_rate_paisa),
     vatApplicable: Number(r.vat_applicable) === 1,
     sampleRate: Number(r.sample_rate) === 1,
+    isLabTest: Number(r.is_lab_test ?? 0) === 1,
   }));
 }
 

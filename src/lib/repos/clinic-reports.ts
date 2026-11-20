@@ -16,6 +16,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import type { Row } from "@/lib/db";
+import { openingMoves, openingTotal, openingSumSql } from "@/lib/repos/party-openings";
 
 export interface AdRange {
   fromIso: string;
@@ -200,7 +201,9 @@ async function openingBalance(partnerId: string, fromIso: string): Promise<numbe
            WHERE lab_partner_id = ? AND date_ad < ?`,
     args: [partnerId, fromIso],
   });
-  return Number(sent.rows[0]!.n) - Number(paid.rows[0]!.n);
+  return (
+    Number(sent.rows[0]!.n) - Number(paid.rows[0]!.n) + (await openingTotal("lab_partner", partnerId, fromIso))
+  );
 }
 
 export async function partnerStatement(
@@ -263,6 +266,15 @@ export async function partnerStatement(
       chargePaisa: 0,
       paymentPaisa: Number(r.amount_paisa),
     })),
+    // what was already owed when the books started here (Accounts → Opening)
+    ...(await openingMoves("lab_partner", partnerId, range.fromIso, range.toIso)).map((o) => ({
+      dateBs: o.dateBs,
+      dateAd: o.dateAd,
+      kind: "test" as const,
+      description: o.description,
+      chargePaisa: o.deltaPaisa > 0 ? o.deltaPaisa : 0,
+      paymentPaisa: o.deltaPaisa < 0 ? -o.deltaPaisa : 0,
+    })),
   ].sort((a, b) => a.dateAd.localeCompare(b.dateAd));
 
   let running = opening;
@@ -284,7 +296,8 @@ export async function partnerStatement(
     openingPaisa: opening,
     testsPaisa,
     paymentsPaisa,
-    closingPaisa: opening + testsPaisa - paymentsPaisa,
+    // the last running figure, so an opening entered inside the range counts
+    closingPaisa: running,
     billedPaisa,
     marginPaisa: billedPaisa - testsPaisa,
     entries,
@@ -323,7 +336,8 @@ export async function partnerSummary(range: AdRange): Promise<PartnerSummaryRow[
                              JOIN bills b ON b.id = sl.bill_id
                             WHERE sl.lab_partner_id = p.id AND b.status = 'saved'), 0)
                  - COALESCE((SELECT SUM(amount_paisa) FROM lab_partner_payments lp
-                              WHERE lp.lab_partner_id = p.id), 0) AS balance
+                              WHERE lp.lab_partner_id = p.id), 0)
+                 + ${openingSumSql("lab_partner", "p.id")} AS balance
             FROM lab_partners p
            ORDER BY p.name ASC`,
     args: [
@@ -351,13 +365,15 @@ export async function recordPartnerPayment(input: {
   method: string;
   note: string;
   userId: string;
+  /** the bank it was paid from (0025); empty for cash */
+  accountId?: string | null;
 }): Promise<string> {
   const { ulid } = await import("ulid");
   const id = ulid();
   await db().execute({
     sql: `INSERT INTO lab_partner_payments
-            (id, lab_partner_id, date_ad, date_bs, amount_paisa, method, note, user_id, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (id, lab_partner_id, date_ad, date_bs, amount_paisa, method, note, user_id, created_at, account_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       id,
       input.partnerId,
@@ -368,6 +384,7 @@ export async function recordPartnerPayment(input: {
       input.note,
       input.userId,
       new Date().toISOString(),
+      input.accountId ?? null,
     ],
   });
   return id;

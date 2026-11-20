@@ -23,7 +23,7 @@
 
 *Rewritten 2083-08-03 (C-028) for the Koshi Aarogya Healthcare install. Everything below is verified against this install's database, not remembered.*
 
-**Product:** **ClinicNP** — pharmacy + clinic today; a third module, **Lab** (in-house laboratory), is being added. The product is named ClinicNP whatever is switched on (owner's instruction, 2083-08-03; replaces the derived "Faarma" name — not yet changed in code, see Next up).
+**Product:** **ClinicNP** — three modules: Pharmacy, Clinic and **Laboratory** (in-house lab, built 2083-08-03, prod-docs/Lab.md). The product is named ClinicNP whatever is switched on. Sign-in is username + password only; what each person can do comes from an editable role (D-165).
 **This install:** **Koshi Aarogya Healthcare Pvt. Ltd.** (KAHC), Milan Chowk, Itahari. One database for all three modules.
 **Origin:** forked 2083-08-03 from the first ClinicNP install's tree (all five phases complete, C-001 … C-027 below). That install stays live on its own; **nothing in this repo points at it, and nothing here may write to it.**
 **Repo:** `D:\IBN\Installations\clinicnp-kahc`, branch `main`, fresh history (no commits yet), **no remote yet** — the owner will connect one.
@@ -31,9 +31,9 @@
 
 ### What is in the database (read back 2083-08-03, C-028)
 
-- **21 migrations** applied to an empty database.
+- **25 migrations** applied (0022 roles, 0023 the Lab switch, 0024 the laboratory, 0025 accounting).
 - **Pharmacy catalogue: 6,768 items / 14,346 item_units**, loaded from the owner's two CSV exports (`items (1).csv`, `item_units.csv`, kept at the repo root). Items and pack units only: **no prices, reorder levels all 0, no batches, no stock, no suppliers.** One exact duplicate (Ocupol Ointment 5GM) merged; one double space in a name cleaned. "Himalaya" in the catalogue is a real manufacturer — not a leftover.
-- **Not bootstrapped yet:** no company row, no fiscal year, no users. Waiting on the owner for PAN, phone and the first Admin's username / password / PIN (`pnpm db:bootstrap … --clinic`).
+- **Bootstrapped 2083-08-03** with Pharmacy + Clinic + Laboratory, fiscal year 2083/84 open, Admin `admin` / `admin123` at the owner's request for testing. **PAN is a placeholder `000000000`** and phone is empty — both to be set in Settings → Company before the first real bill, and the Admin password changed.
 - Letterhead: the owner will supply the bill letterhead separately. The KAHC logo is at the repo root.
 
 ### Schema
@@ -53,13 +53,13 @@
 - `.env.local` holds `AUTH_SECRET`, `CRON_SECRET` and the `VAPID_*` pair generated for this install on 2083-08-03 (`VAPID_SUBJECT` is `mailto:kahc@clinicnp.infobytesnepal.com`). **Never regenerate the VAPID pair** (D-122). `BLOB_READ_WRITE_TOKEN` is still empty — it must be a **private** store's when it arrives; until then files go to the gitignored `.filestore/`.
 - Commands: `pnpm db:migrate` · `db:check` · `db:seed` · `db:bootstrap` · `db:reset [--keep-access|--keep-setup]` · `db:import-items` · `pnpm dev` · `build` · `test` · `sweep` · `run audit` · `a11y <url>` · `alert-keys` · `node scripts/make-icons.mjs`.
 - **The clinic module defaults OFF on a fresh company row** (`module_clinic INTEGER NOT NULL DEFAULT 0`, 0006) — bootstrap with `--clinic`. `counters` uses **`next_value`**, not `value`.
-- `nidanyo-nhp/` at the repo root is a reference copy of an earlier laboratory product, used only to build the Lab module. It is gitignored and excluded from `tsconfig.json`; **delete it, and both exclusions, once the Lab module is done.** Its name must not appear anywhere in ClinicNP.
+- The laboratory reference copy used to build the Lab module was deleted on 2083-08-03, as the owner asked; nothing of its name remains.
 - **Alerts to a phone cannot be tested under `pnpm dev`.** Use `pnpm build && pnpm start`, or the deployed site.
 - **`pnpm run audit`, never `pnpm audit`** — pnpm's builtin shadows it.
 - **Never run `pnpm build` while `pnpm dev` is running.** They share `.next`; stop dev, `rm -rf .next`, rebuild.
 - **Windows notes:** libsql `file:` paths need a drive letter. Free a held port with `Get-NetTCPConnection -LocalPort N -State Listen | Stop-Process`. Bash heredocs mangle backslashes and quotes — use a scratchpad `.mjs`/`.py` file for anything with escapes.
 - **Testing note:** integration tests import repos with the vitest `@` alias plus a `server-only` stub (`tests/stubs/server-only.ts`); point `TURSO_DATABASE_URL` at a temp file DB before importing repos; `fileParallelism: false`; `__resetDbForTests()` between files. Run `pnpm test` with `TURSO_DATABASE_URL` blanked in the shell.
-- Baseline 2083-08-03: typecheck clean, **48 files / 552 tests** green.
+- 2083-08-03 after C-031: typecheck clean, **52 files / 594 tests** green, `pnpm build` passes (`/billing` 149 kB First Load, unchanged).
 
 ### Working practices that were earned the hard way
 
@@ -67,12 +67,11 @@
 - **Back up before every destructive or schema-changing operation**, and dry-run every table rebuild against a replica built from that backup.
 - **Migrations are mine to run** (D-088). A schema change is not finished until the database has run it and the screens have been opened.
 
-**Next up** *(owner's scope, 2083-08-03)*
-1. Bootstrap the company, fiscal year and first Admin once the owner sends the details.
-2. **Three module toggles: Pharmacy, Clinic, Lab.** Patients exist when Clinic **or** Lab is on. Product name ClinicNP for every combination.
-3. **Lab module**, ported from the reference copy into ClinicNP's own patients / visits / bills and raw-SQL repos (no ORM): test catalogue with parameters and reference ranges (entered by KAHC's lab in-charge — never invented), samples and labels, result entry, verification, signed report. Report delivery: a **QR code on the bill** only, for now — no SMS, no email. Open: in-house only, or in-house plus sent out?
-4. **Full accounting**: chart of accounts, auto-posted double-entry vouchers, party ledgers with bill-by-bill settlement, **aging from the bill date**. Waiting on the owner for banks/wallets, insurance or corporate credit parties, TDS, opening balances and Tally export.
-5. Rewrite Rules.md §2.1/§2.2 and PRD scope for the Lab module and party ledgers as each is built.
+**Next up**
+1. Before go-live: real PAN and phone in Settings → Company; change the Admin password; add KAHC's bank accounts under Accounts → Chart of accounts; enter opening balances (Accounts → Vouchers → Opening balance).
+2. Accounting, waiting on the owner: insurance / SSF / corporate credit billing at the counter (bill to a party); TDS rates (account exists, nothing applied); patients' opening dues from the old software; a Tally export; bank reconciliation; matching a supplier payment to a chosen bill (oldest first today). See prod-docs/Accounting.md.
+3. Lab follow-ups, not built yet: a screen to print only some tests of a report (the print route already takes `?only=`); filling in a reference range on results entered before the range existed; a lab section on the dashboard.
+4. Lab-only install: patients and service billing follow Clinic **or** Lab, but the counter and patient screens have only been walked with all three modules on.
 
 ### Known issues / risks
 
@@ -95,7 +94,8 @@
 - Report delivery by SMS or email (owner, 2083-08-03: QR code on the bill only, for now).
 - A print-format setting. One bill, on A4, letterhead across the top (D-102, D-103).
 - Any maker's badge, version string or support number on a screen behind the login. The sign-in screen is the only place ClinicNP or Infobytes Nepal is named (D-108).
-- *(Superseded for this install, 2083-08-03:)* "Lab result entry / report generation / reference ranges belong to another product" — KAHC needs an in-house laboratory, so it is now in scope. Credit limits, advance balances and party statements move into scope with the accounting work.
+- *(Superseded for this install, 2083-08-03:)* "Lab result entry / report generation / reference ranges belong to another product" — built as the Laboratory module (C-030). Credit limits, advance balances and party statements move into scope with the accounting work.
+- Lab report delivery by SMS or email; referring-doctor commission (owner: typed name only).
 
 ---
 
@@ -279,6 +279,19 @@
 | D-165 | **Custom roles replace the four fixed ones (0022).** A role is a name plus permission keys (`lib/permissions.ts`); `admin` (everything, always) and `doctor` (own consultations only) are fixed ids; Front desk, Pharmacist, Lab technician, Pathologist and Accountant are editable starting points | Owner, 2083-08-03: several users with several access permissions. Permissions are read from the database on every request (`getRequestUser`, cached per render) — the sign-in cookie carries only the user id — so a role change or a switched-off account applies on the next click. |
 | D-166 | **The PIN quick-switch is gone.** Username and password only; to change who is at a screen, sign out and back in. `users.pin_hash` and `users.can_edit_rate` dropped; changing a price at the counter is the `counter.change_rate` permission | Owner, 2083-08-03. |
 | D-167 | **The product is ClinicNP whatever is switched on**, and there is a third module, Laboratory (`company.module_lab`, 0023). Patients belong to Clinic **or** Laboratory (`PATIENT_MODULES`, `requireAnyModule`) | Owner, 2083-08-03. Retires D-025's derived "Faarma". |
+| D-168 | **The lab report opens from a short public link on the bill** (`/r/<10 characters>`, `lab-token.ts`), with no sign-in and no phone check, and only once at least one test is approved **and the bill owes nothing** | Owner, 2083-08-03. An explicit exception to Rules §1.13: the code is unguessable (57^10), printed only on the patient's own bill, rate-limited per address (`LAB_REPORT_VIEW`), never indexed, and every opening is logged in `lab_report_views` without names. The counter mints the code so an offline bill still prints its QR; the server keeps it if well-formed and unused. |
+| D-169 | **A lab order is one per bill**, opened inside `ingestBill`'s transaction; profiles expand to one row per test, one sample per sample type, one result per test. Order status is always re-derived from samples and results (`deriveOrderStatus`) | Keeps the bill and the order landing together or not at all, and keeps a stored status from ever saying something untrue. |
+| D-170 | **Lab tests and profiles own a row in `services`**; their price lives there. Ranges and flags are copied onto each value when entered, resolved for the patient's sex and age (`lab-flags.ts` overrides) | The counter, dues, returns and reports needed nothing new; a report always shows the range in force when it was validated. The earlier product stored sex/age ranges but never applied them. |
+| D-171 | **Report letterhead and signatures are small data URLs in the database**, like `company.logo_url` | They print on every report, so they are not secrets, and the patient's public page needs no file route. Patient files still go only to the private store (Rules §1.13). |
+| D-172 | **Libraries added: `qrcode`** (QR on bill and report; lazy-loaded at the counter), **`bwip-js`** (Code 128 on labels and reports), **`pagedjs`** (paginated report with letterhead, signatures and page numbers on every page; the plain table version shows if it fails) | Rules §3 asks for a line each. A QR encoder and a paginator are well over the "write it by hand" threshold. |
+| D-173 | **Send-out tracking moved from `/lab` to `/sendout`** ("Sent out" in the menu, `lab.sendout`); in-house work is `/lab` (Lab module) | KAHC runs its own laboratory and also sends some samples out (owner, 2083-08-03). |
+| D-174 | **The books are read from the documents, not posted into a second table.** `repos/ledger.ts` turns bills, returns, dues payments, purchases, returns, payments, stock out and opening stock into journal lines when a report asks; only what has no screen is a hand-entered voucher (0025) | They cannot drift from the bill, the Dues list or a supplier's page, the counter and `ingestBill` did not change (Rules §0.2), and Rules §2.11 holds: what a bill owes comes from `OWED_AT_SALE_SQL` here too. The cost is that a change to a posting rule changes the past, which is why `tests/accounting.integration.test.ts` pins every rule. |
+| D-175 | **Vouchers are never edited or deleted.** Cancelling reverses on the cancel day and keeps the original; a cancelled bill is reversed on the day it was cancelled (`bills.cancelled_at`, set by `cancelBill`); a voided dues payment on the day it was voided | The day book for a closed day never changes after the fact. |
+| D-176 | **Each party has one home.** Vouchers may name doctors and other parties only; patients settle on the Dues list, suppliers and laboratories on their own pages (openings excepted, and those openings also show on those pages via `repos/party-openings.ts`) | Two places to pay a supplier is two ledgers that disagree. |
+| D-177 | **Aging from the bill date** (owner), 0–30 … over 120. Patients bill by bill from `lib/dues.ts`; everyone else oldest first | The owner chose bill date over due date. |
+| D-178 | **Bank payments name a bank.** `supplier_payments.account_id` and `lab_partner_payments.account_id` (0025); without one they land on "Bank (account not chosen)" and Checks says so. QR collections sit in their own account until moved to the bank | Fonepay and similar wallets settle into the bank later; the books follow the money. |
+| D-179 | **The lab partner balance counts refunds**, as the statement and Payables already did; `partnerBalancePaisa` (Settings → Outside laboratories) used to count gross | Three screens gave two answers. |
+| D-180 | **A restore from a copy taken before 0025 keeps the chart of accounts** (`restoreAll`) | Such a copy has no accounts to put back, and an empty chart would break every voucher and payment. |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---
@@ -896,3 +909,52 @@ Lab technician: menus, refused pages land on /no-access, `/api/bills` 403,
 custom role saved, own account cannot be switched off). 0022/0023 applied to KAHC.
 **Next:** lab roles still hold `dashboard.view`, which shows takings — change
 their defaults when the lab pages exist.
+
+### C-030  ·  2083-08-03  ·  The Laboratory module
+
+Built from the earlier laboratory product's tabs, in ClinicNP's own style, raw
+SQL, one database: 0024 (catalogue, orders, samples, results, versions,
+approvals, dispatches, views, signatures, report settings). Bill → order in
+`ingestBill`; cancel and full refund cancel the tests. Pages: Lab → Sample
+collection (labels), Result entry (live flags against the patient's range),
+Approval (comments, up to 3 signatures, send back), Reports (paged A4 print),
+Dispatch, order detail (reopen, referred by, urgency, link views), Tests,
+Profiles; Settings → Laboratory, Lab report. Counter mints the report code and
+prints the QR; bill reprint carries it; `/r/<code>` is public (D-168), fits a
+phone. Lab roles start on their queues, not the dashboard. Patients follow
+Clinic or Lab. Bill detail, patients, visits, stock pages now check permissions
+(some only checked sign-in). Reference folder deleted. D-168 – D-173.
+**Verified:** typecheck; 50 files / 573 tests (new `tests/lab.integration.test.ts`,
+11 tests); `pnpm build`; Chromium on a scratch DB, 29 checks end to end
+(set-up screens, bill through `/api/bills`, label barcode, female range and
+L flag, link closed before approval, approval with signature, paged report
+"Page 1 of 1", patient link without sign-in, hand-over, every lab page 200).
+Found and fixed on the way: paged.js crashing when two layouts overlapped;
+"Collected" meaning both a filter and a button; the signature upload saying
+"header". 0024 applied to KAHC.
+
+### C-031  ·  2083-08-03  ·  Accounting
+
+Bootstrapped KAHC (owner: Admin `admin` / `admin123` for testing; PAN left as a
+placeholder). Built full double-entry accounts (prod-docs/Accounting.md):
+0025 (accounts with fixed `sys:` ids, other parties, vouchers, voucher lines,
+bank on supplier/lab payments, `bills.cancelled_at`, Accountant gets
+`accounts.*`). `repos/ledger.ts` reads every document as journal lines;
+`repos/ledger-reports.ts` builds trial balance, P&L by part, balance sheet,
+aging and checks; `repos/accounts.ts` keeps the chart, parties and vouchers;
+`lib/accounting.ts` holds the voucher rules and aging (pure). Screens under
+`/accounts` (Overview, Vouchers, Day book, Parties, Aging, Trial balance,
+Profit and loss, Balance sheet, Chart of accounts, Checks, ledgers,
+statements), printable, Excel export at `/api/accounts-export/*`. Supplier and
+laboratory payment forms ask which bank. Supplier ledger, lab statement and
+Payables include openings. Backup and reset know the new tables. D-174 – D-180.
+**Verified:** typecheck; 52 files / 594 tests (new `tests/accounting.test.ts`,
+14, and `tests/accounting.integration.test.ts`, 7 — every document balances,
+the book balances, control accounts equal the Dues list, supplier page,
+laboratory balance and shelf value); sweep (only the old .pitch-build lines);
+`pnpm build`; Chromium on a scratch DB, 35 checks: every Accounts page 200,
+bank and party added, payment numbered and cancelled, transfer, opening with
+its balancing line, supplier page shows the opening, bank picker, aging both
+ways, P&L by part, balance sheet and trial balance agree, Excel download, phone
+width. Found and fixed on the way: "The clinic owes" tile showed a minus.
+0025 applied to KAHC.

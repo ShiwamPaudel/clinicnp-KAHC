@@ -32,7 +32,7 @@ export async function GET() {
   // counter's snapshot. What comes back depends on the modules — no medicines
   // without the pharmacy, no services without the clinic.
   const modules = await getModules();
-  if (!modules.pharmacy && !modules.clinic) {
+  if (!modules.pharmacy && !modules.clinic && !modules.lab) {
     return NextResponse.json({
       version: null,
       items: [],
@@ -43,7 +43,7 @@ export async function GET() {
     });
   }
 
-  const snapshot = await catalogSnapshot(modules.clinic);
+  const snapshot = await catalogSnapshot(modules.clinic || modules.lab);
   if (!modules.pharmacy) snapshot.items = [];
   return NextResponse.json(snapshot);
 }

@@ -1233,3 +1233,55 @@ export async function orderIdForBill(billId: string): Promise<string | null> {
   const res = await db().execute({ sql: "SELECT id FROM lab_orders WHERE bill_id = ?", args: [billId] });
   return (res.rows[0]?.id as string | undefined) ?? null;
 }
+
+/**
+ * A refunded lab line takes its tests off the lab's lists: once a service line
+ * is refunded in full, its tests that are not yet approved are cancelled, and
+ * a sample nothing live depends on any more is no longer asked for. Called
+ * inside createSaleReturn's transaction. Approved results stay — the work was
+ * done, and the report already exists.
+ */
+export async function cancelLabTestsForRefundedLines(tx: Transaction, lineIds: string[]): Promise<void> {
+  if (lineIds.length === 0) return;
+  const marks = lineIds.map(() => "?").join(",");
+  const full = await tx.execute({
+    sql: `SELECT sl.id FROM bill_service_lines sl
+           WHERE sl.id IN (${marks})
+             AND sl.qty <= IFNULL((SELECT SUM(r.qty) FROM sale_return_service_lines r WHERE r.bill_service_line_id = sl.id), 0)`,
+    args: lineIds,
+  });
+  const refunded = full.rows.map((r) => r.id as string);
+  if (refunded.length === 0) return;
+  const now = nowIso();
+  const rMarks = refunded.map(() => "?").join(",");
+  const orders = await tx.execute({
+    sql: `SELECT DISTINCT order_id FROM lab_order_tests WHERE bill_service_line_id IN (${rMarks})`,
+    args: refunded,
+  });
+  await tx.execute({
+    sql: `UPDATE lab_results SET status = 'cancelled', updated_at = ?
+           WHERE status NOT IN ('approved','dispatched','cancelled')
+             AND order_test_id IN (SELECT id FROM lab_order_tests WHERE bill_service_line_id IN (${rMarks}))`,
+    args: [now, ...refunded],
+  });
+  await tx.execute({
+    sql: `UPDATE lab_order_tests SET status = 'cancelled', updated_at = ?
+           WHERE bill_service_line_id IN (${rMarks}) AND status NOT IN ('approved')`,
+    args: [now, ...refunded],
+  });
+  for (const o of orders.rows) {
+    const orderId = o.order_id as string;
+    await tx.execute({
+      sql: `UPDATE lab_samples SET status = 'cancelled', updated_at = ?
+             WHERE order_id = ? AND status <> 'collected'
+               AND NOT EXISTS (SELECT 1 FROM lab_results r WHERE r.sample_id = lab_samples.id AND r.status <> 'cancelled')`,
+      args: [now, orderId],
+    });
+    const [s, r] = await Promise.all([
+      tx.execute({ sql: "SELECT status FROM lab_samples WHERE order_id = ? AND status <> 'cancelled'", args: [orderId] }),
+      tx.execute({ sql: "SELECT status FROM lab_results WHERE order_id = ?", args: [orderId] }),
+    ]);
+    const status = deriveOrderStatus(s.rows.map((x) => x.status as string), r.rows.map((x) => x.status as string));
+    await tx.execute({ sql: "UPDATE lab_orders SET status = ?, updated_at = ? WHERE id = ?", args: [status, now, orderId] });
+  }
+}

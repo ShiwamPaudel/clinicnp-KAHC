@@ -54,6 +54,16 @@ export const RESTORE: RateLimitPolicy = {
   windowSeconds: 3600,
 };
 
+/**
+ * Opening a lab report from the QR on a bill. Generous for a family checking
+ * a few times, hopeless for anybody trying codes until one works.
+ */
+export const LAB_REPORT_VIEW: RateLimitPolicy = {
+  name: "lab-report",
+  limit: 30,
+  windowSeconds: 600,
+};
+
 /** Reads the caller's IP from the usual proxy headers. */
 export function clientIp(req: Request): string {
   const fwd = req.headers.get("x-forwarded-for");

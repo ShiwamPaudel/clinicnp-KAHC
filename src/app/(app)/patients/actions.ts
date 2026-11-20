@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { assertPermission, can, NotAuthorizedError } from "@/lib/session";
-import { requireModule, ModuleDisabledError } from "@/lib/modules";
+import { requireAnyModule, PATIENT_MODULES, ModuleDisabledError } from "@/lib/modules";
 import {
   createPatient,
   updatePatient,
@@ -47,7 +47,7 @@ function handle(err: unknown): ActionResult {
 /** Everyone who works the counter may register a patient; an Accountant can't. */
 async function requireClinicWriter() {
   const user = await assertPermission("patients.manage");
-  await requireModule("clinic");
+  await requireAnyModule(PATIENT_MODULES);
   return user;
 }
 
@@ -192,7 +192,7 @@ export async function setPatientActiveAction(
 ): Promise<ActionResult> {
   try {
     const user = await assertPermission("patients.merge");
-    await requireModule("clinic");
+    await requireAnyModule(PATIENT_MODULES);
     await setPatientActive(id, active);
     await recordAudit(user.id, "patient.deactivated", { patientId: id, active });
     revalidatePath(`/patients/${id}`);
@@ -208,7 +208,7 @@ export async function mergePatientsAction(
 ): Promise<ActionResult> {
   try {
     const user = await assertPermission("patients.merge");
-    await requireModule("clinic");
+    await requireAnyModule(PATIENT_MODULES);
     await mergePatients(keepId, mergeId, user.id);
     revalidatePath("/patients");
     revalidatePath(`/patients/${keepId}`);
@@ -287,7 +287,7 @@ export async function cancelVisitAction(
 ): Promise<ActionResult> {
   try {
     const user = await assertPermission("patients.merge");
-    await requireModule("clinic");
+    await requireAnyModule(PATIENT_MODULES);
     if (!reason.trim()) return fail("Say why this visit is being cancelled.");
     await cancelVisit(id, reason, user.id);
     revalidatePath(`/visits/${id}`);
@@ -306,7 +306,7 @@ export async function deleteAttachmentAction(
 ): Promise<ActionResult> {
   try {
     const user = await assertPermission("patients.merge");
-    await requireModule("clinic");
+    await requireAnyModule(PATIENT_MODULES);
     await softDeleteAttachment(id, user.id);
     revalidatePath(`/patients/${patientId}`);
     revalidatePath("/files/pending");

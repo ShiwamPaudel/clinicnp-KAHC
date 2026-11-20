@@ -22,12 +22,33 @@ import {
   ImageProblem,
 } from "@/lib/logo-image";
 
+export interface ImageCopy {
+  title: string;
+  help: string;
+  choose: string;
+  set: string;
+  savedWith: string;
+  alt: string;
+}
+
+const BILL_HEADER: ImageCopy = {
+  title: "Bill header image",
+  help: "Printed across the top of every bill, above the invoice details. Use your letterhead band — the whole strip, name and logo together. PNG or JPG, wide rather than tall.",
+  choose: "Choose a header image",
+  set: "Bill header set. Save your details to keep it.",
+  savedWith: "It is resized here, and saved with your company details",
+  alt: "The header as it will print at the top of a bill",
+};
+
 export function LogoUpload({
   value,
   onChange,
+  copy = BILL_HEADER,
 }: {
   value: string | null;
   onChange: (dataUrl: string | null) => void;
+  /** the words, when this is not the bill header (a report footer, a signature) */
+  copy?: ImageCopy;
 }) {
   const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -39,14 +60,14 @@ export function LogoUpload({
     try {
       const res = await downscaleToDataUrl(file);
       onChange(res.dataUrl);
-      toast.success("Bill header set. Save your details to keep it.");
+      toast.success(copy.set);
     } catch (err) {
       // Only wording written for this screen is repeated back; anything the
       // browser threw on its own is not something to put in front of anybody.
       toast.error(
         err instanceof ImageProblem
           ? err.message
-          : "That image could not be used. Try a PNG or JPG of the header band.",
+          : "That image could not be used. Try a PNG or JPG.",
       );
     } finally {
       setBusy(false);
@@ -58,14 +79,8 @@ export function LogoUpload({
   return (
     <div className="flex flex-col gap-3 border-t border-line pt-4">
       <div>
-        <div className="text-[14px] font-medium text-sage-900">
-          Bill header image
-        </div>
-        <p className="mt-0.5 max-w-[560px] text-[12px] text-sage-500">
-          Printed across the top of every bill, above the invoice details. Use
-          your letterhead band — the whole strip, name and logo together. PNG or
-          JPG, wide rather than tall.
-        </p>
+        <div className="text-[14px] font-medium text-sage-900">{copy.title}</div>
+        <p className="mt-0.5 max-w-[560px] text-[12px] text-sage-500">{copy.help}</p>
       </div>
 
       {value ? (
@@ -74,7 +89,7 @@ export function LogoUpload({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={value}
-              alt="The header as it will print at the top of a bill"
+              alt={copy.alt}
               className="mx-auto block max-h-[120px] w-full object-contain"
             />
           </div>
@@ -111,10 +126,10 @@ export function LogoUpload({
             <ImagePlus className="h-5 w-5" />
           )}
           <span className="text-[13px] font-medium">
-            {busy ? "Preparing…" : "Choose a header image"}
+            {busy ? "Preparing…" : copy.choose}
           </span>
           <span className="text-[11px]">
-            It is resized here, and saved with your company details
+            {copy.savedWith}
           </span>
         </button>
       )}
@@ -124,7 +139,7 @@ export function LogoUpload({
         type="file"
         accept={ACCEPTED_TYPES.join(",")}
         className="hidden"
-        aria-label="Choose a bill header image"
+        aria-label={copy.choose}
         onChange={(e) => void onFile(e.target.files?.[0])}
       />
     </div>

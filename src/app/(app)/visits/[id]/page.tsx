@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { can, requireUser } from "@/lib/session";
+import { can, requirePermission } from "@/lib/session";
 import { requireModulePage } from "@/lib/modules";
 import { getVisitWithPatient } from "@/lib/repos/visits";
 import { getCompany } from "@/lib/repos/company";
@@ -20,7 +20,7 @@ export default async function VisitDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const user = await requireUser();
+  const user = await requirePermission("visits.view");
   await requireModulePage("clinic");
 
   const { id } = await params;

@@ -5,6 +5,7 @@ import "server-only";
 import { ulid } from "ulid";
 import { db } from "@/lib/db";
 import type { Row } from "@/lib/db";
+import { openingMoves } from "@/lib/repos/party-openings";
 
 export interface Supplier {
   id: string;
@@ -108,11 +109,13 @@ export async function recordSupplierPayment(input: {
   method: string;
   note: string;
   userId: string;
+  /** the bank it was paid from (0025); empty for cash */
+  accountId?: string | null;
 }): Promise<void> {
   await db().execute({
     sql: `INSERT INTO supplier_payments
-            (id, supplier_id, date_ad, date_bs, amount_paisa, method, note, user_id, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (id, supplier_id, date_ad, date_bs, amount_paisa, method, note, user_id, created_at, account_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       ulid(),
       input.supplierId,
@@ -123,6 +126,7 @@ export async function recordSupplierPayment(input: {
       input.note,
       input.userId,
       new Date().toISOString(),
+      input.accountId ?? null,
     ],
   });
 }
@@ -130,7 +134,7 @@ export async function recordSupplierPayment(input: {
 export interface LedgerEntry {
   dateBs: string;
   dateAd: string;
-  kind: "purchase" | "purchase_return" | "payment";
+  kind: "purchase" | "purchase_return" | "payment" | "opening";
   description: string;
   /** +increases what we owe (purchase); -reduces (return, payment) */
   deltaPaisa: number;
@@ -192,6 +196,11 @@ export async function supplierLedger(supplierId: string): Promise<{
       description: note ? `Payment (${p.method}) · ${note}` : `Payment (${p.method})`,
       deltaPaisa: -Number(p.amount_paisa),
     });
+  }
+
+  // What was already owed when the books started here (Accounts → Opening).
+  for (const o of await openingMoves("supplier", supplierId)) {
+    rows.push({ dateAd: o.dateAd, dateBs: o.dateBs, kind: "opening", description: o.description, deltaPaisa: o.deltaPaisa });
   }
 
   rows.sort((a, b) => (a.dateAd < b.dateAd ? -1 : a.dateAd > b.dateAd ? 1 : 0));

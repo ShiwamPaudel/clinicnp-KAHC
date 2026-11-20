@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { can, requireUser } from "@/lib/session";
+import { headers } from "next/headers";
+import { can, requirePermission } from "@/lib/session";
+import { reportTokenForBill, orderIdForBill } from "@/lib/repos/lab-orders";
+import { qrDataUrl } from "@/lib/lab-codes";
+import { reportUrl } from "@/lib/lab-token";
+import { originOf } from "@/lib/lab-report-view";
 import { getBillDetail } from "@/lib/repos/bills";
 import { getBillDues } from "@/lib/repos/dues";
 import { getCompany } from "@/lib/repos/company";
@@ -27,7 +32,7 @@ export default async function BillDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const user = await requireUser();
+  const user = await requirePermission("bills.view");
   const { id } = await params;
   const bill = await getBillDetail(id);
   if (!bill) notFound();
@@ -37,6 +42,11 @@ export default async function BillDetailPage({
     name: bill.registeredName || bill.patientName,
     patientNo: bill.patientNo,
   };
+
+  // The reprint carries the same lab-report QR the counter printed.
+  const [labToken, labOrderId] = await Promise.all([reportTokenForBill(id), orderIdForBill(id)]);
+  const labUrl = labToken ? reportUrl(originOf(await headers()), labToken) : null;
+  const labReport = labUrl ? { url: labUrl, qrDataUrl: await qrDataUrl(labUrl, 140) } : null;
 
   const invoiceLabel =
     bill.invoiceNo != null
@@ -107,6 +117,7 @@ export default async function BillDetailPage({
     paidNowMethod: dues?.paidNowMethod ?? undefined,
     duePaisa: dues?.duePaisa,
     userName: bill.userName,
+    labReport,
   };
 
   return (
@@ -117,6 +128,11 @@ export default async function BillDetailPage({
           <div className="flex items-center gap-3">
             <span className="text-[14px] text-sage-500">{bill.dateBs}</span>
             {bill.status === "cancelled" && <Badge tone="danger">Cancelled</Badge>}
+            {labOrderId && can(user, ["lab.samples", "lab.results", "lab.approve", "lab.reports", "lab.dispatch"]) && (
+              <Link href={`/lab/orders/${labOrderId}`} className="text-[14px] text-sage-700 underline-offset-2 hover:underline">
+                Lab order
+              </Link>
+            )}
             {bill.status !== "cancelled" &&
               dues &&
               (dues.balancePaisa > 0 ? (

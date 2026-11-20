@@ -42,7 +42,7 @@ export async function POST(req: Request) {
   }
 
   const modules = await getModules();
-  if (!modules.clinic) return NextResponse.json({ ok: false }, { status: 404 });
+  if (!modules.clinic && !modules.lab) return NextResponse.json({ ok: false }, { status: 404 });
 
   const reqUser = await getRequestUser();
   if (!reqUser || !can(reqUser, ["counter.use", "patients.manage"])) {

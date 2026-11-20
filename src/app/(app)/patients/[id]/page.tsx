@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Pencil, Stethoscope, Receipt, GitMerge } from "lucide-react";
-import { can, requireUser } from "@/lib/session";
-import { requireModulePage } from "@/lib/modules";
+import { can, requirePermission } from "@/lib/session";
+import { requireAnyModulePage, PATIENT_MODULES } from "@/lib/modules";
 import { getPatient } from "@/lib/repos/patients";
 import { visitsForPatient } from "@/lib/repos/visits";
 import { attachmentsForPatient } from "@/lib/repos/attachments";
@@ -25,8 +25,8 @@ export default async function PatientCardPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const user = await requireUser();
-  await requireModulePage("clinic");
+  const user = await requirePermission("patients.view");
+  await requireAnyModulePage(PATIENT_MODULES);
 
   const { id } = await params;
   const patient = await getPatient(id);

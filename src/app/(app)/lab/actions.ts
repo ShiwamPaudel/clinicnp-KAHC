@@ -340,3 +340,57 @@ export async function saveSampleTypeAction(input: unknown): Promise<LabActionRes
     return handle(err);
   }
 }
+
+// ---- the printed report ----
+
+const dataUrl = z
+  .string()
+  .max(300_000, "That image is too large — try a smaller one")
+  .refine((s) => s === "" || /^data:image\/(png|jpeg|webp);base64,/.test(s), "Use a PNG, JPG or WEBP image");
+
+const labSettingsSchema = z.object({
+  headerImage: dataUrl,
+  footerImage: dataUrl,
+  marginTopMm: z.number().int().min(0).max(120),
+  marginBottomMm: z.number().int().min(0).max(120),
+  marginXMm: z.number().int().min(0).max(40),
+});
+
+export async function saveLabSettingsAction(input: unknown): Promise<LabActionResult> {
+  try {
+    const user = await gate("lab.catalog");
+    const parsed = labSettingsSchema.safeParse(input);
+    if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Please check the details.");
+    const { saveLabSettings } = await import("@/lib/repos/lab-report");
+    await saveLabSettings(parsed.data);
+    await recordAudit(user.id, "lab.report_settings", {});
+    revalidatePath("/settings/lab-report");
+    return { ok: true };
+  } catch (err) {
+    return handle(err);
+  }
+}
+
+const signatorySchema = z.object({
+  id: z.string().optional(),
+  name: z.string().trim().min(2, "Enter the name as it should print").max(120),
+  description: z.string().trim().max(200),
+  image: dataUrl,
+  sortOrder: z.number().int().min(0).max(999),
+  active: z.boolean(),
+});
+
+export async function saveSignatoryAction(input: unknown): Promise<LabActionResult> {
+  try {
+    const user = await gate("lab.catalog");
+    const parsed = signatorySchema.safeParse(input);
+    if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Please check the details.");
+    const { saveSignatory } = await import("@/lib/repos/lab-report");
+    const id = await saveSignatory(parsed.data);
+    await recordAudit(user.id, parsed.data.id ? "lab.signature_changed" : "lab.signature_added", { signatoryId: id, name: parsed.data.name });
+    revalidatePath("/settings/lab-report");
+    return { ok: true, id };
+  } catch (err) {
+    return handle(err);
+  }
+}

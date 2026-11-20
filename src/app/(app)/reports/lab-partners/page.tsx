@@ -11,6 +11,7 @@ import { ReportFrame } from "@/components/app/report-frame";
 import { Table, THead, TR, TH, TD } from "@/components/ui/table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PartnerPaymentForm } from "@/components/clinic/partner-payment-form";
+import { listBankAccounts } from "@/lib/repos/accounts";
 import { resolveFiscalYear } from "@/components/app/fiscal-year-bar";
 import { cn } from "@/lib/cn";
 
@@ -126,6 +127,7 @@ export default async function LabPartnersReportPage({
               </span>
             ) : (
               <PartnerPaymentForm
+                banks={await listBankAccounts()}
                 partnerId={statement.partnerId}
                 partnerName={statement.partnerName}
                 owedPaisa={statement.closingPaisa}

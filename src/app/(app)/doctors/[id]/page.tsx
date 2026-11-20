@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { can, requireUser } from "@/lib/session";
+import { can, requirePermission } from "@/lib/session";
 import { requireModulePage } from "@/lib/modules";
 import { getDoctor } from "@/lib/repos/doctors";
 import {
@@ -38,7 +38,7 @@ export default async function DoctorDayPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ on?: string }>;
 }) {
-  const user = await requireUser();
+  const user = await requirePermission(["visits.view", "appointments.manage"]);
   await requireModulePage("clinic");
 
   const { id } = await params;

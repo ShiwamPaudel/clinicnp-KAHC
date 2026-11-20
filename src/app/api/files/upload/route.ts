@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { ulid } from "ulid";
 import { auth } from "@/auth";
-import { requireModule, ModuleDisabledError } from "@/lib/modules";
+import { requireAnyModule, PATIENT_MODULES, ModuleDisabledError } from "@/lib/modules";
 import { can, getRequestUser } from "@/lib/session";
 import { putFile } from "@/lib/file-store";
 import { recordAttachment } from "@/lib/repos/attachments";
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    await requireModule("clinic");
+    await requireAnyModule(PATIENT_MODULES);
   } catch (err) {
     if (err instanceof ModuleDisabledError) {
       return NextResponse.json({ ok: false }, { status: 404 });

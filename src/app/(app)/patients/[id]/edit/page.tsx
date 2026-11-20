@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { requirePermission } from "@/lib/session";
-import { requireModulePage } from "@/lib/modules";
+import { requireAnyModulePage, PATIENT_MODULES } from "@/lib/modules";
 import { getPatient } from "@/lib/repos/patients";
 import { adToIso } from "@/lib/bs";
 import { PageShell } from "@/components/app/page-shell";
@@ -14,7 +14,7 @@ export default async function EditPatientPage({
   params: Promise<{ id: string }>;
 }) {
   await requirePermission("patients.manage");
-  await requireModulePage("clinic");
+  await requireAnyModulePage(PATIENT_MODULES);
 
   const { id } = await params;
   const p = await getPatient(id);

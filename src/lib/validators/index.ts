@@ -84,6 +84,8 @@ export const supplierPaymentSchema = z.object({
   amountPaisa: z.number().int().min(1, "Enter an amount"),
   method: z.string().min(1),
   note: z.string(),
+  /** the bank it was paid from, for a bank or cheque payment (0025) */
+  accountId: z.string().nullable().optional(),
 });
 
 export const purchaseLineSchema = z
@@ -440,4 +442,56 @@ export const labPartnerPaymentSchema = z.object({
   amountPaisa: z.number().int().min(1, "Enter an amount"),
   method: z.enum(["cash", "bank", "cheque", "qr", "adjustment"]),
   note: z.string(),
+  /** the bank it was paid from, for a bank or cheque payment (0025) */
+  accountId: z.string().nullable().optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Accounts (0025)
+// ---------------------------------------------------------------------------
+
+export const accountSchema = z.object({
+  id: z.string().optional(),
+  code: z.string().trim().min(1, "Give the account a code").max(12),
+  name: z.string().trim().min(1, "Give the account a name").max(80),
+  grp: z.string().min(1, "Choose where the account belongs"),
+  isBank: z.boolean(),
+  segment: z.enum(["pharmacy", "clinic", "lab"]).nullable(),
+  note: z.string().max(300),
+  active: z.boolean(),
+});
+
+export const partySchema = z.object({
+  id: z.string().optional(),
+  name: z.string().trim().min(1, "Enter the party's name").max(120),
+  side: z.enum(["debtor", "creditor"]),
+  category: z.string(),
+  panNo: z.string().max(20),
+  phone: z.string().max(40),
+  address: z.string().max(200),
+  note: z.string().max(300),
+  active: z.boolean(),
+});
+
+const voucherLineSchema = z.object({
+  accountId: z.string(),
+  partyType: z.enum(["supplier", "lab_partner", "doctor", "party"]).nullable(),
+  partyId: z.string().nullable(),
+  debitPaisa: z.number().int().min(0),
+  creditPaisa: z.number().int().min(0),
+  refNo: z.string().max(40).optional(),
+  refDateBs: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  note: z.string().max(200).optional(),
+});
+
+export const voucherSchema = z.object({
+  type: z.enum(["payment", "receipt", "contra", "journal", "opening"]),
+  dateBs: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date"),
+  narration: z.string().max(300),
+  lines: z.array(voucherLineSchema).min(1).max(60),
+});
+
+export const cancelVoucherSchema = z.object({
+  id: z.string().min(1),
+  reason: z.string().trim().min(1, "Say why it is being cancelled").max(200),
 });

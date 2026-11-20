@@ -281,3 +281,21 @@ describe("dues hold the patient's link", () => {
     expect((await resolvePublicReport("ZzYyXxWw98")).status).toBe("invalid");
   });
 });
+
+describe("a refunded lab test", () => {
+  it("leaves the lab's lists, and its tube is no longer asked for", async () => {
+    const { listOrders, getOrder, listSamples } = await import("@/lib/repos/lab-orders");
+    const { createSaleReturn } = await import("@/lib/repos/sale-returns");
+    const { db } = await import("@/lib/db");
+    const res = await bill({ patient: patientId, services: [{ id: sugarServiceId, rate: 10000 }], token: "RfNdTst234" });
+    const line = (await db().execute({ sql: "SELECT id FROM bill_service_lines WHERE bill_id = ?", args: [res.id] })).rows[0]!.id as string;
+    const order = (await listOrders("all")).find((o) => o.id && o.testNames === "Blood sugar (fasting)" && o.status === "sample_pending")!;
+    await createSaleReturn({
+      billId: res.id, dateAd: TODAY_AD, dateBs: TODAY_BS, lines: [],
+      serviceLines: [{ billServiceLineId: line, qty: 1, amountPaisa: 10000 }], userId: "u1",
+    });
+    expect((await getOrder(order.id))!.status).toBe("cancelled");
+    const samples = await listSamples({ status: "waiting" });
+    expect(samples.some((s) => s.orderId === order.id)).toBe(false);
+  });
+});

@@ -8,6 +8,7 @@
  *
  * Day and sales figures adjust because the reports net returns out.
  */
+import { cancelLabTestsForRefundedLines } from "@/lib/repos/lab-orders";
 import "server-only";
 import {
   assertBillYearOpen,
@@ -166,6 +167,10 @@ export async function createSaleReturn(input: SaleReturnInput): Promise<{
         args: [ulid(), returnId, line.billServiceLineId, line.qty, line.amountPaisa],
       });
     }
+    await cancelLabTestsForRefundedLines(
+      tx,
+      (input.serviceLines ?? []).filter((l) => l.qty > 0).map((l) => l.billServiceLineId),
+    );
 
     for (const line of input.lines) {
       if (line.returnBaseQty <= 0) continue;
