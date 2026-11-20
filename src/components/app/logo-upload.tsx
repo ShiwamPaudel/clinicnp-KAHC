@@ -20,6 +20,7 @@ import {
   downscaleToDataUrl,
   ACCEPTED_TYPES,
   ImageProblem,
+  type DownscaleOptions,
 } from "@/lib/logo-image";
 
 export interface ImageCopy {
@@ -40,15 +41,33 @@ const BILL_HEADER: ImageCopy = {
   alt: "The header as it will print at the top of a bill",
 };
 
+export const SIGN_IN_LOGO: ImageCopy = {
+  title: "Logo",
+  help: "Shown on the sign-in screen. Not printed.",
+  choose: "Choose a logo",
+  set: "Logo set. Save your details to keep it.",
+  savedWith: "PNG, JPG or WEBP",
+  alt: "The logo as it shows on the sign-in screen",
+};
+
+/** A logo is shown on screen, so it keeps a clear background and stays small. */
+export const SIGN_IN_LOGO_RESIZE: DownscaleOptions = {
+  maxWidth: 800,
+  keepTransparency: true,
+};
+
 export function LogoUpload({
   value,
   onChange,
   copy = BILL_HEADER,
+  resize,
 }: {
   value: string | null;
   onChange: (dataUrl: string | null) => void;
   /** the words, when this is not the bill header (a report footer, a signature) */
   copy?: ImageCopy;
+  /** how the image is shrunk before it is kept; the bill header's by default */
+  resize?: DownscaleOptions;
 }) {
   const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -58,7 +77,7 @@ export function LogoUpload({
     if (!file) return;
     setBusy(true);
     try {
-      const res = await downscaleToDataUrl(file);
+      const res = await downscaleToDataUrl(file, resize);
       onChange(res.dataUrl);
       toast.success(copy.set);
     } catch (err) {

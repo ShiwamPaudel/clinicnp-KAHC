@@ -10,9 +10,9 @@ import { getCompany } from "@/lib/repos/company";
  * The sign-in screen.
  *
  * Two halves: the software on the left, this clinic on the right. Only the
- * clinic's name and letterhead cross to the browser — both are printed on
- * every bill that leaves the shop, so neither is a secret, and nothing else
- * from the company profile is sent to a page anybody can open.
+ * clinic's name and its logo cross to the browser — neither is a secret, and
+ * nothing else from the company profile is sent to a page anybody can open.
+ * The bill header (logo_url) is a different image and is not shown here.
  */
 export default async function LoginPage() {
   // Somebody already signed in goes to their start page. A sign-in whose
@@ -29,7 +29,7 @@ export default async function LoginPage() {
         tagline={appDescriptionFor(modules)}
         modules={modules}
       />
-      <LoginForm clinicName={company.name} clinicLogoUrl={company.logoUrl} />
+      <LoginForm clinicName={company.name} clinicLogoUrl={company.brandLogoUrl} />
     </div>
   );
 }

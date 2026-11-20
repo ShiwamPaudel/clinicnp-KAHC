@@ -7,7 +7,7 @@ import { Input, Field } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
 import { saveCompanyAction } from "@/app/(app)/settings/actions";
-import { LogoUpload } from "@/components/app/logo-upload";
+import { LogoUpload, SIGN_IN_LOGO, SIGN_IN_LOGO_RESIZE } from "@/components/app/logo-upload";
 import type { Company } from "@/lib/repos/company";
 import { strings } from "@/lib/strings";
 
@@ -29,6 +29,7 @@ export function CompanyForm({ initial }: { initial: Company }) {
       minRateIsCost: Boolean(data.minRateIsCost),
       expiryAlertDays: Number(data.expiryAlertDays) as 30 | 60 | 90,
       logoUrl: data.logoUrl || null,
+      brandLogoUrl: data.brandLogoUrl || null,
       rackDisplay: data.rackDisplay ?? "off",
       dateCalendar: data.dateCalendar ?? "bs",
     });
@@ -93,6 +94,13 @@ export function CompanyForm({ initial }: { initial: Company }) {
         <LogoUpload
           value={values.logoUrl ?? null}
           onChange={(v) => setValue("logoUrl", v, { shouldDirty: true })}
+        />
+
+        <LogoUpload
+          value={values.brandLogoUrl ?? null}
+          onChange={(v) => setValue("brandLogoUrl", v, { shouldDirty: true })}
+          copy={SIGN_IN_LOGO}
+          resize={SIGN_IN_LOGO_RESIZE}
         />
 
         <div className="flex flex-col gap-2 border-t border-line pt-3">

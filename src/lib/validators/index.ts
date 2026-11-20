@@ -245,6 +245,7 @@ export const companySchema = z.object({
   vatRegistered: z.boolean(),
   invoiceFooter: z.string(),
   logoUrl: z.string().nullable(),
+  brandLogoUrl: z.string().nullable().default(null),
   // Kept only so an older stored value still parses. There is one bill
   // format now and nothing chooses between them (D-090).
   printFormat: z.enum(["thermal", "a5", "a4_half"]).default("a4_half"),

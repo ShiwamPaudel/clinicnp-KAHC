@@ -74,15 +74,15 @@ export function LoginForm({
         {/* Whose counter this is. */}
         <div className="mb-8">
           {clinicLogoUrl ? (
-            <div className="rounded-[10px] border border-line bg-cream-50 p-4">
-              {/* The letterhead is uploaded by the clinic and can be any
-                  proportion, so it is contained rather than cropped. It is a
-                  data URL held in their settings, not a file on disk. */}
+            <div className="rounded-[10px] border border-line bg-white p-4">
+              {/* The clinic's logo from Settings → Company (brand_logo_url),
+                  not the bill header. Any proportion, so contained, not
+                  cropped. A data URL held in their settings. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={clinicLogoUrl}
-                alt={clinicName || "Clinic letterhead"}
-                className="mx-auto max-h-[86px] w-full object-contain"
+                alt={clinicName || "Clinic logo"}
+                className="mx-auto max-h-[96px] w-full object-contain"
               />
             </div>
           ) : clinicName ? (

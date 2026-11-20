@@ -293,6 +293,7 @@
 | D-178 | **Bank payments name a bank.** `supplier_payments.account_id` and `lab_partner_payments.account_id` (0025); without one they land on "Bank (account not chosen)" and Checks says so. QR collections sit in their own account until moved to the bank | Fonepay and similar wallets settle into the bank later; the books follow the money. |
 | D-179 | **The lab partner balance counts refunds**, as the statement and Payables already did; `partnerBalancePaisa` (Settings → Outside laboratories) used to count gross | Three screens gave two answers. |
 | D-180 | **A restore from a copy taken before 0025 keeps the chart of accounts** (`restoreAll`) | Such a copy has no accounts to put back, and an empty chart would break every voucher and payment. |
+| D-181 | **The sign-in logo is its own image** (`company.brand_logo_url`, 0026; Settings → Company → Logo). The bill header (`logo_url`) is only printed. The logo keeps a clear background (PNG/WEBP, max 800px). With no logo, the sign-in screen shows the clinic name | Owner, 2083-08-04: a letterhead band and a logo are different things. |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---

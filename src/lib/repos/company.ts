@@ -26,7 +26,10 @@ export interface Company {
   ddaNo: string;
   vatRegistered: boolean;
   invoiceFooter: string;
+  /** The bill header: the letterhead band printed across the top of every bill. */
   logoUrl: string | null;
+  /** The clinic's logo on its own, for the sign-in screen (0026). Not printed. */
+  brandLogoUrl: string | null;
   printFormat: PrintFormat;
   roundingOn: boolean;
   expiryAlertDays: ExpiryAlertDays;
@@ -45,6 +48,7 @@ const DEFAULTS: Company = {
   vatRegistered: false,
   invoiceFooter: "Get well soon",
   logoUrl: null,
+  brandLogoUrl: null,
   printFormat: "thermal",
   roundingOn: false,
   expiryAlertDays: 60,
@@ -63,6 +67,7 @@ function mapCompany(r: Row): Company {
     vatRegistered: Number(r.vat_registered) === 1,
     invoiceFooter: r.invoice_footer as string,
     logoUrl: (r.logo_url as string | null) ?? null,
+    brandLogoUrl: (r.brand_logo_url as string | null) ?? null,
     printFormat: r.print_format as PrintFormat,
     roundingOn: Number(r.rounding_on) === 1,
     expiryAlertDays: Number(r.expiry_alert_days) as ExpiryAlertDays,
@@ -83,9 +88,9 @@ export async function saveCompany(c: Company): Promise<void> {
   await db().execute({
     sql: `INSERT INTO company
             (id, name, address, phone, pan_no, dda_no, vat_registered, invoice_footer,
-             logo_url, print_format, rounding_on, expiry_alert_days, min_rate_is_cost,
-             rack_display, date_calendar, updated_at)
-          VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             logo_url, brand_logo_url, print_format, rounding_on, expiry_alert_days,
+             min_rate_is_cost, rack_display, date_calendar, updated_at)
+          VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
             name = excluded.name,
             address = excluded.address,
@@ -95,6 +100,7 @@ export async function saveCompany(c: Company): Promise<void> {
             vat_registered = excluded.vat_registered,
             invoice_footer = excluded.invoice_footer,
             logo_url = excluded.logo_url,
+            brand_logo_url = excluded.brand_logo_url,
             print_format = excluded.print_format,
             rounding_on = excluded.rounding_on,
             expiry_alert_days = excluded.expiry_alert_days,
@@ -111,6 +117,7 @@ export async function saveCompany(c: Company): Promise<void> {
       c.vatRegistered ? 1 : 0,
       c.invoiceFooter,
       c.logoUrl,
+      c.brandLogoUrl,
       c.printFormat,
       c.roundingOn ? 1 : 0,
       c.expiryAlertDays,

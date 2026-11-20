@@ -66,6 +66,7 @@ describe("the company profile", () => {
       vatRegistered: true,
       invoiceFooter: "Get well soon",
       logoUrl: null,
+      brandLogoUrl: null,
       printFormat: "a5",
       roundingOn: true,
       expiryAlertDays: 90,
@@ -119,7 +120,8 @@ describe("the company profile", () => {
       ddaNo: "2",
       vatRegistered: true,
       invoiceFooter: "f",
-      logoUrl: null,
+      logoUrl: "data:image/jpeg;base64,HEADER",
+      brandLogoUrl: "data:image/png;base64,LOGO",
       printFormat: "thermal",
       roundingOn: false,
       expiryAlertDays: 30,
@@ -135,6 +137,9 @@ describe("the company profile", () => {
     expect(c.expiryAlertDays).toBe(30);
     expect(c.invoiceFooter).toBe("f");
     expect(c.dateCalendar).toBe("bs");
+    // The bill header and the sign-in logo are two images, kept apart (0026).
+    expect(c.logoUrl).toBe("data:image/jpeg;base64,HEADER");
+    expect(c.brandLogoUrl).toBe("data:image/png;base64,LOGO");
   });
 });
 

@@ -70,14 +70,30 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
+export interface DownscaleOptions {
+  /** widest the stored image may be, in pixels */
+  maxWidth?: number;
+  /**
+   * Keep a transparent background (PNG, then WEBP) instead of flattening it
+   * onto white as JPEG. For a logo shown on screen; a printed header stays JPEG.
+   */
+  keepTransparency?: boolean;
+}
+
 /**
  * Re-encode an uploaded image to a data URL that fits MAX_BYTES.
  *
- * The canvas is filled white before drawing. A logo with a transparent
- * background would otherwise come out black once encoded as JPEG, and the
- * paper it is printed on is white anyway.
+ * Unless transparency is kept, the canvas is filled white before drawing. A
+ * logo with a transparent background would otherwise come out black once
+ * encoded as JPEG, and the paper it is printed on is white anyway.
  */
-export async function downscaleToDataUrl(file: File): Promise<DownscaleResult> {
+export async function downscaleToDataUrl(
+  file: File,
+  options: DownscaleOptions = {},
+): Promise<DownscaleResult> {
+  const maxWidth = options.maxWidth ?? MAX_WIDTH;
+  const keepTransparency = options.keepTransparency ?? false;
+
   if (!ACCEPTED_TYPES.includes(file.type)) {
     throw new ImageProblem("Use a PNG, JPG or WEBP image.");
   }
@@ -91,7 +107,7 @@ export async function downscaleToDataUrl(file: File): Promise<DownscaleResult> {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new ImageProblem("This browser cannot resize images.");
 
-  let width = Math.min(MAX_WIDTH, img.naturalWidth);
+  let width = Math.min(maxWidth, img.naturalWidth);
 
   // Width first, then quality: a header that is too wide wastes bytes on
   // detail no printer resolves, and dropping quality first would blur it
@@ -100,12 +116,20 @@ export async function downscaleToDataUrl(file: File): Promise<DownscaleResult> {
     const height = Math.round((width / img.naturalWidth) * img.naturalHeight);
     canvas.width = width;
     canvas.height = height;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, width, height);
+    if (keepTransparency) {
+      ctx.clearRect(0, 0, width, height);
+    } else {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+    }
     ctx.drawImage(img, 0, 0, width, height);
 
-    for (const quality of [0.92, 0.85, 0.75, 0.65]) {
-      const dataUrl = canvas.toDataURL("image/jpeg", quality);
+    const tries: [string, number | undefined][] = keepTransparency
+      ? [["image/png", undefined], ["image/webp", 0.92], ["image/webp", 0.8]]
+      : [["image/jpeg", 0.92], ["image/jpeg", 0.85], ["image/jpeg", 0.75], ["image/jpeg", 0.65]];
+    for (const [type, quality] of tries) {
+      const dataUrl = canvas.toDataURL(type, quality);
+      // A browser that cannot write WEBP hands back PNG; that is still fine.
       if (dataUrlBytes(dataUrl) <= MAX_BYTES) {
         return { dataUrl, width, height, bytes: dataUrlBytes(dataUrl) };
       }
@@ -115,6 +139,8 @@ export async function downscaleToDataUrl(file: File): Promise<DownscaleResult> {
   }
 
   throw new ImageProblem(
-    "That image is too detailed to fit. Crop it to just the header band and try again.",
+    keepTransparency
+      ? "That image is too detailed to fit. Crop it closer to the logo and try again."
+      : "That image is too detailed to fit. Crop it to just the header band and try again.",
   );
 }
