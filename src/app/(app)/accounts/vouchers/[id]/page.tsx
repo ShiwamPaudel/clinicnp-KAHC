@@ -39,8 +39,7 @@ export default async function VoucherPage({ params }: { params: Promise<{ id: st
         </div>
         {v.status === "cancelled" && (
           <p className="mb-3 rounded-[8px] bg-danger-100 px-3 py-2 text-[13px] text-danger-600">
-            Cancelled by {v.cancelledByName || "someone"}: {v.cancelReason}. It was reversed on {v.cancelDateBs}; the original
-            stays on {v.dateBs}.
+            Cancelled by {v.cancelledByName || "someone"} on {v.cancelDateBs}: {v.cancelReason}
           </p>
         )}
         <Table>

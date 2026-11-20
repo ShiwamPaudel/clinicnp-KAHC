@@ -253,13 +253,6 @@ export function DoctorSchedule({
           </ul>
         </section>
       )}
-
-      {doctorName && (
-        <p className="pt-2 text-center text-[12px] text-sage-500">
-          This is {doctorName}&apos;s list. Only consultations booked with you
-          appear here.
-        </p>
-      )}
     </div>
   );
 }

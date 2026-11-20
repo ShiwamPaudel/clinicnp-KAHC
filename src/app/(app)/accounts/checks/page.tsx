@@ -9,10 +9,6 @@ export default async function ChecksPage() {
   const checks = await bookChecks();
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-[14px] text-sage-600">
-        The books are read from the same bills, payments and purchases as the rest of the app. These checks confirm the
-        totals agree with the screens they shadow.
-      </p>
       {checks.map((c) => {
         const Icon = c.ok ? CheckCircle2 : c.info ? Info : AlertTriangle;
         return (

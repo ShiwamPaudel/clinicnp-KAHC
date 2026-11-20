@@ -52,7 +52,7 @@ export default async function AccountLedgerPage({
     >
       <p className="mb-3 text-[13px] text-sage-500">
         {account.code} · {ACCOUNT_GROUPS[account.grp]?.label ?? account.grp}
-        {account.isControl && " · each person's share is under Parties"}
+        
       </p>
       <Table>
         <THead>

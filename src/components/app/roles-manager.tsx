@@ -114,10 +114,7 @@ export function RolesManager({ roles, modules }: { roles: RoleRow[]; modules: Mo
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-4">
-        <p className="text-[14px] text-sage-500">
-          A role decides what somebody can see and do. Give each person one role
-          under Users. Changes apply the next time they open a page.
-        </p>
+        <span />
         <Button onClick={openNew}>
           <Plus className="h-4 w-4" />
           Add role

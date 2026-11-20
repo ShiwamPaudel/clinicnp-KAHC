@@ -101,5 +101,9 @@ bank; opening balances moved to capital; QR money moved to the bank.
 - TDS: an account exists ("TDS to deposit"); no rates are set or applied.
 - Patients' opening dues from the old software.
 - A Tally export.
-- Bank reconciliation, and matching a supplier payment to a chosen bill
-  (payments clear the oldest bill first today).
+- Matching a supplier payment to a chosen bill (payments clear the oldest
+  bill first today).
+
+Not wanted: **bank reconciliation** (owner, 2083-08-04). The books record
+every bill, purchase, payment and voucher; nobody ticks them off against a
+bank statement.

@@ -91,7 +91,7 @@ export function InvoicePhotoButton({
       <p className="text-[12px] text-sage-500">
         {stage
           ? "This takes a few seconds. The first photo of the day takes longer."
-          : "Take or pick a photo of the supplier's bill. It only fills the boxes below — check them against the paper before saving. The photo is not kept."}
+          : "Take or pick a photo of the supplier's bill, then check the boxes below against the paper."}
       </p>
     </div>
   );

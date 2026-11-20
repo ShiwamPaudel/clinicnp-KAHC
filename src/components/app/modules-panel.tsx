@@ -77,8 +77,7 @@ export function ModulesPanel({ initial }: { initial: ModuleFlags }) {
           Modules
         </h1>
         <p className="mt-1 text-[14px] text-sage-500">
-          Switch off a part of the system you don&apos;t use. Nothing is ever
-          deleted — switching it back on brings everything back exactly as it was.
+          Switching a part off hides it. Nothing is deleted.
         </p>
       </header>
 

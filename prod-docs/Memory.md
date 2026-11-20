@@ -69,7 +69,7 @@
 
 **Next up**
 1. Before go-live: real PAN and phone in Settings → Company; change the Admin password; add KAHC's bank accounts under Accounts → Chart of accounts; enter opening balances (Accounts → Vouchers → Opening balance).
-2. Accounting, waiting on the owner: insurance / SSF / corporate credit billing at the counter (bill to a party); TDS rates (account exists, nothing applied); patients' opening dues from the old software; a Tally export; bank reconciliation; matching a supplier payment to a chosen bill (oldest first today). See prod-docs/Accounting.md.
+2. Accounting, waiting on the owner: insurance / SSF / corporate credit billing at the counter (bill to a party); TDS rates (account exists, nothing applied); patients' opening dues from the old software; a Tally export; matching a supplier payment to a chosen bill (oldest first today). See prod-docs/Accounting.md.
 3. Lab follow-ups, not built yet: a screen to print only some tests of a report (the print route already takes `?only=`); filling in a reference range on results entered before the range existed; a lab section on the dashboard.
 4. Lab-only install: patients and service billing follow Clinic **or** Lab, but the counter and patient screens have only been walked with all three modules on.
 
@@ -96,6 +96,7 @@
 - Any maker's badge, version string or support number on a screen behind the login. The sign-in screen is the only place ClinicNP or Infobytes Nepal is named (D-108).
 - *(Superseded for this install, 2083-08-03:)* "Lab result entry / report generation / reference ranges belong to another product" — built as the Laboratory module (C-030). Credit limits, advance balances and party statements move into scope with the accounting work.
 - Lab report delivery by SMS or email; referring-doctor commission (owner: typed name only).
+- Bank reconciliation (owner, 2083-08-04): the books just record every bill, purchase, payment and voucher.
 
 ---
 

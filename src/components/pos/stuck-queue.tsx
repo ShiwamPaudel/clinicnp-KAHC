@@ -118,8 +118,7 @@ export function StuckQueue({ isAdmin }: { isAdmin: boolean }) {
         title="These have not been sent"
       >
         <p className="mb-4 text-[14px] text-sage-700">
-          Each of these has been tried several times and has not gone through.
-          Nothing has been lost — they are still on this machine.
+          These have not gone through. Nothing has been lost — they are still on this machine.
         </p>
 
         <ul className="flex flex-col gap-3">

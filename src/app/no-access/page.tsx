@@ -19,8 +19,7 @@ export default async function NoAccessPage() {
           This page isn&apos;t part of your work
         </h1>
         <p className="mt-2 text-[15px] leading-[1.5] text-sage-600">
-          You are signed in as {user.name} ({user.roleName}). Ask the Admin if you
-          need it, or sign out so somebody else can sign in.
+          You are signed in as {user.name} ({user.roleName}). Ask the Admin if you need it.
         </p>
         <div className="mt-5 flex justify-center gap-3">
           <a

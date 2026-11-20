@@ -54,11 +54,11 @@ const blankRow = (target = ""): Row => ({ key: nextKey++, target, amount: "", de
 const rupees = (s: string) => toPaisa(Number(s.replace(/,/g, "")) || 0);
 
 const HELP: Record<VoucherType, string> = {
-  payment: "Money paid out: rent, salaries, electricity, a doctor's payout, a loan repaid.",
-  receipt: "Money that came in without a bill: capital put in, a loan taken, other income.",
-  contra: "Money moved between cash, QR / wallet and the bank — cash deposited, cash withdrawn, the wallet paying out.",
-  journal: "Anything that is not money changing hands — moving opening balances to capital, a correction, TDS kept back.",
-  opening: "What the clinic owned and owed on the day it started keeping books here. Whatever does not balance is set aside under Opening balances (to be moved).",
+  payment: "Rent, salaries, bills, a doctor's payout, a loan repaid.",
+  receipt: "Capital, a loan, other income.",
+  contra: "Cash deposited, cash withdrawn, wallet money paid into the bank.",
+  journal: "Corrections, and moving opening balances to capital.",
+  opening: "What the clinic owned and owed on its first day here.",
 };
 
 export function VoucherForm({
@@ -278,7 +278,7 @@ export function VoucherForm({
                   Debit {formatPaisa(dr)} · Credit {formatPaisa(cr)}
                   {type === "journal" && dr !== cr && <span className="ml-2 font-semibold text-danger-600">Not equal yet</span>}
                   {type === "opening" && dr !== cr && (
-                    <span className="ml-2 text-sage-500">Difference {formatPaisa(Math.abs(dr - cr))} goes to Opening balances</span>
+                    <span className="ml-2 text-sage-500">Difference {formatPaisa(Math.abs(dr - cr))}</span>
                   )}
                 </>
               )}
@@ -286,8 +286,7 @@ export function VoucherForm({
           </div>
           {type === "opening" && (
             <p className="mt-2 text-[12px] text-sage-500">
-              For a supplier, laboratory or other party, enter each old bill on its own line with its number and date, so it
-              ages from that date.
+              Enter each old bill on its own line with its number and date.
             </p>
           )}
         </div>

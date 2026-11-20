@@ -161,9 +161,7 @@ export function DoctorsManager({
     <div>
       <div className="mb-4 flex items-start justify-between gap-4">
         <p className="max-w-[62ch] text-[13px] text-sage-500">
-          A doctor here is a name on a slip and a share of the takings. Give one
-          a sign-in and they can also see their own booked consultations on their
-          phone — make the sign-in under{" "}
+          To let a doctor sign in, make the sign-in under{" "}
           <Link href="/settings/users" className="text-clinic-700 hover:underline">
             Users
           </Link>{" "}
@@ -388,7 +386,7 @@ export function DoctorsManager({
 
           <Field
             label="What the doctor takes"
-            hint="Changing this affects bills from now on. Bills already saved keep the share they were made with."
+            hint="Applies to new bills only."
           >
             <Select
               value={form.shareBasis}

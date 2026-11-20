@@ -99,12 +99,7 @@ export function UsersManager({
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-4">
-        <p className="text-[14px] text-sage-500">
-          Everyone who can sign in, and the role that decides what they see. To
-          change who is using a screen, sign out and sign back in. A doctor signs
-          in to their own booked consultations only — attach the sign-in to them
-          under Doctors once it is made.
-        </p>
+        <span />
         <Button
           onClick={() => {
             setForm(empty);

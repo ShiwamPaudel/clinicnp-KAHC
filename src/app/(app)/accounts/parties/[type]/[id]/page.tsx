@@ -88,7 +88,7 @@ export default async function PartyStatementPage({
       }
     >
       <p className="mb-3 text-[13px] text-sage-500">
-        {PARTY_TYPE_LABEL[type]} · Debit is what they owe the clinic, credit what the clinic owes them.
+        {PARTY_TYPE_LABEL[type]} 
       </p>
       <Table>
         <THead>

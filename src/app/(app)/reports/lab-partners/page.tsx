@@ -104,11 +104,6 @@ export default async function LabPartnersReportPage({
               </tbody>
             </Table>
           </div>
-          <p className="mt-3 text-[12px] text-sage-500">
-            &ldquo;Owed now&rdquo; is everything ever sent minus everything ever
-            paid, so it does not change with the dates above. The other columns
-            cover the chosen period only.
-          </p>
         </>
       )}
 

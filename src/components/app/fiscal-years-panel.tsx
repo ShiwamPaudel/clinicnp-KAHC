@@ -69,10 +69,7 @@ export function FiscalYearsPanel({
           <h1 className="font-display text-[28px] font-semibold text-sage-900">
             Fiscal years
           </h1>
-          <p className="mt-1 text-[14px] text-sage-500">
-            One year is open at a time. Closed years stay readable and printable
-            forever — they just can&apos;t be changed.
-          </p>
+          <span />
         </div>
         {openLabel && nextLabel && (
           <Button onClick={() => setConfirming(true)} disabled={pending}>

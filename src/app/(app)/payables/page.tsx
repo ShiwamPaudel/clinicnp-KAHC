@@ -94,11 +94,6 @@ export default async function PayablesPage() {
         />
       )}
 
-      <p className="mt-4 text-[12px] text-sage-500">
-        Anyone with nothing owing is left off. A minus figure means more has
-        been paid than was owed. A payment to a supplier can also be recorded
-        when the purchase is entered.
-      </p>
     </PageShell>
   );
 }

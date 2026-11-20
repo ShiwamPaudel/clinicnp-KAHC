@@ -96,9 +96,7 @@ export function MergePatients({
     <div className="flex max-w-4xl flex-col gap-5">
       <p className="text-[14px] leading-[1.5] text-sage-500">
         Two records for the same person? Pick the one to keep and the one to
-        merge into it. Visits, bills and files all move across. The merged
-        record&apos;s number is retired — it is never given to anyone else, and
-        this can&apos;t be undone.
+        merge into it. Visits, bills and files all move across. This can&apos;t be undone.
       </p>
 
       <input
@@ -179,9 +177,7 @@ export function MergePatients({
       >
         <p className="text-[14px] leading-[1.5] text-sage-900">
           Everything under <span className="font-semibold">{merge?.name}</span>{" "}
-          moves to <span className="font-semibold">{keep?.name}</span>. The
-          merged record stays visible, pointing at the one you kept, and its
-          number is retired for good. This can&apos;t be undone.
+          moves to <span className="font-semibold">{keep?.name}</span>. This can&apos;t be undone.
         </p>
         <label className="mt-4 block text-[13px] font-medium text-sage-900">
           Type <span className="font-mono text-magenta-600">merge</span> to confirm

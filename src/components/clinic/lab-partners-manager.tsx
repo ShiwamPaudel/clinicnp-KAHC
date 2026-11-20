@@ -90,10 +90,7 @@ export function LabPartnersManager({ initial }: { initial: LabPartnerRow[] }) {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-4">
-        <p className="text-[13px] text-sage-500">
-          Laboratories that samples are sent to. What is owed builds up from the
-          cost on each test billed, and comes down as payments are recorded.
-        </p>
+        <span />
         <Button onClick={openNew}>
           <Plus className="h-4 w-4" />
           Add laboratory

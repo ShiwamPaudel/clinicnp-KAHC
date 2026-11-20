@@ -34,8 +34,7 @@ export function BatchPicker({
     <Dialog open={open} onClose={onClose} title={`Choose batch — ${item.brandName}`}>
       <div className="flex flex-col gap-2">
         <p className="text-[13px] text-sage-500">
-          The nearest-expiry batch is picked automatically. Choose another only
-          if you need to.
+          The nearest-expiry batch is picked automatically. 
         </p>
         <button
           onClick={() => {

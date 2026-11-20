@@ -81,7 +81,7 @@ export function CompanyForm({ initial }: { initial: Company }) {
           <Field
             label="Calendar for dates"
             htmlFor="dateCalendar"
-            hint="Date boxes open in this one. Each box can switch for a single pick. Bills and reports stay in Nepali dates."
+            hint="Bills and reports stay in Nepali dates."
           >
             <Select id="dateCalendar" {...register("dateCalendar")}>
               <option value="bs">Nepali (BS)</option>
@@ -170,10 +170,6 @@ export function CompanyForm({ initial }: { initial: Company }) {
             {values.invoiceFooter || "Get well soon"}
           </div>
         </div>
-        <p className="mt-2 text-[11px] text-sage-500">
-          Bills print on a normal A4 sheet. Change the header image above to
-          change how this looks.
-        </p>
       </div>
     </div>
   );

@@ -37,7 +37,7 @@ export function CancelVoucher({ id }: { id: string }) {
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} title="Cancel this voucher?">
         <p className="mb-4 text-[14px] text-sage-700">
-          It will be reversed today. The voucher stays in the books on its own day, marked cancelled.
+          It is reversed today and kept, marked cancelled.
         </p>
         <Field label="Why">
           <Input value={reason} autoFocus onChange={(e) => setReason(e.target.value)} />

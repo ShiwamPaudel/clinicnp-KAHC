@@ -104,10 +104,6 @@ export default async function ProfitLossPage({
           {totalRow(pl.netProfit.total >= 0 ? "Net profit" : "Net loss", pl.netProfit, true)}
         </tbody>
       </Table>
-      <p className="mt-2 text-[12px] text-sage-500">
-        Returns and refunds are taken off the sales they came from. Running costs that belong to no one part — rent,
-        salaries, electricity — sit under Whole clinic unless the account is set to a part in Chart of accounts.
-      </p>
     </Statement>
   );
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { requirePermission, can } from "@/lib/session";
 import { balancesOn, fiscalYearStartOf } from "@/lib/repos/ledger-reports";
 import { profitBetween } from "@/lib/repos/ledger";
@@ -59,9 +59,6 @@ export default async function AccountsOverviewPage() {
             </Link>
           ))}
         </div>
-        <p className="mt-2 text-[12px] text-sage-500">
-          Add each bank account under Chart of accounts. QR payments wait under QR / wallet until the wallet pays them into the bank.
-        </p>
       </section>
 
       {taxes.some((t) => t.balancePaisa !== 0) && (
@@ -76,15 +73,6 @@ export default async function AccountsOverviewPage() {
           </div>
         </section>
       )}
-
-      <section className="rounded-[10px] border border-line bg-cream-50 p-5 text-[14px] text-sage-700">
-        <div className="mb-2 flex items-center gap-2 font-semibold text-sage-900">
-          <BookOpen className="h-4 w-4" /> How the books fill
-        </div>
-        Bills, returns, dues payments, purchases, supplier and laboratory payments and stock out all go into the books by
-        themselves, on the day they happen. Only what has no screen of its own is entered here: expenses, money moved between
-        cash and bank, capital and loans, doctors&apos; payouts, other parties, and opening balances.
-      </section>
     </div>
   );
 }

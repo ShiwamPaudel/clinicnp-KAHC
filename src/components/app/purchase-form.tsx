@@ -722,10 +722,6 @@ export function PurchaseForm({
               That is more than the bill.
             </p>
           )}
-          <p className="max-w-[320px] text-right text-[12px] text-sage-500">
-            What is left owing goes on the supplier&apos;s account. Later
-            payments are recorded on the supplier&apos;s page.
-          </p>
         </div>
 
         <div className="mt-2 flex gap-2">

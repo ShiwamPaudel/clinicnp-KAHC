@@ -96,8 +96,7 @@ export function BackupPanel({
       <div className="rounded-[10px] border border-line bg-cream-50 p-5">
         <h2 className="text-[16px] font-semibold text-sage-900">Back up your data</h2>
         <p className="mt-1 max-w-md text-[13px] text-sage-500">
-          Download a full copy of everything — items, stock, bills, and settings —
-          as a single file you can keep safe.
+          Download a full copy as one file.
         </p>
         <a href="/api/backup/download" className="mt-3 inline-block">
           <Button>
@@ -116,16 +115,11 @@ export function BackupPanel({
           </h2>
         </div>
         <p className="mt-1 max-w-md text-[13px] text-sage-500">
-          This returns the <b>whole system</b> to how it was when the backup was
-          taken — every bill, patient, visit, service, price and stock figure,
-          and the fiscal years with whichever one was open at the time. Anything
-          entered since then is gone, and it can&apos;t be undone. Type{" "}
+          Everything goes back to how it was when the backup was taken. Anything entered since is lost, and it can&apos;t be undone. Type{" "}
           <b>RESTORE</b> to confirm.
         </p>
         <p className="mt-1 max-w-md text-[13px] text-sage-500">
-          Patient files are not inside the backup file — a clinic&apos;s scans
-          are far too large for that. The backup lists which files should exist,
-          and after restoring you are told how many of them can still be found.
+          Patient files are not inside the backup. After restoring you are told how many can still be found.
         </p>
         <div className="mt-3 flex flex-col gap-3 sm:max-w-md">
           <input
@@ -201,14 +195,6 @@ export function BackupPanel({
               );
             })}
           </ul>
-        )}
-        {backups.some((b) => !isKeptKey(b.blobUrl)) && (
-          <p className="mt-3 max-w-xl text-[12px] text-sage-500">
-            “Not kept” and “Downloaded only” mean no copy is stored here. Before
-            backups were kept, the nightly job wrote down a backup&apos;s size
-            and nothing else. A “Back up now” file is wherever it was saved on
-            the computer that downloaded it.
-          </p>
         )}
       </div>
     </div>

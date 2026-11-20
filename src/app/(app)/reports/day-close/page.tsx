@@ -77,10 +77,6 @@ export default async function DayClosePage({
               bold
             />
           </div>
-          <p className="mt-2 text-[12px] text-sage-500">
-            Cash from today&apos;s bills and dues paid back in cash, less what
-            was handed back for returns.
-          </p>
         </div>
 
         {modules.clinic && (
@@ -117,10 +113,6 @@ export default async function DayClosePage({
                 )}
               />
             </div>
-            <p className="mt-2 text-[12px] text-sage-500">
-              These four add up to the net sales figure, with refunds already
-              taken off each one.
-            </p>
           </div>
         )}
       </div>

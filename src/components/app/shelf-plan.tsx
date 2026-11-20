@@ -130,10 +130,6 @@ export function ShelfPlan({
           <p className="text-[15px] font-medium text-sage-900">
             No racks, shelves or desks drawn yet
           </p>
-          <p className="mx-auto mt-1 max-w-[460px] text-[13px] text-sage-500">
-            Draw the shop floor once and the counter can light up the shelf a
-            medicine is on while somebody is looking for it.
-          </p>
           <Link href="/settings/racks" className="mt-4 inline-block">
             <Button>Draw the shop floor</Button>
           </Link>
@@ -306,8 +302,7 @@ function UnplacedList({
         Not on a shelf yet ({items.length})
       </h2>
       <p className="mb-2 text-[13px] text-sage-500">
-        The counter cannot point anyone at these. Click a shelf above and add
-        them, or write down where they are kept.
+        Click a shelf above to add them.
       </p>
       <ul className="flex flex-col gap-1.5">
         {items.map((i) => (

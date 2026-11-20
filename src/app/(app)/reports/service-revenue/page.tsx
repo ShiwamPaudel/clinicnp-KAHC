@@ -82,10 +82,6 @@ export default async function ServiceRevenuePage({
           </Table>
         </div>
       )}
-      <p className="mt-3 text-[12px] text-sage-500">
-        Every figure is what was actually charged at the time. Changing a
-        service&apos;s price today does not move any of these numbers.
-      </p>
     </ReportFrame>
   );
 }

@@ -206,8 +206,7 @@ export function OpeningStockForm({ items }: { items: Item[] }) {
         <PackagePlus className="mx-auto mb-2 h-6 w-6 text-sage-500" />
         <p className="text-[15px] font-medium text-sage-900">No medicines yet</p>
         <p className="mx-auto mt-1 max-w-[460px] text-[13px] text-sage-500">
-          Opening stock says how much of each medicine is already on the shelf,
-          so the medicines have to exist first. Add them under Items.
+          Add the medicines under Items first.
         </p>
       </div>
     );
@@ -221,9 +220,7 @@ export function OpeningStockForm({ items }: { items: Item[] }) {
             What is already on the shelf
           </h2>
           <p className="mt-1 max-w-[720px] text-[13px] text-sage-500">
-            Use this once, when the software arrives, for stock you already own.
-            It is not a purchase: no supplier, no invoice, and nothing owed to
-            anybody. Everything bought afterwards goes through Purchases.
+            Stock already on the shelf when you start. Anything bought later goes through Purchases.
           </p>
           <p className="mt-2 max-w-[720px] text-[13px] text-sage-600">
             Type dates as the pack prints them: an expiry of{" "}

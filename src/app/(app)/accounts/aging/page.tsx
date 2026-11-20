@@ -101,10 +101,6 @@ export default async function AgingPage({
           </tbody>
         </Table>
       )}
-      <p className="mt-2 text-[12px] text-sage-500">
-        Counted from each bill&apos;s date. Patients&apos; dues are bill by bill, exactly as on the Dues list; for
-        everyone else, each payment clears their oldest bill first.
-      </p>
     </Statement>
   );
 }

@@ -189,7 +189,7 @@ export function ChartManager({ accounts, canEdit, showBalances }: { accounts: Ro
           <div className="flex flex-col gap-4">
             {draft.isSystem && (
               <p className="rounded-[8px] bg-sage-75 px-3 py-2 text-[13px] text-sage-700">
-                The app fills this account by itself. Its code and name can change; what it does cannot.
+                Filled by the app. Only its code and name can change.
               </p>
             )}
             <div className="grid grid-cols-[120px_1fr] gap-4">

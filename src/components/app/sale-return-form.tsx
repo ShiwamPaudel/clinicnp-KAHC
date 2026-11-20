@@ -167,10 +167,6 @@ export function SaleReturnForm({
 
       {serviceLines.length > 0 && (
         <>
-          <p className="text-[14px] text-sage-500">
-            Refunding a service gives the money back. Nothing goes back into
-            stock, because nothing came out of it.
-          </p>
           <Table>
             <THead>
               <TR>
@@ -221,8 +217,7 @@ export function SaleReturnForm({
       {lines.length > 0 && (
       <>
       <p className="text-[14px] text-sage-500">
-        Choose how much of each line to return. Stock goes back to the batch it
-        was sold from.
+        Choose how much of each line to return. 
       </p>
       <Table>
         <THead>

@@ -205,11 +205,7 @@ export function ServicesManager({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="max-w-[640px] text-[13px] text-sage-500">
-          Everything the clinic charges for that is not a medicine. Groups decide
-          how services are sorted at the counter; a consultation group is the one
-          the follow-up rule and the doctor&apos;s share apply to.
-        </p>
+        <span />
         <div className="flex gap-2">
           <Button variant="secondary" onClick={openGroupNew}>
             <Plus className="h-4 w-4" />

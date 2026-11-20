@@ -87,10 +87,6 @@ export default async function PartiesPage({ searchParams }: { searchParams: Prom
 
       <section className="no-print">
         <h2 className="mb-1 text-[16px] font-semibold text-sage-900">Other parties</h2>
-        <p className="mb-3 text-[13px] text-sage-500">
-          Anyone money is owed to or by who is not a patient, supplier, outside laboratory or doctor — a landlord, an
-          insurer, a company client, a member of staff, a lender.
-        </p>
         <PartiesManager parties={parties} canEdit={can(user, "accounts.setup")} />
       </section>
     </div>

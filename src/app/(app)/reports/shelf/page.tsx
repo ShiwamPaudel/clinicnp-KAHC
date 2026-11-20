@@ -150,11 +150,11 @@ export default async function ShelfListPage() {
             Not on a shelf yet
           </h2>
           <p className="mb-2 text-[13px] text-sage-500">
-            The counter cannot point anyone at these. Open a shelf in{" "}
+            Put these on a shelf in{" "}
             <Link href="/stock/shelves" className="underline hover:text-sage-700">
               Stock → Shelves
             </Link>{" "}
-            and put them on it.
+            .
           </p>
           <Table>
             <THead>
