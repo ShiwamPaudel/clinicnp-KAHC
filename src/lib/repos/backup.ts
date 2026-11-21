@@ -65,6 +65,8 @@ const TABLES = [
   "lab_test_parameters",
   "lab_test_groups",
   "lab_test_group_items",
+  // each outside laboratory's price list (0027)
+  "lab_partner_prices",
   "lab_settings",
   "lab_signatories",
 
@@ -99,6 +101,8 @@ const TABLES = [
   "lab_result_approvals",
   "lab_report_dispatches",
   "lab_report_views",
+  // tests sent to another laboratory (0027)
+  "lab_sendouts",
 
   // stock movement and adjustments
   "stock_moves",

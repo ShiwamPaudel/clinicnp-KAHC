@@ -3,15 +3,18 @@
  * clinic owes each of them.
  *
  * The ledger is deliberately the same shape as the supplier ledger: tests sent
- * at partner cost on one side, payments on the other, running balance. The
- * money owed comes from `bill_service_lines.partner_cost_paisa`, snapshotted at
- * billing time, so re-pricing a test later never rewrites an old statement.
+ * at partner cost on one side, payments on the other, running balance. What
+ * is owed comes from tests sent out from Result entry (lab_sendouts, 0027,
+ * through SENDOUT_MOVES_SQL) and, before that, from the counter's send-out
+ * lines (`bill_service_lines.partner_cost_paisa`). Both are snapshots, so
+ * re-pricing a test later never rewrites an old statement.
  */
 import "server-only";
 import { ulid } from "ulid";
 import { db } from "@/lib/db";
 import type { Row } from "@/lib/db";
 import { openingTotal } from "@/lib/repos/party-openings";
+import { SENDOUT_MOVES_SQL } from "@/lib/repos/lab-sendouts";
 
 export interface LabPartner {
   id: string;
@@ -128,5 +131,14 @@ export async function partnerBalancePaisa(partnerId: string): Promise<number> {
     sql: "SELECT COALESCE(SUM(amount_paisa), 0) AS n FROM lab_partner_payments WHERE lab_partner_id = ?",
     args: [partnerId],
   });
-  return Number(sent.rows[0]!.n) - Number(paid.rows[0]!.n) + (await openingTotal("lab_partner", partnerId));
+  const sentOut = await db().execute({
+    sql: `SELECT COALESCE(SUM(amount), 0) AS n FROM (${SENDOUT_MOVES_SQL}) WHERE partner_id = ?`,
+    args: [partnerId],
+  });
+  return (
+    Number(sent.rows[0]!.n) +
+    Number(sentOut.rows[0]!.n) -
+    Number(paid.rows[0]!.n) +
+    (await openingTotal("lab_partner", partnerId))
+  );
 }

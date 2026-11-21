@@ -143,7 +143,7 @@ export default async function DashboardPage() {
                 value={String(clinic.newRegistrations)}
               />
               <AlertCard
-                href="/sendout"
+                href="/lab/samples"
                 label="Samples to collect"
                 count={clinic.samplesToCollect}
                 tone="warn"

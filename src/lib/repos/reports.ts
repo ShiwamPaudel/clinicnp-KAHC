@@ -4,6 +4,7 @@
  * sale returns are netted out so day-close / profit reconcile (PRD 4.4).
  */
 import "server-only";
+import { IS_LAB_LINE } from "@/lib/repos/service-class";
 import { db } from "@/lib/db";
 import { OWED_AT_SALE_SQL } from "@/lib/repos/dues";
 
@@ -198,7 +199,7 @@ export async function daySummary(dayIso: string): Promise<DaySummary> {
             (SELECT IFNULL(SUM(sl.amount_paisa), 0)
                FROM bill_service_lines sl
                JOIN bills b ON b.id = sl.bill_id
-              WHERE ${NOT_CANCELLED} AND b.date_ad = ? AND sl.lab_partner_id IS NOT NULL) AS lab,
+              WHERE ${NOT_CANCELLED} AND b.date_ad = ? AND ${IS_LAB_LINE()}) AS lab,
             (SELECT IFNULL(SUM(sl.amount_paisa), 0)
                FROM bill_service_lines sl
                JOIN bills b ON b.id = sl.bill_id
@@ -206,7 +207,7 @@ export async function daySummary(dayIso: string): Promise<DaySummary> {
                LEFT JOIN service_groups g ON g.id = sv.group_id
               WHERE ${NOT_CANCELLED} AND b.date_ad = ?
                 AND COALESCE(g.is_consultation, 0) = 0
-                AND sl.lab_partner_id IS NULL) AS diag,
+                AND NOT ${IS_LAB_LINE()}) AS diag,
             (SELECT IFNULL(SUM(srsl.amount_paisa), 0)
                FROM sale_return_service_lines srsl
                JOIN sale_returns sr ON sr.id = srsl.sale_return_id
@@ -218,7 +219,7 @@ export async function daySummary(dayIso: string): Promise<DaySummary> {
                FROM sale_return_service_lines srsl
                JOIN sale_returns sr ON sr.id = srsl.sale_return_id
                JOIN bill_service_lines sl ON sl.id = srsl.bill_service_line_id
-              WHERE sr.date_ad = ? AND sl.lab_partner_id IS NOT NULL) AS lab_back,
+              WHERE sr.date_ad = ? AND ${IS_LAB_LINE()}) AS lab_back,
             (SELECT IFNULL(SUM(srsl.amount_paisa), 0)
                FROM sale_return_service_lines srsl
                JOIN sale_returns sr ON sr.id = srsl.sale_return_id
@@ -227,7 +228,7 @@ export async function daySummary(dayIso: string): Promise<DaySummary> {
                LEFT JOIN service_groups g ON g.id = sv.group_id
               WHERE sr.date_ad = ?
                 AND COALESCE(g.is_consultation, 0) = 0
-                AND sl.lab_partner_id IS NULL) AS diag_back`,
+                AND NOT ${IS_LAB_LINE()}) AS diag_back`,
     args: [dayIso, dayIso, dayIso, dayIso, dayIso, dayIso, dayIso, dayIso],
   });
   const sp = splitRes.rows[0]!;

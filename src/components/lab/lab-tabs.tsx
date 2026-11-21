@@ -10,7 +10,6 @@ export interface LabCounts {
   samples: number;
   results: number;
   approval: number;
-  dispatch: number;
 }
 
 const TABS: { href: string; label: string; perm: Permission[]; count?: keyof LabCounts }[] = [
@@ -18,7 +17,6 @@ const TABS: { href: string; label: string; perm: Permission[]; count?: keyof Lab
   { href: "/lab/results", label: "Result entry", perm: ["lab.results"], count: "results" },
   { href: "/lab/approval", label: "Approval", perm: ["lab.approve"], count: "approval" },
   { href: "/lab/reports", label: "Reports", perm: ["lab.reports"] },
-  { href: "/lab/dispatch", label: "Dispatch", perm: ["lab.dispatch"], count: "dispatch" },
   { href: "/lab/tests", label: "Tests", perm: ["lab.catalog"] },
   { href: "/lab/profiles", label: "Profiles", perm: ["lab.catalog"] },
 ];

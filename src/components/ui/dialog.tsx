@@ -42,7 +42,10 @@ export function Dialog({
         aria-label={title}
         onMouseDown={(e) => e.stopPropagation()}
         className={cn(
-          "w-full max-w-md rounded-[10px] border border-line bg-cream-50 shadow-[0_1px_2px_rgb(22_36_27_/_6%),0_4px_12px_rgb(22_36_27_/_5%)]",
+          // cn() only joins, it does not resolve clashes, so the default width
+          // must stand aside when a caller asks for its own (max-w-3xl etc.).
+          !className?.includes("max-w-") && "max-w-md",
+          "w-full rounded-[10px] border border-line bg-cream-50 shadow-[0_1px_2px_rgb(22_36_27_/_6%),0_4px_12px_rgb(22_36_27_/_5%)]",
           "motion-safe:animate-[dialog_150ms_ease-out]",
           className,
         )}

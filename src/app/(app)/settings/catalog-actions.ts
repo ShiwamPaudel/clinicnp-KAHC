@@ -8,7 +8,7 @@
  */
 import { revalidatePath } from "next/cache";
 import { assertPermission, NotAuthorizedError } from "@/lib/session";
-import { requireModule, ModuleDisabledError } from "@/lib/modules";
+import { requireModule, requireAnyModule, ModuleDisabledError } from "@/lib/modules";
 import { DOCTOR_ROLE_ID } from "@/lib/permissions";
 import { recordAudit } from "@/lib/repos/audit";
 import {
@@ -74,6 +74,15 @@ function handle(err: unknown): ActionResult {
 async function guard() {
   await requireModule("clinic");
   return assertPermission("clinic.setup");
+}
+
+/**
+ * Outside laboratories belong to the Clinic and to the Laboratory, which
+ * sends tests to them from Result entry (0027).
+ */
+async function partnerGuard() {
+  await requireAnyModule(["clinic", "lab"]);
+  return assertPermission(["clinic.setup", "lab.catalog"]);
 }
 
 // ---------------------------------------------------------------------------
@@ -275,7 +284,7 @@ export async function saveLabPartnerAction(
   input: unknown,
 ): Promise<ActionResult> {
   try {
-    const user = await guard();
+    const user = await partnerGuard();
     const parsed = labPartnerSchema.safeParse(input);
     if (!parsed.success) {
       return fail(parsed.error.issues[0]?.message ?? "Please check the form.");
@@ -313,7 +322,7 @@ export async function recordPartnerPaymentAction(input: {
   accountId?: string | null;
 }): Promise<ActionResult> {
   try {
-    const user = await guard();
+    const user = await partnerGuard();
 
     const parsed = labPartnerPaymentSchema.safeParse(input);
     if (!parsed.success) {

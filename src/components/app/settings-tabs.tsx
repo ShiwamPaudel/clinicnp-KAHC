@@ -14,7 +14,7 @@ export function SettingsTabs({ tabs }: { tabs: SettingsTab[] }) {
       <div className="border-b border-line bg-cream-50 px-6">
         <div className="mx-auto flex max-w-[1240px] flex-wrap gap-1">
           {tabs.map((t) => {
-            const active = pathname.startsWith(t.href);
+            const active = pathname === t.href || pathname.startsWith(t.href + "/");
             return (
               <Link
                 key={t.href}

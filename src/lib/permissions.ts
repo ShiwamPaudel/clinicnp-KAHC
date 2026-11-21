@@ -63,7 +63,6 @@ export const PERMISSION_GROUPS = [
       { key: "visits.manage", label: "Record and edit visits", module: "clinic" },
       { key: "visits.cancel", label: "Cancel a visit", module: "clinic" },
       { key: "appointments.manage", label: "Book, move and cancel consultations", module: "clinic" },
-      { key: "lab.sendout", label: "Track tests sent to an outside laboratory", module: "clinic" },
       { key: "clinic.setup", label: "Set up services, doctors and outside laboratories", module: "clinic" },
     ],
   },
@@ -82,11 +81,10 @@ export const PERMISSION_GROUPS = [
     label: "Laboratory",
     items: [
       { key: "lab.samples", label: "Collect and reject samples, print labels", module: "lab" },
-      { key: "lab.results", label: "Enter results", module: "lab" },
+      { key: "lab.results", label: "Enter results, or send tests to another laboratory", module: "lab" },
       { key: "lab.approve", label: "Approve results and sign reports", module: "lab" },
       { key: "lab.reopen", label: "Reopen approved results", module: "lab" },
       { key: "lab.reports", label: "See and print lab reports", module: "lab" },
-      { key: "lab.dispatch", label: "Hand over reports", module: "lab" },
       { key: "lab.catalog", label: "Set up tests, groups, departments and sample types", module: "lab" },
     ],
   },
@@ -127,7 +125,6 @@ export const LAB_PERMISSIONS: readonly Permission[] = [
   "lab.results",
   "lab.approve",
   "lab.reports",
-  "lab.dispatch",
   "lab.catalog",
   "lab.reopen",
 ];

@@ -62,6 +62,7 @@ for (const f of [".env.local", ".env"]) {
  */
 const TABLES_CHILD_FIRST = [
   // laboratory work, deepest first (it hangs from bills and service lines)
+  "lab_sendouts",
   "lab_report_views",
   "lab_report_dispatches",
   "lab_result_approvals",
@@ -107,6 +108,7 @@ const TABLES_CHILD_FIRST = [
   "patients",
 
   // catalogs
+  "lab_partner_prices",
   "lab_test_group_items",
   "lab_test_groups",
   "lab_test_parameters",
@@ -155,6 +157,7 @@ async function main() {
   // all work somebody did with a keyboard, and none of it is a transaction.
   const SETUP_TABLES = [
     "parties",
+    "lab_partner_prices",
     "lab_test_group_items",
     "lab_test_groups",
     "lab_test_parameters",

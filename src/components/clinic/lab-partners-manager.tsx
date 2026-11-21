@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ import type { LabPartner } from "@/lib/repos/lab-partners";
 
 export interface LabPartnerRow extends LabPartner {
   balancePaisa: number;
+  /** tests sent here that are still waiting for this laboratory's price */
+  unpriced: number;
 }
 
 interface FormState {
@@ -112,6 +115,7 @@ export function LabPartnersManager({ initial }: { initial: LabPartnerRow[] }) {
                 <TH>Phone</TH>
                 <TH>PAN</TH>
                 <TH>Terms</TH>
+                <TH>Prices</TH>
                 <TH className="text-right">Owed</TH>
                 <TH>Status</TH>
                 <TH> </TH>
@@ -120,11 +124,25 @@ export function LabPartnersManager({ initial }: { initial: LabPartnerRow[] }) {
             <tbody>
               {initial.map((p) => (
                 <TR key={p.id}>
-                  <TD className="font-medium text-sage-900">{p.name}</TD>
+                  <TD>
+                    <Link href={`/settings/lab-partners/${p.id}`} className="font-medium text-sage-900 hover:underline">
+                      {p.name}
+                    </Link>
+                  </TD>
                   <TD className="text-sage-500">{p.contactPerson || "—"}</TD>
                   <TD className="font-mono text-[13px]">{p.phone || "—"}</TD>
                   <TD className="font-mono text-[13px]">{p.panNo || "—"}</TD>
                   <TD className="text-sage-500">{p.terms || "—"}</TD>
+                  <TD>
+                    <Link href={`/settings/lab-partners/${p.id}`} className="text-[13px] text-clinic-700 hover:underline">
+                      Price list
+                    </Link>
+                    {p.unpriced > 0 && (
+                      <Badge tone="warn" className="ml-2">
+                        {p.unpriced} without a price
+                      </Badge>
+                    )}
+                  </TD>
                   <TD className="text-right font-mono tnum">
                     {p.balancePaisa === 0 ? "—" : formatPaisa(p.balancePaisa)}
                   </TD>

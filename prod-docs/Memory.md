@@ -60,6 +60,7 @@
 - **Windows notes:** libsql `file:` paths need a drive letter. Free a held port with `Get-NetTCPConnection -LocalPort N -State Listen | Stop-Process`. Bash heredocs mangle backslashes and quotes — use a scratchpad `.mjs`/`.py` file for anything with escapes.
 - **Testing note:** integration tests import repos with the vitest `@` alias plus a `server-only` stub (`tests/stubs/server-only.ts`); point `TURSO_DATABASE_URL` at a temp file DB before importing repos; `fileParallelism: false`; `__resetDbForTests()` between files. Run `pnpm test` with `TURSO_DATABASE_URL` blanked in the shell.
 - 2083-08-03 after C-031: typecheck clean, **52 files / 594 tests** green, `pnpm build` passes (`/billing` 149 kB First Load, unchanged).
+- 2083-08-05 after C-032: see C-032 for the counts.
 
 ### Working practices that were earned the hard way
 
@@ -70,7 +71,8 @@
 **Next up**
 1. Before go-live: real PAN and phone in Settings → Company; change the Admin password; add KAHC's bank accounts under Accounts → Chart of accounts; enter opening balances (Accounts → Vouchers → Opening balance).
 2. Accounting, waiting on the owner: insurance / SSF / corporate credit billing at the counter (bill to a party); TDS rates (account exists, nothing applied); patients' opening dues from the old software; a Tally export; matching a supplier payment to a chosen bill (oldest first today). See prod-docs/Accounting.md.
-3. Lab follow-ups, not built yet: a screen to print only some tests of a report (the print route already takes `?only=`); filling in a reference range on results entered before the range existed; a lab section on the dashboard.
+3. Before go-live, the owner fills in: rates for the 258 lab tests, 17 profiles and 91 Clinic services (all Rs 0 — Lab → Tests has a "No price yet" filter); reference ranges (lab in-charge); each outside laboratory under Settings → Outside labs, and its price list as tests are sent.
+3a. Lab follow-ups, not built yet: a screen to print only some tests of a report (the print route already takes `?only=`); filling in a reference range on results entered before the range existed.
 4. Lab-only install: patients and service billing follow Clinic **or** Lab, but the counter and patient screens have only been walked with all three modules on.
 
 ### Known issues / risks
@@ -294,6 +296,16 @@
 | D-179 | **The lab partner balance counts refunds**, as the statement and Payables already did; `partnerBalancePaisa` (Settings → Outside laboratories) used to count gross | Three screens gave two answers. |
 | D-180 | **A restore from a copy taken before 0025 keeps the chart of accounts** (`restoreAll`) | Such a copy has no accounts to put back, and an empty chart would break every voucher and payment. |
 | D-181 | **The sign-in logo is its own image** (`company.brand_logo_url`, 0026; Settings → Company → Logo). The bill header (`logo_url`) is only printed. The logo keeps a clear background (PNG/WEBP, max 800px). With no logo, the sign-in screen shows the clinic name | Owner, 2083-08-04: a letterhead band and a logo are different things. |
+| D-182 | **The lab is Billing → Sample collection → Result entry → Approval → Reports, nothing more.** The Dispatch tab and `recordDispatch` are gone; `lab.dispatch` retired (0028 takes it out of saved roles). "dispatched" results from before read as approved | Owner, 2083-08-04: "That's it." |
+| D-183 | **Result entry lists a test only once its sample is collected** (or it needs none) — `READY_FOR_RESULTS` in lab-orders.ts, used by the queue and its badge | A test reaches Result entry after Sample collection, never before. |
+| D-184 | **A test is sent to another laboratory from Result entry, per test** (`lab_sendouts`, result `sent_out`, 0027). It skips Approval, lands on Reports ("Vitamin D → City Lab"), is not printed on KAHC's report, and the patient's QR page neither shows nor waits for it. **Bring back** needs a reason; the row is kept with `cancelled_at` | One bill can have tests done here and tests sent out; the choice belongs to the test, not the bill. |
+| D-185 | **Each outside laboratory has its own price list** (`lab_partner_prices`). A test sent there appears by itself with no price; setting it charges every unpriced send **dated the day the price is set**; a later price change applies to later sends only | The owner configures what each lab charges after the fact; a closed fiscal year must never move. |
+| D-186 | **`SENDOUT_MOVES_SQL` is the one reading of what a send-out owes**: the charge on its charged date, the reversal of an undone charged send on the undo date. Statement, balance, Payables, Checks and the ledger (Dr Outside laboratory charges, Cr the laboratory) all read it. **A bill cancelled or refunded after its sample was sent keeps the charge** | The sample went; the other lab still bills. Same pattern as cancelled bills and vouchers (reversed on their day). |
+| D-187 | **The counter-side send-out is retired**: no "Sent to an outside lab" or sample type on the Services form, no `/sendout` pages, `repos/lab.ts` and `lab.sendout` removed. Old `bill_service_lines.lab_partner_id` rows are still read by statements, Payables and the ledger | Two ways to send a test out would be mixed up (owner chose to retire it). |
+| D-188 | **Outside labs (Settings) open to `lab.catalog` or `clinic.setup`, with Clinic or Lab on**; so do saving a lab and paying it. Tab renamed "Outside labs". `SettingsTab` takes a list of modules / permissions | Sending out is now a laboratory job; a lab-only install must reach it. |
+| D-189 | **The dashboard and the day close count lab tests and profiles as "Laboratory"** (`IS_LAB_LINE`, repos/service-class.ts), not only old sent-out lines; "Samples to collect" counts `lab_samples` and links to Lab → Sample collection | They read the retired send-out and showed nothing for KAHC's own lab. |
+| D-190 | **The lab catalogue comes from the bgp install, with no rates and no ranges** (owner: "more accurate"): 258 tests (two switched-off duplicates skipped), 17 profiles, 31 values; its 91 non-lab items became Clinic services in matching groups (new groups Dental, Physiotherapy; consultations need a doctor; F/P items under Follow-up); Histopathology made a lab department so it can be sent out. Spelling fixed (Bilirubin, Salmonella Typhi / Para-Typhi, Ceramic, Biophysical, Scrotum, Axilla, Anomaly) and Body Fluid - Sugar's copied code. Short codes that only repeated the name were cleared; code limits raised to 40 | The earlier nhp copy was incomplete. Codes equal to the name add nothing to search and broke the 20-character limit. |
+| D-191 | **A lab test is edited on its own page** (`/lab/tests/new`, `/lab/tests/[id]`), not in a dialog: Test, Result, Billing, On the report; result type as buttons; choices as chips; values in aligned columns with a folding range. **`Dialog` now honours a caller's `max-w-*`** (it never did: Roles and Receive dues were squeezed too) and settings tabs match exactly (Outside labs no longer lit Laboratory) | Owner: the screen was "designed poorly with mismatched UI and layout". |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---
@@ -960,3 +972,25 @@ its balancing line, supplier page shows the opening, bank picker, aging both
 ways, P&L by part, balance sheet and trial balance agree, Excel download, phone
 width. Found and fixed on the way: "The clinic owes" tile showed a minus.
 0025 applied to KAHC.
+
+### C-032  ·  2083-08-05  ·  Sign-in logo, the bgp catalogue, sending tests out from Result entry, the test editor
+
+The sign-in screen got its own logo (`company.brand_logo_url`, 0026; Settings →
+Company → Logo), apart from the bill header; KAHC's logo saved. Lab
+departments and sample types, then the whole catalogue, copied read-only from
+the old installs (nhp first, then replaced from bgp; D-190). The lab flow was
+cut to Billing → Sample collection → Result entry → Approval → Reports, with
+"Send to another lab" per test in Result entry, per-laboratory price lists and
+the books reading one SQL fragment (0027, 0028; D-182 – D-189). The old
+counter-side send-out and Dispatch were removed. Lab → Tests was rebuilt as a
+list plus a page per test (D-191). `labServiceGroupId` adopts the seeded
+`grp_lab` instead of making a second "Laboratory" group.
+**Verified:** typecheck; `tests/lab-sendout.integration.test.ts` (8: collection
+gate, send, refuse twice, price fills the charge, books = statement = page =
+Checks, mixed bill approves, undo reverses on its day, cancelled bill keeps the
+charge) and the full suite; Chromium on a scratch DB, 28 checks (no Dispatch,
+no old menu, empty before collection, collect, send from the test and the
+toolbar, bring back, sugar approved, Reports shows "Vitamin D → City Reference
+Lab" and prints only once approved, "1 without a price", price saved and
+charged, owed 1,500, statement, Checks, dashboard, phone width on three
+screens). 0026 – 0028 applied to KAHC.

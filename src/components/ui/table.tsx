@@ -28,13 +28,17 @@ export function TR({
   children,
   className,
   selected,
+  onClick,
 }: {
   children: React.ReactNode;
   className?: string;
   selected?: boolean;
+  /** a row that opens something; keep a real link inside it for the keyboard */
+  onClick?: () => void;
 }) {
   return (
     <tr
+      onClick={onClick}
       className={cn(
         "border-b border-line last:border-0 hover:bg-cream-200",
         selected && "bg-sage-150",

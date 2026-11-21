@@ -7,7 +7,6 @@ const ORDER: [string, Permission][] = [
   ["/lab/results", "lab.results"],
   ["/lab/approval", "lab.approve"],
   ["/lab/reports", "lab.reports"],
-  ["/lab/dispatch", "lab.dispatch"],
   ["/lab/tests", "lab.catalog"],
 ];
 

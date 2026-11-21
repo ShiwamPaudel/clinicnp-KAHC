@@ -128,7 +128,7 @@ export default async function BillDetailPage({
           <div className="flex items-center gap-3">
             <span className="text-[14px] text-sage-500">{bill.dateBs}</span>
             {bill.status === "cancelled" && <Badge tone="danger">Cancelled</Badge>}
-            {labOrderId && can(user, ["lab.samples", "lab.results", "lab.approve", "lab.reports", "lab.dispatch"]) && (
+            {labOrderId && can(user, ["lab.samples", "lab.results", "lab.approve", "lab.reports"]) && (
               <Link href={`/lab/orders/${labOrderId}`} className="text-[14px] text-sage-700 underline-offset-2 hover:underline">
                 Lab order
               </Link>

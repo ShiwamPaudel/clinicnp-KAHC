@@ -324,7 +324,7 @@ export const serviceGroupSchema = z.object({
 
 export const serviceSchema = z.object({
   name: z.string().min(1, "Enter a service name"),
-  code: z.string().max(24, "Keep the short code brief"),
+  code: z.string().max(40, "Keep the short code under 40 characters"),
   groupId: z.string().min(1, "Choose a group"),
   ratePaisa: z.number().int().min(0, "A rate cannot be negative"),
   doctorRequired: z.boolean(),

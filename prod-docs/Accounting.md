@@ -33,13 +33,16 @@ on the day it is cancelled and keeps the original on its own day.
 | Dues payment | Cash or QR | Patients' dues — undone on the day it is voided |
 | Purchase | Medicine stock (after line discounts, matching batch cost); VAT paid; rounding | Discount received (bill discount); the supplier |
 | Purchase return | the supplier | Medicine stock |
+| Test sent out (Result entry, 0027) | Outside laboratory charges — on the day the laboratory's price became known; an undo reversed on its day | the laboratory |
 | Supplier / lab payment | the supplier / laboratory | Cash, QR, or the bank chosen ("Bank (account not chosen)" when none) |
 | Stock out | the reason's expense (written off / clinic use / free samples / count difference) | Medicine stock. A return to the supplier posts once, as its purchase return |
 | Opening stock | Medicine stock | Opening balances (to be moved) |
 
 Parts of the clinic (P&L columns): a service is **Laboratory** when it belongs
-to a lab test or profile, **Tests sent out** (Laboratory column) when it has an
-outside laboratory, otherwise **Clinic**. Medicines are **Pharmacy**.
+to a lab test or profile, **Tests sent out** (Laboratory column) when it was
+sent out from the counter before 0027, otherwise **Clinic**. Medicines are
+**Pharmacy**. A lab test sent out from Result entry stays Laboratory income;
+what the other laboratory charges is the Outside laboratory charges expense.
 
 ## Parties
 

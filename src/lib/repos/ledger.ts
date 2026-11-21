@@ -28,6 +28,8 @@
  *                    Cr discount received (bill discount), rounding,
  *                    Cr the supplier
  *   Purchase return  Dr the supplier, Cr stock
+ *   Test sent out    Dr outside laboratory charges, Cr the laboratory, on the
+ *   (Result entry)   day its price became known; an undo reversed on its day
  *   Supplier / lab   Dr the supplier or laboratory, Cr cash or the bank chosen
  *   payment          ("Bank (account not chosen)" when none was)
  *   Stock out        Dr the reason's expense, Cr stock (at cost); stock in
@@ -43,6 +45,7 @@ import "server-only";
 import type { Row } from "@libsql/client";
 import { db } from "@/lib/db";
 import { OWED_AT_SALE_SQL } from "@/lib/repos/dues";
+import { SENDOUT_MOVES_SQL } from "@/lib/repos/lab-sendouts";
 import type { AccountKind, PartyType } from "@/lib/accounting";
 
 /** A timestamp as the clinic's own calendar day (Nepal is UTC+5:45). */
@@ -292,6 +295,20 @@ SELECT 'lab_payment', lp.id, 'Laboratory payment', '/reports/lab-partners?partne
        COALESCE(lp.account_id, ${MONEY_ACCOUNT("lp.method")}), NULL, NULL, NULL, 0, lp.amount_paisa,
        CASE WHEN lp.note <> '' THEN 'Paid · ' || lp.note ELSE 'Paid' END, NULL, NULL
   FROM lab_partner_payments lp WHERE ${IN_RANGE("lp.date_ad")} AND lp.amount_paisa <> 0
+UNION ALL
+SELECT CASE m.kind WHEN 'undo' THEN 'lab_sendout_undo' ELSE 'lab_sendout' END, m.id, 'Sent out',
+       '/reports/lab-partners?partner=' || m.partner_id, m.date_ad,
+       'sys:sendout_cost', NULL, NULL, 'lab',
+       CASE WHEN m.amount > 0 THEN m.amount ELSE 0 END, CASE WHEN m.amount < 0 THEN -m.amount ELSE 0 END,
+       CASE m.kind WHEN 'undo' THEN m.name || ' — not sent after all' ELSE m.name || ' sent out' END, NULL, NULL
+  FROM (${SENDOUT_MOVES_SQL}) m WHERE ${IN_RANGE("m.date_ad")} AND m.amount <> 0
+UNION ALL
+SELECT CASE m.kind WHEN 'undo' THEN 'lab_sendout_undo' ELSE 'lab_sendout' END, m.id, 'Sent out',
+       '/reports/lab-partners?partner=' || m.partner_id, m.date_ad,
+       'sys:pay_labs', 'lab_partner', m.partner_id, NULL,
+       CASE WHEN m.amount < 0 THEN -m.amount ELSE 0 END, CASE WHEN m.amount > 0 THEN m.amount ELSE 0 END,
+       CASE m.kind WHEN 'undo' THEN m.name || ' — not sent after all' ELSE m.name || ' sent out' END, NULL, NULL
+  FROM (${SENDOUT_MOVES_SQL}) m WHERE ${IN_RANGE("m.date_ad")} AND m.amount <> 0
 UNION ALL
 SELECT 'stock_out', a.id, CASE WHEN a.adjustment_no IS NULL THEN 'Stock out' ELSE 'SO-' || printf('%06d', a.adjustment_no) END,
        '/stock/out/' || a.id, a.date_ad,

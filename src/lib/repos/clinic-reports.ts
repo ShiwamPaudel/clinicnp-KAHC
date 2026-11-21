@@ -14,6 +14,8 @@
  * BS dates are still what people see; they are just not what is compared.
  */
 import "server-only";
+import { SENDOUT_MOVES_SQL } from "@/lib/repos/lab-sendouts";
+import { IS_LAB_LINE } from "@/lib/repos/service-class";
 import { db } from "@/lib/db";
 import type { Row } from "@/lib/db";
 import { openingMoves, openingTotal, openingSumSql } from "@/lib/repos/party-openings";
@@ -201,8 +203,15 @@ async function openingBalance(partnerId: string, fromIso: string): Promise<numbe
            WHERE lab_partner_id = ? AND date_ad < ?`,
     args: [partnerId, fromIso],
   });
+  const sentOut = await db().execute({
+    sql: `SELECT COALESCE(SUM(amount), 0) AS n FROM (${SENDOUT_MOVES_SQL}) WHERE partner_id = ? AND date_ad < ?`,
+    args: [partnerId, fromIso],
+  });
   return (
-    Number(sent.rows[0]!.n) - Number(paid.rows[0]!.n) + (await openingTotal("lab_partner", partnerId, fromIso))
+    Number(sent.rows[0]!.n) +
+    Number(sentOut.rows[0]!.n) -
+    Number(paid.rows[0]!.n) +
+    (await openingTotal("lab_partner", partnerId, fromIso))
   );
 }
 
@@ -228,6 +237,15 @@ export async function partnerStatement(
            WHERE sl.lab_partner_id = ? AND b.status = 'saved'
              AND b.date_ad BETWEEN ? AND ?
            ORDER BY b.date_ad ASC, b.rowid ASC`,
+    args: [partnerId, range.fromIso, range.toIso],
+  });
+
+  // tests sent from Result entry (0027): the charge, and any undo
+  const sentOut = await db().execute({
+    sql: `SELECT date_bs, date_ad, name, amount, billed, kind
+            FROM (${SENDOUT_MOVES_SQL})
+           WHERE partner_id = ? AND date_ad BETWEEN ? AND ?
+           ORDER BY date_ad ASC`,
     args: [partnerId, range.fromIso, range.toIso],
   });
 
@@ -258,6 +276,14 @@ export async function partnerStatement(
       chargePaisa: Number(r.cost),
       paymentPaisa: 0,
     })),
+    ...sentOut.rows.map((r: Row) => ({
+      dateBs: r.date_bs as string,
+      dateAd: r.date_ad as string,
+      kind: "test" as const,
+      description: r.kind === "undo" ? `${r.name} — not sent after all` : (r.name as string),
+      chargePaisa: Number(r.amount),
+      paymentPaisa: 0,
+    })),
     ...payments.rows.map((r: Row) => ({
       dateBs: r.date_bs as string,
       dateAd: r.date_ad as string,
@@ -283,8 +309,10 @@ export async function partnerStatement(
     return { ...e, runningPaisa: running };
   });
 
-  const testsPaisa = tests.rows.reduce((s, r) => s + Number(r.cost), 0);
-  const billedPaisa = tests.rows.reduce((s, r) => s + Number(r.billed), 0);
+  const testsPaisa =
+    tests.rows.reduce((s, r) => s + Number(r.cost), 0) + sentOut.rows.reduce((s, r) => s + Number(r.amount), 0);
+  const billedPaisa =
+    tests.rows.reduce((s, r) => s + Number(r.billed), 0) + sentOut.rows.reduce((s, r) => s + Number(r.billed), 0);
   const paymentsPaisa = payments.rows.reduce(
     (s, r) => s + Number(r.amount_paisa),
     0,
@@ -322,12 +350,16 @@ export async function partnerSummary(range: AdRange): Promise<PartnerSummaryRow[
                              FROM bill_service_lines sl
                              JOIN bills b ON b.id = sl.bill_id
                             WHERE sl.lab_partner_id = p.id AND b.status = 'saved'
-                              AND b.date_ad BETWEEN ? AND ?), 0) AS tests,
+                              AND b.date_ad BETWEEN ? AND ?), 0)
+                 + COALESCE((SELECT SUM(m.amount) FROM (${SENDOUT_MOVES_SQL}) m
+                             WHERE m.partner_id = p.id AND m.date_ad BETWEEN ? AND ?), 0) AS tests,
                  COALESCE((SELECT SUM(${NET_AMOUNT})
                              FROM bill_service_lines sl
                              JOIN bills b ON b.id = sl.bill_id
                             WHERE sl.lab_partner_id = p.id AND b.status = 'saved'
-                              AND b.date_ad BETWEEN ? AND ?), 0) AS billed,
+                              AND b.date_ad BETWEEN ? AND ?), 0)
+                 + COALESCE((SELECT SUM(m.billed) FROM (${SENDOUT_MOVES_SQL}) m
+                             WHERE m.partner_id = p.id AND m.date_ad BETWEEN ? AND ?), 0) AS billed,
                  COALESCE((SELECT SUM(amount_paisa) FROM lab_partner_payments lp
                             WHERE lp.lab_partner_id = p.id
                               AND lp.date_ad BETWEEN ? AND ?), 0) AS payments,
@@ -335,12 +367,15 @@ export async function partnerSummary(range: AdRange): Promise<PartnerSummaryRow[
                              FROM bill_service_lines sl
                              JOIN bills b ON b.id = sl.bill_id
                             WHERE sl.lab_partner_id = p.id AND b.status = 'saved'), 0)
+                 + COALESCE((SELECT SUM(m.amount) FROM (${SENDOUT_MOVES_SQL}) m WHERE m.partner_id = p.id), 0)
                  - COALESCE((SELECT SUM(amount_paisa) FROM lab_partner_payments lp
                               WHERE lp.lab_partner_id = p.id), 0)
                  + ${openingSumSql("lab_partner", "p.id")} AS balance
             FROM lab_partners p
            ORDER BY p.name ASC`,
     args: [
+      range.fromIso, range.toIso,
+      range.fromIso, range.toIso,
       range.fromIso, range.toIso,
       range.fromIso, range.toIso,
       range.fromIso, range.toIso,
@@ -525,16 +560,17 @@ export interface ClinicToday {
  *
  * The split is four ways because that is how the owner thinks about the day:
  * what came from the shelf, what came from the doctor's time, what came from
- * the machines, and what came from tests. "Laboratory" is anything sent to an
- * outside partner; "diagnostics" is everything else that is not a consultation.
+ * the machines, and what came from tests. "Laboratory" is any lab test or
+ * profile (IS_LAB_LINE); "diagnostics" is everything else that is not a
+ * consultation.
  */
 export async function clinicToday(dayIso: string): Promise<ClinicToday> {
   const svc = await db().execute({
     sql: `SELECT
             SUM(CASE WHEN g.is_consultation = 1 THEN ${NET_AMOUNT} ELSE 0 END) AS consult,
-            SUM(CASE WHEN sl.lab_partner_id IS NOT NULL THEN ${NET_AMOUNT} ELSE 0 END) AS lab,
+            SUM(CASE WHEN ${IS_LAB_LINE()} THEN ${NET_AMOUNT} ELSE 0 END) AS lab,
             SUM(CASE WHEN COALESCE(g.is_consultation, 0) = 0
-                      AND sl.lab_partner_id IS NULL THEN ${NET_AMOUNT} ELSE 0 END) AS diag
+                      AND NOT ${IS_LAB_LINE()} THEN ${NET_AMOUNT} ELSE 0 END) AS diag
           FROM bill_service_lines sl
           JOIN bills b ON b.id = sl.bill_id
           LEFT JOIN services s ON s.id = sl.service_id
@@ -565,16 +601,14 @@ export async function clinicToday(dayIso: string): Promise<ClinicToday> {
     args: [dayIso],
   });
 
-  // Samples billed and not yet drawn. Counted across all days on purpose: a
-  // sample nobody collected on Sunday is still uncollected on Monday, and a
-  // number that resets overnight would say the work had gone away.
+  // Samples billed and not yet drawn (Lab → Sample collection). Counted
+  // across all days on purpose: a sample nobody collected on Sunday is still
+  // uncollected on Monday, and a number that resets overnight would say the
+  // work had gone away.
   const pending = await db().execute({
     sql: `SELECT COUNT(*) AS n
-            FROM bill_service_lines sl
-            JOIN bills b ON b.id = sl.bill_id
-            JOIN services s ON s.id = sl.service_id
-           WHERE b.status = 'saved' AND s.outsourced = 1
-             AND sl.collected_at IS NULL`,
+            FROM lab_samples s JOIN lab_orders o ON o.id = s.order_id
+           WHERE s.status IN ('waiting','recollection') AND o.status <> 'cancelled'`,
     args: [],
   });
 

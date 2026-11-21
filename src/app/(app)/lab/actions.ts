@@ -17,7 +17,6 @@ import {
   approveOrder,
   sendBackResults,
   reopenResults,
-  recordDispatch,
   setOrderDetails,
   LabProblem,
 } from "@/lib/repos/lab-orders";
@@ -28,6 +27,7 @@ import {
   saveProfile,
   LabCatalogProblem,
 } from "@/lib/repos/lab-catalog";
+import { sendOutResults, undoSendOut, setPartnerPrice } from "@/lib/repos/lab-sendouts";
 import type { Permission } from "@/lib/permissions";
 
 export interface LabActionResult {
@@ -54,7 +54,7 @@ async function gate(perm: Permission | Permission[]) {
 }
 
 function refreshLab(orderId?: string) {
-  for (const p of ["/lab/samples", "/lab/results", "/lab/approval", "/lab/reports", "/lab/dispatch"]) revalidatePath(p);
+  for (const p of ["/lab/samples", "/lab/results", "/lab/approval", "/lab/reports"]) revalidatePath(p);
   if (orderId) {
     revalidatePath(`/lab/orders/${orderId}`);
     revalidatePath(`/lab/results/${orderId}`);
@@ -172,18 +172,69 @@ export async function reopenAction(input: { orderId: string; resultIds: string[]
   }
 }
 
-// ---- handing over, order details ----
+// ---- sent to another laboratory ----
 
-export async function dispatchAction(input: { orderId: string; channel: "printed" | "collected"; note: string }): Promise<LabActionResult> {
+const sendOutSchema = z.object({
+  orderId: z.string().min(1),
+  resultIds: z.array(z.string().min(1)).min(1, "Tick at least one test to send.").max(200),
+  partnerId: z.string().min(1, "Choose the laboratory."),
+});
+
+export async function sendOutAction(input: unknown): Promise<LabActionResult & { unpriced?: number }> {
   try {
-    const user = await gate("lab.dispatch");
-    await recordDispatch(input.orderId, input.channel, input.note, user);
-    refreshLab(input.orderId);
-    return { ok: true };
+    const user = await gate("lab.results");
+    const parsed = sendOutSchema.safeParse(input);
+    if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Please check the form.");
+    const { sent, unpriced } = await sendOutResults({ ...parsed.data, user });
+    await recordAudit(user.id, "lab.sent_out", {
+      orderId: parsed.data.orderId,
+      partnerId: parsed.data.partnerId,
+      count: sent,
+    });
+    refreshLab(parsed.data.orderId);
+    revalidatePath(`/settings/lab-partners/${parsed.data.partnerId}`);
+    return { ok: true, unpriced };
   } catch (err) {
     return handle(err);
   }
 }
+
+export async function undoSendOutAction(input: { sendoutId: string; reason: string }): Promise<LabActionResult> {
+  try {
+    const user = await gate("lab.results");
+    const { orderId } = await undoSendOut(String(input.sendoutId), String(input.reason ?? "").slice(0, 300), user);
+    await recordAudit(user.id, "lab.send_out_undone", { sendoutId: input.sendoutId, orderId, reason: input.reason });
+    refreshLab(orderId);
+    return { ok: true, id: orderId };
+  } catch (err) {
+    return handle(err);
+  }
+}
+
+const priceSchema = z.object({
+  partnerId: z.string().min(1),
+  testId: z.string().min(1),
+  costPaisa: z.number().int("The price has to be a number.").min(0, "The price can't be below zero."),
+});
+
+/** What another laboratory charges for a test (its price list). */
+export async function setPartnerPriceAction(input: unknown): Promise<LabActionResult & { filled?: number }> {
+  try {
+    const user = await assertPermission(["lab.catalog", "clinic.setup"]);
+    const parsed = priceSchema.safeParse(input);
+    if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Please check the price.");
+    const { filled } = await setPartnerPrice(parsed.data.partnerId, parsed.data.testId, parsed.data.costPaisa);
+    await recordAudit(user.id, "lab_partner.price_set", { ...parsed.data, filled });
+    revalidatePath(`/settings/lab-partners/${parsed.data.partnerId}`);
+    revalidatePath("/settings/lab-partners");
+    revalidatePath("/reports/lab-partners");
+    return { ok: true, filled };
+  } catch (err) {
+    return handle(err);
+  }
+}
+
+// ---- order details ----
 
 export async function setOrderDetailsAction(input: {
   orderId: string;
@@ -234,7 +285,7 @@ const paramSchema = z.object({
 const testSchema = z.object({
   id: z.string().optional(),
   name: z.string().trim().min(2, "Give the test a name").max(160),
-  shortCode: z.string().trim().max(20),
+  shortCode: z.string().trim().max(40, "Keep the short code under 40 characters"),
   departmentId: z.string().nullable(),
   sampleTypeId: z.string().nullable(),
   method: z.string().max(160),
@@ -273,7 +324,7 @@ export async function saveTestAction(input: unknown): Promise<LabActionResult> {
 const profileSchema = z.object({
   id: z.string().optional(),
   name: z.string().trim().min(2, "Give the profile a name").max(160),
-  shortCode: z.string().trim().max(20),
+  shortCode: z.string().trim().max(40, "Keep the short code under 40 characters"),
   departmentId: z.string().nullable(),
   active: z.boolean(),
   ratePaisa: z.number().int().min(0),

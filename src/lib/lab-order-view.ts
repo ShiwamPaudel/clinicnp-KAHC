@@ -7,8 +7,11 @@ import { bsDateLabel, orderNoLabel, patientNoLabel } from "@/lib/lab-format";
 
 export function toOrderView(o: OrderSummary): OrderView {
   const c = o.counts;
-  const parts = [`${c.approved} of ${c.total} approved`];
+  const here = c.total - c.sentOut;
+  const parts: string[] = [];
+  if (here > 0) parts.push(`${c.approved} of ${here} approved`);
   if (c.submitted) parts.push(`${c.submitted} waiting for approval`);
+  if (c.sentOut) parts.push(`${c.sentOut} sent to another lab`);
   return {
     id: o.id,
     orderLabel: orderNoLabel(o.orderNo),
@@ -22,5 +25,7 @@ export function toOrderView(o: OrderSummary): OrderView {
     progress: parts.join(" · "),
     balancePaisa: o.balancePaisa,
     correction: c.correction,
+    canPrint: c.approved > 0,
+    sentOut: [],
   };
 }

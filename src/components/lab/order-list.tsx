@@ -1,19 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FlaskConical, Search, Printer, HandMetal, PenLine, ClipboardCheck } from "lucide-react";
+import { FlaskConical, Search, Printer, PenLine, ClipboardCheck, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Table, THead, TR, TH, TD } from "@/components/ui/table";
-import { useToast } from "@/components/ui/toast";
-import { dispatchAction } from "@/app/(app)/lab/actions";
 import { ORDER_STATUS_LABEL, orderTone } from "@/lib/lab-format";
 import { formatPaisa } from "@/lib/money";
-import { strings } from "@/lib/strings";
 
 export interface OrderView {
   id: string;
@@ -28,34 +25,25 @@ export interface OrderView {
   progress: string;
   balancePaisa: number;
   correction: number;
+  /** at least one approved result: there is a report to print */
+  canPrint: boolean;
+  /** "Vitamin D → City Lab", for tests sent to another laboratory */
+  sentOut: string[];
 }
 
-export type OrderListMode = "results" | "approval" | "reports" | "dispatch";
+export type OrderListMode = "results" | "approval" | "reports";
 
 const EMPTY: Record<OrderListMode, string> = {
   results: "Nothing is waiting for results. Tests appear here once their sample is collected.",
   approval: "Nothing is waiting for approval.",
-  reports: "No approved reports yet.",
-  dispatch: "Every approved report has been handed over.",
+  reports: "No reports yet.",
 };
 
-/** One list for Result entry, Approval, Reports and Dispatch; the action differs. */
+/** One list for Result entry, Approval and Reports; the action differs. */
 export function OrderList({ rows, mode, base }: { rows: OrderView[]; mode: OrderListMode; base: string }) {
   const router = useRouter();
   const params = useSearchParams();
-  const toast = useToast();
   const [q, setQ] = useState(params.get("q") ?? "");
-  const [pending, start] = useTransition();
-
-  function hand(id: string, channel: "printed" | "collected") {
-    start(async () => {
-      const res = await dispatchAction({ orderId: id, channel, note: "" });
-      if (res.ok) {
-        toast.success(channel === "collected" ? "Marked as collected by the patient" : "Marked as printed");
-        router.refresh();
-      } else toast.error(res.userMessage ?? strings.somethingWentWrong);
-    });
-  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -106,6 +94,16 @@ export function OrderList({ rows, mode, base }: { rows: OrderView[]; mode: Order
                 <TD className="max-w-[340px] text-[13px] text-sage-700">
                   {o.testNames}
                   <div className="text-[12px] text-sage-500">{o.progress}</div>
+                  {o.sentOut.length > 0 && (
+                    <div className="mt-1 flex flex-col gap-0.5">
+                      {o.sentOut.map((line) => (
+                        <span key={line} className="flex items-center gap-1 text-[12px] text-info-600">
+                          <Send className="h-3 w-3 shrink-0" />
+                          {line}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </TD>
                 <TD>
                   <Badge tone={orderTone(o.status)}>{ORDER_STATUS_LABEL[o.status] ?? o.status}</Badge>
@@ -132,24 +130,13 @@ export function OrderList({ rows, mode, base }: { rows: OrderView[]; mode: Order
                         </Button>
                       </Link>
                     )}
-                    {(mode === "reports" || mode === "dispatch") && (
+                    {mode === "reports" && o.canPrint && (
                       <a href={`/print/lab-report/${o.id}`} target="_blank" rel="noreferrer">
-                        <Button variant={mode === "reports" ? "primary" : "secondary"}>
+                        <Button>
                           <Printer className="h-4 w-4" />
                           Print
                         </Button>
                       </a>
-                    )}
-                    {mode === "dispatch" && (
-                      <>
-                        <Button disabled={pending} onClick={() => hand(o.id, "collected")}>
-                          <HandMetal className="h-4 w-4" />
-                          Patient collected
-                        </Button>
-                        <Button variant="ghost" disabled={pending} onClick={() => hand(o.id, "printed")}>
-                          Mark printed
-                        </Button>
-                      </>
                     )}
                   </div>
                 </TD>

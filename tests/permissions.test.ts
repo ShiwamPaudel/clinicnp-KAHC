@@ -23,6 +23,10 @@ import { SETTINGS_TABS, visibleSettingsTabs } from "@/lib/settings-tabs";
 
 const migration = readFileSync(join(__dirname, "..", "db", "migrations", "0022_roles.sql"), "utf8");
 
+/** Keys a later migration takes back out of the saved roles (0028). */
+const retiredBy0028 = readFileSync(join(__dirname, "..", "db", "migrations", "0028_retired_permissions.sql"), "utf8");
+const RETIRED = new Set(["lab.sendout", "lab.dispatch"]);
+
 /** Every JSON permission list in the seeded roles, by role id. */
 function seededRoles(): Map<string, string[]> {
   const out = new Map<string, string[]>();
@@ -56,9 +60,13 @@ describe("the ready-made roles", () => {
     );
   });
 
-  it("uses only permissions that exist", () => {
+  it("uses only permissions that exist, once 0028 has taken out the retired ones", () => {
+    for (const k of RETIRED) {
+      expect(isPermission(k)).toBe(false);
+      expect(retiredBy0028).toContain(`'${k}'`);
+    }
     for (const [id, list] of roles) {
-      for (const key of list) expect(isPermission(key), `${id}: ${key}`).toBe(true);
+      for (const key of list.filter((k) => !RETIRED.has(k))) expect(isPermission(key), `${id}: ${key}`).toBe(true);
     }
   });
 
@@ -110,6 +118,6 @@ describe("Settings tabs", () => {
   });
 
   it("guards every tab with a real permission", () => {
-    for (const t of SETTINGS_TABS) expect(isPermission(t.perm)).toBe(true);
+    for (const t of SETTINGS_TABS) for (const p of [t.perm].flat()) expect(isPermission(p)).toBe(true);
   });
 });

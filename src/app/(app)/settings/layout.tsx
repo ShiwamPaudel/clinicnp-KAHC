@@ -10,7 +10,7 @@ export default async function SettingsLayout({
 }) {
   // Anybody holding one of the settings permissions gets in; each tab's page
   // checks its own permission again.
-  const user = await requirePermission([...new Set(SETTINGS_TABS.map((t) => t.perm))]);
+  const user = await requirePermission([...new Set(SETTINGS_TABS.flatMap((t) => (Array.isArray(t.perm) ? t.perm : [t.perm])))]);
   const modules = await getModules();
   return (
     <>

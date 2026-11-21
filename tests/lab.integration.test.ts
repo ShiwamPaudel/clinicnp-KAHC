@@ -236,8 +236,8 @@ describe("a bill with lab tests", () => {
     expect((await getOrder(orderId))!.signatoryIds).toEqual([signatoryId]);
   });
 
-  it("sends back, re-enters, and only hands over once everything is approved", async () => {
-    const { getOrder, saveResults, sendBackResults, approveOrder, recordDispatch } = await import("@/lib/repos/lab-orders");
+  it("sends back, re-enters, and is ready only once everything is approved", async () => {
+    const { getOrder, saveResults, sendBackResults, approveOrder } = await import("@/lib/repos/lab-orders");
     let order = (await getOrder(orderId))!;
     const entries = order.results
       .filter((r) => r.status !== "approved")
@@ -246,12 +246,10 @@ describe("a bill with lab tests", () => {
     await sendBackResults(orderId, null, "Check the dilution", PATH);
     order = (await getOrder(orderId))!;
     expect(order.results.filter((r) => r.status === "correction_required").length).toBe(2);
-    await expect(recordDispatch(orderId, "printed", "", TECH)).rejects.toThrow(/not ready/);
+    expect(order.status).not.toBe("approved");
     await saveResults(orderId, entries, "submit", TECH);
     await approveOrder(orderId, { signatoryIds: [signatoryId], interpretations: {} }, PATH);
     expect((await getOrder(orderId))!.status).toBe("approved");
-    await recordDispatch(orderId, "collected", "", TECH);
-    expect((await getOrder(orderId))!.status).toBe("dispatched");
   });
 });
 

@@ -37,6 +37,8 @@ export const SOURCE_LABEL: Record<string, string> = {
   purchase_return: "Purchase return",
   supplier_payment: "Supplier payment",
   lab_payment: "Laboratory payment",
+  lab_sendout: "Test sent out",
+  lab_sendout_undo: "Send-out undone",
   stock_out: "Stock out",
   opening_stock: "Opening stock",
   voucher: "Voucher",

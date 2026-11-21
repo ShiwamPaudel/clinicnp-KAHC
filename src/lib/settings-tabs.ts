@@ -8,9 +8,10 @@ import type { ModuleFlags } from "@/lib/app-name";
 export interface SettingsTab {
   href: string;
   label: string;
-  /** Shown only when this module is on. */
-  module?: keyof ModuleFlags;
-  perm: Permission;
+  /** Shown only when this module (or one of these) is on. */
+  module?: keyof ModuleFlags | (keyof ModuleFlags)[];
+  /** This permission, or any one of these. */
+  perm: Permission | Permission[];
 }
 
 // Settings tabs. A tab marked with a module appears only when that module is
@@ -22,7 +23,9 @@ export const SETTINGS_TABS: SettingsTab[] = [
   { href: "/settings/modules", label: "Modules", perm: "settings.manage" },
   { href: "/settings/services", label: "Services", module: "clinic", perm: "clinic.setup" },
   { href: "/settings/doctors", label: "Doctors", module: "clinic", perm: "clinic.setup" },
-  { href: "/settings/lab-partners", label: "Lab partners", module: "clinic", perm: "clinic.setup" },
+  // Tests are sent out from the laboratory's Result entry, and each outside
+  // laboratory keeps its price list here (0027).
+  { href: "/settings/lab-partners", label: "Outside labs", module: ["clinic", "lab"], perm: ["clinic.setup", "lab.catalog"] },
   { href: "/settings/lab", label: "Laboratory", module: "lab", perm: "lab.catalog" },
   { href: "/settings/lab-report", label: "Lab report", module: "lab", perm: "lab.catalog" },
   { href: "/settings/racks", label: "Shop layout", module: "pharmacy", perm: "stock.adjust" },
@@ -39,7 +42,9 @@ export function visibleSettingsTabs(
   permissions: readonly Permission[],
 ): SettingsTab[] {
   const granted = new Set(permissions);
+  const list = <T,>(v: T | T[]): T[] => (Array.isArray(v) ? v : [v]);
   return SETTINGS_TABS.filter(
-    (t) => (!t.module || modules[t.module]) && granted.has(t.perm),
+    (t) =>
+      (!t.module || list(t.module).some((m) => modules[m])) && list(t.perm).some((p) => granted.has(p)),
   );
 }

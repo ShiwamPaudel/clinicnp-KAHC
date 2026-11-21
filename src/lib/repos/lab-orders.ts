@@ -6,7 +6,8 @@
  *   samples     -> collectSample / rejectSample / resetSample
  *   results     -> saveResults (draft | submit)
  *   approval    -> approveOrder / sendBackResults / reopenResults
- *   delivery    -> recordDispatch, and the patient's QR link (resolvePublicReport)
+ *   sent out    -> lab-sendouts.ts (from Result entry, straight to Reports)
+ *   delivery    -> Reports (print), and the patient's QR link (resolvePublicReport)
  *
  * Every change re-derives the order's status from its samples and results
  * (refreshOrderStatus), so no screen can leave it saying something untrue.
@@ -219,9 +220,14 @@ export async function cancelLabOrderForBill(tx: Transaction, billId: string, rea
     sql: "UPDATE lab_orders SET status = 'cancelled', cancelled_at = ?, cancel_reason = ?, updated_at = ? WHERE id = ?",
     args: [now, reason, now, orderId],
   });
-  await tx.execute({ sql: "UPDATE lab_order_tests SET status = 'cancelled', updated_at = ? WHERE order_id = ?", args: [now, orderId] });
+  // A test already sent to another laboratory stays sent: the sample has gone,
+  // and what that laboratory charges is still owed (lab-sendouts.ts).
   await tx.execute({
-    sql: "UPDATE lab_results SET status = 'cancelled', updated_at = ? WHERE order_id = ? AND status NOT IN ('approved','dispatched')",
+    sql: "UPDATE lab_order_tests SET status = 'cancelled', updated_at = ? WHERE order_id = ? AND status <> 'sent_out'",
+    args: [now, orderId],
+  });
+  await tx.execute({
+    sql: "UPDATE lab_results SET status = 'cancelled', updated_at = ? WHERE order_id = ? AND status NOT IN ('approved','dispatched','sent_out')",
     args: [now, orderId],
   });
   await tx.execute({
@@ -242,17 +248,18 @@ export async function cancelLabOrderForBill(tx: Transaction, billId: string, rea
 export function deriveOrderStatus(samples: string[], results: string[]): string {
   const live = results.filter((r) => r !== "cancelled");
   if (live.length === 0) return "cancelled";
-  const done = (r: string) => r === "approved" || r === "dispatched";
-  // handed over only when every test is — a result re-approved after a
-  // reopen has not been handed over yet, whatever happened before
-  if (live.every(done)) return live.every((r) => r === "dispatched") ? "dispatched" : "approved";
+  // A test sent to another laboratory is finished as far as this lab goes.
+  // ("dispatched" is a hand-over stamp from before 0027; it reads as approved.)
+  const reported = (r: string) => r === "approved" || r === "dispatched";
+  const done = (r: string) => reported(r) || r === "sent_out";
+  if (live.every(done)) return live.some(reported) ? "approved" : "sent_out";
   if (live.every((r) => r === "submitted" || done(r))) return "awaiting_approval";
   const waitingSample = samples.some((s) => s === "waiting" || s === "recollection" || s === "rejected");
   if (waitingSample && live.every((r) => r === "pending")) return "sample_pending";
   return "result_pending";
 }
 
-async function refreshOrderStatus(orderId: string): Promise<void> {
+export async function refreshOrderStatus(orderId: string): Promise<void> {
   const [s, r, o] = await Promise.all([
     db().execute({ sql: "SELECT status FROM lab_samples WHERE order_id = ?", args: [orderId] }),
     db().execute({ sql: "SELECT status FROM lab_results WHERE order_id = ?", args: [orderId] }),
@@ -287,7 +294,7 @@ export interface OrderSummary {
   phone: string;
   invoiceLabel: string;
   testNames: string;
-  counts: { total: number; pending: number; submitted: number; approved: number; correction: number };
+  counts: { total: number; pending: number; submitted: number; approved: number; correction: number; sentOut: number };
   balancePaisa: number;
 }
 
@@ -317,7 +324,8 @@ const ORDER_SELECT = `
          (SELECT COUNT(*) FROM lab_results r WHERE r.order_id = o.id AND r.status IN ('pending','draft')) AS n_pending,
          (SELECT COUNT(*) FROM lab_results r WHERE r.order_id = o.id AND r.status = 'submitted') AS n_submitted,
          (SELECT COUNT(*) FROM lab_results r WHERE r.order_id = o.id AND r.status IN ('approved','dispatched')) AS n_approved,
-         (SELECT COUNT(*) FROM lab_results r WHERE r.order_id = o.id AND r.status = 'correction_required') AS n_correction
+         (SELECT COUNT(*) FROM lab_results r WHERE r.order_id = o.id AND r.status = 'correction_required') AS n_correction,
+         (SELECT COUNT(*) FROM lab_results r WHERE r.order_id = o.id AND r.status = 'sent_out') AS n_sent
     FROM lab_orders o
     JOIN patients p ON p.id = o.patient_id
     JOIN bills b ON b.id = o.bill_id
@@ -349,12 +357,21 @@ function mapSummary(r: Row): OrderSummary {
       submitted: Number(r.n_submitted),
       approved: Number(r.n_approved),
       correction: Number(r.n_correction),
+      sentOut: Number(r.n_sent),
     },
     balancePaisa: balanceOfRow({ ...r, status: r.bill_status ?? null }),
   };
 }
 
-export type OrderQueue = "results" | "approval" | "reports" | "dispatch" | "all";
+export type OrderQueue = "results" | "approval" | "reports" | "all";
+
+/**
+ * A result waiting to be worked on, whose sample has been collected (or that
+ * needs none). Result entry shows only these: a test reaches it after
+ * Sample collection, never before (owner, 2083-08-04).
+ */
+const READY_FOR_RESULTS = `r.status IN ('pending','draft','correction_required')
+  AND (r.sample_id IS NULL OR EXISTS (SELECT 1 FROM lab_samples s WHERE s.id = r.sample_id AND s.status = 'collected'))`;
 
 /** Orders for one of the work lists, oldest first except Reports (newest first). */
 export async function listOrders(
@@ -364,13 +381,11 @@ export async function listOrders(
   const where: string[] = ["o.status <> 'cancelled'"];
   const args: (string | number)[] = [];
   if (queue === "results") {
-    where.push(`EXISTS (SELECT 1 FROM lab_results r WHERE r.order_id = o.id AND r.status IN ('pending','draft','correction_required'))`);
+    where.push(`EXISTS (SELECT 1 FROM lab_results r WHERE r.order_id = o.id AND ${READY_FOR_RESULTS})`);
   } else if (queue === "approval") {
     where.push(`EXISTS (SELECT 1 FROM lab_results r WHERE r.order_id = o.id AND r.status = 'submitted')`);
   } else if (queue === "reports") {
-    where.push(`EXISTS (SELECT 1 FROM lab_results r WHERE r.order_id = o.id AND r.status IN ('approved','dispatched'))`);
-  } else if (queue === "dispatch") {
-    where.push("o.status = 'approved'");
+    where.push(`EXISTS (SELECT 1 FROM lab_results r WHERE r.order_id = o.id AND r.status IN ('approved','dispatched','sent_out'))`);
   }
   if (opts.search?.trim()) {
     const term = `%${opts.search.trim()}%`;
@@ -394,18 +409,17 @@ export async function listOrders(
 }
 
 /** Counts for the menu badges and the lab's day. */
-export async function labQueueCounts(): Promise<{ samples: number; results: number; approval: number; dispatch: number }> {
+export async function labQueueCounts(): Promise<{ samples: number; results: number; approval: number }> {
   const res = await db().execute(`
     SELECT
       (SELECT COUNT(*) FROM lab_samples s JOIN lab_orders o ON o.id = s.order_id
         WHERE s.status IN ('waiting','recollection') AND o.status <> 'cancelled') AS samples,
       (SELECT COUNT(DISTINCT r.order_id) FROM lab_results r JOIN lab_orders o ON o.id = r.order_id
-        WHERE r.status IN ('pending','draft','correction_required') AND o.status <> 'cancelled') AS results,
+        WHERE ${READY_FOR_RESULTS} AND o.status <> 'cancelled') AS results,
       (SELECT COUNT(DISTINCT r.order_id) FROM lab_results r JOIN lab_orders o ON o.id = r.order_id
-        WHERE r.status = 'submitted' AND o.status <> 'cancelled') AS approval,
-      (SELECT COUNT(*) FROM lab_orders WHERE status = 'approved') AS dispatch`);
+        WHERE r.status = 'submitted' AND o.status <> 'cancelled') AS approval`);
   const r = res.rows[0]!;
-  return { samples: Number(r.samples), results: Number(r.results), approval: Number(r.approval), dispatch: Number(r.dispatch) };
+  return { samples: Number(r.samples), results: Number(r.results), approval: Number(r.approval) };
 }
 
 // ===========================================================================
@@ -948,7 +962,7 @@ export async function saveResults(
   for (const e of entries) {
     const result = byId.get(e.resultId);
     if (!result) continue;
-    if (result.status === "approved" || result.status === "dispatched") continue;
+    if (result.status === "approved" || result.status === "dispatched" || result.status === "sent_out") continue;
     if (result.sampleStatus && result.sampleStatus !== "collected") {
       throw new LabProblem(`The sample for ${result.testName} has not been collected yet.`);
     }
@@ -1119,42 +1133,12 @@ export function reopenResults(orderId: string, resultIds: string[], reason: stri
 async function markReleasedIfFinal(orderId: string): Promise<void> {
   const o = await getOrder(orderId);
   if (!o || o.releasedAt) return;
-  const allDone = o.results.length > 0 && o.results.every((r) => r.status === "approved" || r.status === "dispatched");
+  const reported = (s: string) => s === "approved" || s === "dispatched";
+  const allDone =
+    o.results.some((r) => reported(r.status)) && o.results.every((r) => reported(r.status) || r.status === "sent_out");
   if (allDone && o.balancePaisa <= 0 && !o.billCancelled) {
     await db().execute({ sql: "UPDATE lab_orders SET released_at = ? WHERE id = ?", args: [nowIso(), orderId] });
   }
-}
-
-// ===========================================================================
-// handing over
-// ===========================================================================
-
-export async function recordDispatch(
-  orderId: string,
-  channel: "printed" | "collected",
-  note: string,
-  user: { id: string; name: string },
-): Promise<void> {
-  const o = await db().execute({ sql: "SELECT status FROM lab_orders WHERE id = ?", args: [orderId] });
-  const status = o.rows[0]?.status as string | undefined;
-  if (!status) throw new LabProblem("That order no longer exists.");
-  if (status !== "approved" && status !== "dispatched") throw new LabProblem("This report is not ready to hand over yet.");
-  const at = nowIso();
-  await db().batch(
-    [
-      {
-        sql: `INSERT INTO lab_report_dispatches (id, order_id, channel, note, user_id, user_name, at)
-              VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        args: [ulid(), orderId, channel, note.trim(), user.id, user.name, at],
-      },
-      {
-        sql: "UPDATE lab_results SET status = 'dispatched', updated_at = ? WHERE order_id = ? AND status = 'approved'",
-        args: [at, orderId],
-      },
-    ],
-    "write",
-  );
-  await refreshOrderStatus(orderId);
 }
 
 // ===========================================================================
@@ -1182,8 +1166,10 @@ export async function resolvePublicReport(token: string): Promise<PublicReportSt
   const r = res.rows[0];
   if (!r || r.status === "cancelled" || r.bill_status === "cancelled") return { status: "invalid" };
   const orderId = r.id as string;
+  // A test sent to another laboratory is reported by that laboratory, on
+  // paper; it is neither shown here nor listed as still running.
   const results = await db().execute({
-    sql: "SELECT status, test_name FROM lab_results WHERE order_id = ? AND status <> 'cancelled'",
+    sql: "SELECT status, test_name FROM lab_results WHERE order_id = ? AND status NOT IN ('cancelled','sent_out')",
     args: [orderId],
   });
   const done = results.rows.filter((x) => x.status === "approved" || x.status === "dispatched");
@@ -1239,7 +1225,8 @@ export async function orderIdForBill(billId: string): Promise<string | null> {
  * is refunded in full, its tests that are not yet approved are cancelled, and
  * a sample nothing live depends on any more is no longer asked for. Called
  * inside createSaleReturn's transaction. Approved results stay — the work was
- * done, and the report already exists.
+ * done, and the report already exists — and so does a test already sent to
+ * another laboratory, whose charge is still owed.
  */
 export async function cancelLabTestsForRefundedLines(tx: Transaction, lineIds: string[]): Promise<void> {
   if (lineIds.length === 0) return;
@@ -1260,13 +1247,13 @@ export async function cancelLabTestsForRefundedLines(tx: Transaction, lineIds: s
   });
   await tx.execute({
     sql: `UPDATE lab_results SET status = 'cancelled', updated_at = ?
-           WHERE status NOT IN ('approved','dispatched','cancelled')
+           WHERE status NOT IN ('approved','dispatched','cancelled','sent_out')
              AND order_test_id IN (SELECT id FROM lab_order_tests WHERE bill_service_line_id IN (${rMarks}))`,
     args: [now, ...refunded],
   });
   await tx.execute({
     sql: `UPDATE lab_order_tests SET status = 'cancelled', updated_at = ?
-           WHERE bill_service_line_id IN (${rMarks}) AND status NOT IN ('approved')`,
+           WHERE bill_service_line_id IN (${rMarks}) AND status NOT IN ('approved','sent_out')`,
     args: [now, ...refunded],
   });
   for (const o of orders.rows) {

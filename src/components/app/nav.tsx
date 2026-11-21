@@ -17,7 +17,7 @@ import {
   Users,
   Stethoscope,
   FlaskConical,
-  Send,
+
   HandCoins,
   Banknote,
   Landmark,
@@ -66,7 +66,6 @@ const GROUPS: NavGroup[] = [
       { href: "/patients", label: "Patients", icon: Users, perm: "patients.view" },
       { href: "/visits", label: "Visits", icon: Stethoscope, perm: "visits.view" },
       { href: "/doctors", label: "Doctors", icon: CalendarCheck, perm: ["visits.view", "appointments.manage"] },
-      { href: "/sendout", label: "Sent out", icon: Send, perm: "lab.sendout" },
     ],
   },
   {
@@ -77,7 +76,7 @@ const GROUPS: NavGroup[] = [
         href: "/lab",
         label: "Lab work",
         icon: FlaskConical,
-        perm: ["lab.samples", "lab.results", "lab.approve", "lab.reports", "lab.dispatch", "lab.catalog", "lab.reopen"],
+        perm: ["lab.samples", "lab.results", "lab.approve", "lab.reports", "lab.catalog", "lab.reopen"],
       },
       { href: "/patients", label: "Patients", icon: Users, perm: "patients.view", withoutClinic: true },
     ],

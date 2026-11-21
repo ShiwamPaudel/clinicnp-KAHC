@@ -6,6 +6,8 @@ import { requirePermission, can } from "@/lib/session";
 import { requireModulePage } from "@/lib/modules";
 import { LAB_PERMISSIONS } from "@/lib/permissions";
 import { getOrder } from "@/lib/repos/lab-orders";
+import { listOrderSendouts } from "@/lib/repos/lab-sendouts";
+import { BringBackButton } from "@/components/lab/send-out";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { OrderHead } from "@/components/lab/order-head";
@@ -25,6 +27,7 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
   const { orderId } = await params;
   const order = await getOrder(orderId);
   if (!order) notFound();
+  const sendouts = new Map((await listOrderSendouts(orderId)).map((so) => [so.resultId, so]));
   const h = await headers();
   const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host") ?? ""}`;
   const approved = order.results.filter((r) => r.status === "approved" || r.status === "dispatched");
@@ -35,7 +38,7 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
       <OrderHead order={order} />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        {active && can(user, "lab.results") && order.results.some((r) => !["approved", "dispatched"].includes(r.status)) && (
+        {active && can(user, "lab.results") && order.results.some((r) => !["approved", "dispatched", "sent_out"].includes(r.status)) && (
           <Link href={`/lab/results/${order.id}`}>
             <Button>
               <PenLine className="h-4 w-4" />
@@ -81,7 +84,24 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
                 </div>
                 <Badge tone={resultTone(r.status)}>{RESULT_STATUS_LABEL[r.status] ?? r.status}</Badge>
               </header>
-              <ResultValues result={r} />
+              {r.status === "sent_out" ? (
+                <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-[14px] text-sage-700">
+                  <span>
+                    Sent to <span className="font-semibold text-sage-900">{sendouts.get(r.id)?.partnerName ?? "another lab"}</span>
+                    {sendouts.get(r.id) && (
+                      <span className="text-sage-500">
+                        {" "}
+                        · {sendouts.get(r.id)!.sentByName} · {stampAt(sendouts.get(r.id)!.sentAt)}
+                      </span>
+                    )}
+                  </span>
+                  {active && can(user, "lab.results") && sendouts.get(r.id) && (
+                    <BringBackButton sendoutId={sendouts.get(r.id)!.id} testName={r.testName} />
+                  )}
+                </div>
+              ) : (
+                <ResultValues result={r} />
+              )}
               <div className="border-t border-line px-4 py-2 text-[12px] text-sage-500">
                 {r.enteredByName && `Entered by ${r.enteredByName}${r.submittedAt ? ` · ${stampAt(r.submittedAt)}` : ""}`}
                 {r.approvedByName && ` · Approved by ${r.approvedByName} · ${stampAt(r.approvedAt)}`}

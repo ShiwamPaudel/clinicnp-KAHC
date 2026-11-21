@@ -17,7 +17,6 @@ import {
 } from "@/app/(app)/settings/catalog-actions";
 import { formatPaisa, toPaisa, paisaToRupees } from "@/lib/money";
 import { strings } from "@/lib/strings";
-import { SAMPLE_TYPES } from "@/lib/sample-types";
 import type { Service, ServiceGroup } from "@/lib/repos/services";
 import type { Doctor } from "@/lib/repos/doctors";
 import type { LabPartner } from "@/lib/repos/lab-partners";
@@ -403,64 +402,9 @@ export function ServicesManager({
             </div>
           </div>
 
-          <div className="rounded-[8px] border border-line p-3">
-            <label className="flex items-center gap-2 text-[14px] text-sage-900">
-              <input
-                type="checkbox"
-                checked={form.outsourced}
-                onChange={(e) => set("outsourced", e.target.checked)}
-                className="h-4 w-4"
-              />
-              Sent to an outside laboratory
-            </label>
-            {form.outsourced && (
-              <div className="mt-3 grid grid-cols-2 gap-4">
-                <Field label="Laboratory">
-                  <Select
-                    value={form.defaultLabPartnerId}
-                    onChange={(e) => set("defaultLabPartnerId", e.target.value)}
-                  >
-                    <option value="">Choose one</option>
-                    {partners.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                <Field label="What the laboratory charges" hint="In rupees, per test">
-                  <Input
-                    numeric
-                    value={form.partnerCost}
-                    onChange={(e) => set("partnerCost", e.target.value)}
-                    placeholder="400"
-                  />
-                </Field>
-              </div>
-            )}
-          </div>
-
-          {/* What has to be collected. This drives the sample-collection
-              screen, so a test with a sample type set appears there the
-              moment it is billed. */}
-          <Field
-            label="Sample collected"
-            htmlFor="sampleType"
-            hint="Leave blank for anything that collects nothing"
-          >
-            <Select
-              id="sampleType"
-              value={form.sampleType}
-              onChange={(e) => set("sampleType", e.target.value)}
-            >
-              <option value="">— Nothing collected —</option>
-              {SAMPLE_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </Select>
-          </Field>
+          {/* Sending a test to another laboratory, and the sample it needs,
+              now belong to the laboratory: Lab → Tests, then Result entry
+              (0027). Old values on a service are kept as they were. */}
 
           {isConsultationGroup && (
             <div className="rounded-[8px] border border-line p-3">

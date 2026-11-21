@@ -39,8 +39,10 @@ export const ORDER_STATUS_LABEL: Record<string, string> = {
   in_progress: "In progress",
   result_pending: "Results being entered",
   awaiting_approval: "Waiting for approval",
-  approved: "Ready to hand over",
-  dispatched: "Handed over",
+  approved: "Report ready",
+  // a hand-over stamp from before 0027; it reads as a ready report
+  dispatched: "Report ready",
+  sent_out: "Sent to another lab",
   cancelled: "Cancelled",
 };
 
@@ -50,7 +52,8 @@ export const RESULT_STATUS_LABEL: Record<string, string> = {
   submitted: "Waiting for approval",
   correction_required: "Sent back",
   approved: "Approved",
-  dispatched: "Handed over",
+  dispatched: "Approved",
+  sent_out: "Sent to another lab",
   cancelled: "Cancelled",
 };
 
@@ -66,7 +69,7 @@ export type Tone = "ok" | "warn" | "danger" | "info" | "neutral";
 
 export function orderTone(status: string): Tone {
   if (status === "approved" || status === "dispatched") return "ok";
-  if (status === "awaiting_approval") return "info";
+  if (status === "awaiting_approval" || status === "sent_out") return "info";
   if (status === "cancelled") return "danger";
   if (status === "sample_pending") return "warn";
   return "neutral";
@@ -74,7 +77,7 @@ export function orderTone(status: string): Tone {
 
 export function resultTone(status: string): Tone {
   if (status === "approved" || status === "dispatched") return "ok";
-  if (status === "submitted") return "info";
+  if (status === "submitted" || status === "sent_out") return "info";
   if (status === "correction_required") return "danger";
   if (status === "draft") return "warn";
   return "neutral";

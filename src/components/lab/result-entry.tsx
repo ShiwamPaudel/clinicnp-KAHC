@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Save, Send, AlertTriangle } from "lucide-react";
+import { Save, Send, AlertTriangle, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import { saveResultsAction } from "@/app/(app)/lab/actions";
 import { computeFlag, flagSymbol, numericValue, type ResultFlag } from "@/lib/lab-flags";
 import { RESULT_STATUS_LABEL, resultTone } from "@/lib/lab-format";
 import { strings } from "@/lib/strings";
+import { SendOutDialog, BringBackButton, type PartnerOption } from "@/components/lab/send-out";
+import { stampAt } from "@/lib/lab-format";
 import { cn } from "@/lib/cn";
 import type { OrderResult } from "@/lib/repos/lab-orders";
 
@@ -41,20 +43,48 @@ const FLAG_TONE: Record<ResultFlag, string> = {
   abnormal: "text-danger-600",
 };
 
+export interface SentOutInfo {
+  id: string;
+  resultId: string;
+  partnerName: string;
+  sentAt: string;
+  sentByName: string;
+}
+
+const LOCKED = ["approved", "dispatched", "sent_out"];
+const SENDABLE = ["pending", "draft", "correction_required"];
+
 /**
- * Result entry for one order. The flag beside a number is a preview; the
- * server works it out again against the same range when it saves.
+ * Result entry for one order. Each test is either done here or sent to
+ * another laboratory, test by test — one bill can have both. The flag beside a
+ * number is a preview; the server works it out again when it saves.
  */
-export function ResultEntry({ orderId, results }: { orderId: string; results: OrderResult[] }) {
+export function ResultEntry({
+  orderId,
+  results,
+  partners,
+  sentOut,
+  canAddPartner,
+}: {
+  orderId: string;
+  results: OrderResult[];
+  partners: PartnerOption[];
+  sentOut: SentOutInfo[];
+  canAddPartner: boolean;
+}) {
   const router = useRouter();
   const toast = useToast();
   const [draft, setDraft] = useState<Draft>(() => initialDraft(results));
   const [pending, start] = useTransition();
+  const [sendDialog, setSendDialog] = useState<{ key: number; initial: string[] } | null>(null);
 
-  const editable = useMemo(
-    () => results.filter((r) => r.status !== "approved" && r.status !== "dispatched"),
+  const editable = useMemo(() => results.filter((r) => !LOCKED.includes(r.status)), [results]);
+  const sendable = useMemo(
+    () => results.filter((r) => SENDABLE.includes(r.status) && (!r.sampleStatus || r.sampleStatus === "collected")),
     [results],
   );
+  const sentByResult = useMemo(() => new Map(sentOut.map((s) => [s.resultId, s])), [sentOut]);
+  const openSend = (initial: string[]) => setSendDialog({ key: Date.now(), initial });
 
   function setValue(resultId: string, key: string, patch: Partial<{ value: string; remarks: string }>) {
     setDraft((d) => {
@@ -92,9 +122,19 @@ export function ResultEntry({ orderId, results }: { orderId: string; results: Or
 
   return (
     <div className="flex flex-col gap-4">
+      {sendable.length > 0 && (
+        <div className="flex justify-end">
+          <Button variant="secondary" onClick={() => openSend([])}>
+            <ArrowUpRight className="h-4 w-4" />
+            Send tests to another lab
+          </Button>
+        </div>
+      )}
       {results.map((r) => {
-        const locked = r.status === "approved" || r.status === "dispatched";
+        const locked = LOCKED.includes(r.status);
         const noSample = Boolean(r.sampleStatus && r.sampleStatus !== "collected");
+        const sent = r.status === "sent_out" ? sentByResult.get(r.id) : undefined;
+        const canSend = SENDABLE.includes(r.status) && !noSample;
         return (
           <section key={r.id} className="rounded-[10px] border border-line bg-cream-50">
             <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
@@ -103,8 +143,35 @@ export function ResultEntry({ orderId, results }: { orderId: string; results: Or
                 {r.groupName && <span className="ml-2 text-[12px] text-sage-500">{r.groupName}</span>}
                 {r.departmentName && <span className="ml-2 text-[12px] text-sage-500">· {r.departmentName}</span>}
               </div>
-              <Badge tone={resultTone(r.status)}>{RESULT_STATUS_LABEL[r.status] ?? r.status}</Badge>
+              <div className="flex items-center gap-2">
+                {canSend && (
+                  <Button variant="ghost" disabled={pending} onClick={() => openSend([r.id])}>
+                    <ArrowUpRight className="h-4 w-4" />
+                    Send to another lab
+                  </Button>
+                )}
+                <Badge tone={resultTone(r.status)}>{RESULT_STATUS_LABEL[r.status] ?? r.status}</Badge>
+              </div>
             </header>
+            {r.status === "sent_out" ? (
+              <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-[14px]">
+                <span className="text-sage-700">
+                  {sent ? (
+                    <>
+                      Sent to <span className="font-semibold text-sage-900">{sent.partnerName}</span>
+                      <span className="text-sage-500">
+                        {" "}
+                        · {sent.sentByName} · {stampAt(sent.sentAt)}
+                      </span>
+                    </>
+                  ) : (
+                    "Sent to another lab"
+                  )}
+                </span>
+                {sent && <BringBackButton sendoutId={sent.id} testName={r.testName} />}
+              </div>
+            ) : (
+            <>
             {r.correctionNote && !locked && (
               <div className="flex items-start gap-2 border-b border-line bg-danger-100/50 px-4 py-2 text-[13px] text-danger-600">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -189,9 +256,24 @@ export function ResultEntry({ orderId, results }: { orderId: string; results: Or
                 />
               </div>
             )}
+            </>
+            )}
           </section>
         );
       })}
+
+      {sendDialog && (
+        <SendOutDialog
+          key={sendDialog.key}
+          open
+          onClose={() => setSendDialog(null)}
+          orderId={orderId}
+          tests={sendable.map((r) => ({ resultId: r.id, testName: r.testName, groupName: r.groupName }))}
+          partners={partners}
+          initial={sendDialog.initial}
+          canAddPartner={canAddPartner}
+        />
+      )}
 
       {editable.length > 0 && (
         <div className="sticky bottom-0 flex justify-end gap-2 border-t border-line bg-cream-100/95 py-3">

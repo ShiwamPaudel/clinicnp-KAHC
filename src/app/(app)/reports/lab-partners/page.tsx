@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requirePermission } from "@/lib/session";
-import { requireModulePage } from "@/lib/modules";
+import { requireAnyModulePage } from "@/lib/modules";
 import {
   partnerSummary,
   partnerStatement,
@@ -27,7 +27,7 @@ export default async function LabPartnersReportPage({
   }>;
 }) {
   await requirePermission("reports.all");
-  await requireModulePage("clinic");
+  await requireAnyModulePage(["clinic", "lab"]);
 
   const sp = await searchParams;
   const range = resolveRange(sp);
