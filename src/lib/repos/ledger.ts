@@ -87,7 +87,7 @@ bp AS (
   SELECT b.id, b.date_ad, b.status,
          COALESCE(${NPT("b.cancelled_at")}, b.date_ad) AS cancel_ad,
          CASE WHEN b.invoice_no IS NULL THEN 'Bill'
-              ELSE 'SI-' || IFNULL(f.bs_label, '') || '-' || printf('%06d', b.invoice_no) END AS doc,
+              ELSE 'Bill ' || printf('%06d', b.invoice_no) END AS doc,
          b.total_paisa AS total, b.discount_paisa AS disc, b.vat_paisa AS vat,
          CASE b.payment_method
            WHEN 'credit' THEN (CASE b.paid_now_method WHEN 'qr' THEN 'sys:qr' ELSE 'sys:cash' END)

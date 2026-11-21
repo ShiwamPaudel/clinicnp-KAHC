@@ -11,6 +11,7 @@ import { RangeBar } from "@/components/accounts/range-bar";
 import { Statement } from "@/components/accounts/statement";
 import { ExportLink } from "@/components/accounts/export-link";
 import { Table, THead, TR, TH, TD } from "@/components/ui/table";
+import { formatDocNo } from "@/lib/invoice-number";
 
 /** Where money with this party is actually recorded. */
 function payHere(type: PartyType, id: string): { href: string; label: string } | null {
@@ -58,7 +59,7 @@ export default async function PartyStatementPage({
   let advance = 0;
   if (type === "patient" || type === "walkin") {
     const person = (await listDuePeople(today.iso)).find((x) => (type === "patient" ? x.patientId === id : !x.patientId && x.name.trim() === id));
-    open = (person?.bills ?? []).map((b) => ({ dateAd: b.dateAd, ref: b.invoiceNo ? `SI-${b.fiscalLabel}-${String(b.invoiceNo).padStart(6, "0")}` : "Bill", openPaisa: b.balancePaisa }));
+    open = (person?.bills ?? []).map((b) => ({ dateAd: b.dateAd, ref: b.invoiceNo ? `Bill ${formatDocNo("SI", b.fiscalLabel, b.invoiceNo)}` : "Bill", openPaisa: b.balancePaisa }));
   } else {
     const receivable = type === "party" && (await partyBalanceAt(type, id, today.iso)) > 0;
     const m = (await partyMovements(receivable ? "receivable" : "payable", [type], today.iso)).get(`${type}:${id}`);

@@ -24,7 +24,7 @@ import { cn } from "@/lib/cn";
 
 export interface ReceivableBill {
   id: string;
-  /** "SI-2083/84-000045" */
+  /** "000045" */
   label: string;
   dateBs: string;
   balancePaisa: number;

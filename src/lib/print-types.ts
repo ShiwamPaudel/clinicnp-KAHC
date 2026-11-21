@@ -55,7 +55,7 @@ export interface PrintCompany {
 
 export interface PrintBill {
   company: PrintCompany;
-  invoiceLabel: string; // "SI-2083/84-000123" or provisional slip
+  invoiceLabel: string; // "000123", or "Slip …" when printed before the number came back
   provisional: boolean;
   dateBsLong: string;
   timeStr: string;

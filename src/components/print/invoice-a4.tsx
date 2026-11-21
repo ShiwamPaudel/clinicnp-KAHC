@@ -80,7 +80,6 @@ export function InvoiceA4({ bill }: { bill: PrintBill }) {
           <div>
             <span className="a4-k">Bill no.</span>
             <b>{bill.invoiceLabel}</b>
-            {bill.provisional ? " (pending)" : ""}
           </div>
           <div>
             <span className="a4-k">Date</span>

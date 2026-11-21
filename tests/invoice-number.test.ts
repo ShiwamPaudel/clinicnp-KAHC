@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import { formatDocNo, parseDocNo } from "@/lib/invoice-number";
 
 describe("invoice-number", () => {
-  it("formats sales invoice numbers with 6-digit zero padding", () => {
-    expect(formatDocNo("SI", "2083/84", 123)).toBe("SI-2083/84-000123");
-    expect(formatDocNo("SI", "2083/84", 1)).toBe("SI-2083/84-000001");
+  it("formats sales bill numbers as plain 6-digit numbers", () => {
+    expect(formatDocNo("SI", "2083/84", 123)).toBe("000123");
+    expect(formatDocNo("SI", "2083/84", 1)).toBe("000001");
   });
 
   it("formats sales-return and purchase numbers", () => {

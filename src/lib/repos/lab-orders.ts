@@ -21,6 +21,7 @@ import { DUE_FACTS_SQL, balanceOfRow } from "@/lib/repos/dues";
 import { displayAge } from "@/lib/age";
 import { adToIso } from "@/lib/bs";
 import { isReportToken, mintReportToken } from "@/lib/lab-token";
+import { formatDocNo } from "@/lib/invoice-number";
 import {
   computeFlag,
   isAbnormal,
@@ -333,7 +334,7 @@ const ORDER_SELECT = `
 
 function invoiceLabel(r: Row): string {
   if (r.invoice_no == null) return "";
-  return `SI-${r.bs_label ?? ""}-${String(r.invoice_no).padStart(6, "0")}`;
+  return formatDocNo("SI", String(r.bs_label ?? ""), Number(r.invoice_no));
 }
 
 function mapSummary(r: Row): OrderSummary {
@@ -389,7 +390,7 @@ export async function listOrders(
   }
   if (opts.search?.trim()) {
     const term = `%${opts.search.trim()}%`;
-    where.push("(p.name LIKE ? OR p.phone LIKE ? OR CAST(p.patient_no AS TEXT) LIKE ? OR CAST(o.order_no AS TEXT) LIKE ? OR CAST(b.invoice_no AS TEXT) LIKE ?)");
+    where.push("(p.name LIKE ? OR p.phone LIKE ? OR CAST(p.patient_no AS TEXT) LIKE ? OR CAST(o.order_no AS TEXT) LIKE ? OR printf('%06d', b.invoice_no) LIKE ?)");
     args.push(term, term, term, term, term);
   }
   if (opts.fromAd) {

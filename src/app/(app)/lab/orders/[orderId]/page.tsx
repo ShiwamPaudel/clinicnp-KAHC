@@ -15,6 +15,7 @@ import { ResultValues } from "@/components/lab/approval-panel";
 import { OrderDetailsForm, ReopenButton } from "@/components/lab/order-tools";
 import { RESULT_STATUS_LABEL, SAMPLE_STATUS_LABEL, resultTone, stampAt } from "@/lib/lab-format";
 import { reportUrl } from "@/lib/lab-token";
+import { originOf } from "@/lib/lab-report-view";
 
 export const metadata = { title: "Lab order" };
 
@@ -29,7 +30,7 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
   if (!order) notFound();
   const sendouts = new Map((await listOrderSendouts(orderId)).map((so) => [so.resultId, so]));
   const h = await headers();
-  const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host") ?? ""}`;
+  const origin = originOf(h);
   const approved = order.results.filter((r) => r.status === "approved" || r.status === "dispatched");
   const active = order.status !== "cancelled";
 

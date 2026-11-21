@@ -68,7 +68,7 @@ function bill(lines: PrintBill["lines"]): PrintBill {
       invoiceFooter: "Get well soon",
       logoUrl: null,
     },
-    invoiceLabel: "SI-2083/84-000009",
+    invoiceLabel: "000009",
     provisional: false,
     dateBsLong: "6 Ashwin 2083",
     timeStr: "10:15",

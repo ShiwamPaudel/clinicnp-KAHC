@@ -34,6 +34,8 @@ export interface PosConfig {
   todayBsLong: string;
   todayBsText: string;
   company: PrintCompany;
+  /** where a bill's lab-report QR points; empty means this page's own address */
+  publicOrigin: string;
 }
 
 export function BillTable({

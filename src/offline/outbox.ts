@@ -154,6 +154,18 @@ async function syncOne(bill: OutboxBill): Promise<SyncOneResult> {
   }
 }
 
+/**
+ * Send one queued bill straight away, so the printed bill can carry the
+ * number the server gives it. Safe alongside the background loop: the server
+ * hands back the same bill for an id it already has.
+ */
+export async function sendBillNow(id: string): Promise<SyncOneResult> {
+  const db = await posDB();
+  const bill = (await db.get("outbox", id)) as OutboxBill | undefined;
+  if (!bill) return { ok: false };
+  return syncOne(bill);
+}
+
 let running = false;
 
 /** Drain the outbox once (send everything currently pending, oldest first). */

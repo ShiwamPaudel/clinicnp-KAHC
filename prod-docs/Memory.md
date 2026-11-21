@@ -27,7 +27,7 @@
 **This install:** **Koshi Aarogya Healthcare Pvt. Ltd.** (KAHC), Milan Chowk, Itahari. One database for all three modules.
 **Origin:** forked 2083-08-03 from the first ClinicNP install's tree (all five phases complete, C-001 … C-027 below). That install stays live on its own; **nothing in this repo points at it, and nothing here may write to it.**
 **Repo:** `D:\IBN\Installations\clinicnp-kahc`, branch `main`, fresh history (no commits yet), **no remote yet** — the owner will connect one.
-**Database:** hosted Turso `kahc-clinicnp-kahc.aws-ap-south-1.turso.io` (in `.env.local`). Not deployed yet; a separate Vercel project comes later. Its private Blob store is connected in `.env.local` (`BLOB_STORE_ID`, `BLOB_READ_WRITE_TOKEN`); the same two must be set on the Vercel project.
+**Database:** hosted Turso `kahc-clinicnp-kahc.aws-ap-south-1.turso.io` (in `.env.local`). Hosted at https://clinicnp-kahc.infobytesnepal.com (separate Vercel project; DNS for it was not resolving on 2083-08-05). Its private Blob store is connected in `.env.local` (`BLOB_STORE_ID`, `BLOB_READ_WRITE_TOKEN`); the same two must be set on the Vercel project.
 
 ### What is in the database (read back 2083-08-03, C-028)
 
@@ -62,6 +62,7 @@
 - 2083-08-03 after C-031: typecheck clean, **52 files / 594 tests** green, `pnpm build` passes (`/billing` 149 kB First Load, unchanged).
 - 2083-08-05 after C-032: see C-032 for the counts.
 - 2083-08-05 C-033: data and housekeeping only (no app code changed).
+- 2083-08-05 C-034: typecheck clean, **54 files / 599 tests** green.
 
 ### Working practices that were earned the hard way
 
@@ -309,6 +310,8 @@
 | D-191 | **A lab test is edited on its own page** (`/lab/tests/new`, `/lab/tests/[id]`), not in a dialog: Test, Result, Billing, On the report; result type as buttons; choices as chips; values in aligned columns with a folding range. **`Dialog` now honours a caller's `max-w-*`** (it never did: Roles and Receive dues were squeezed too) and settings tabs match exactly (Outside labs no longer lit Laboratory) | Owner: the screen was "designed poorly with mismatched UI and layout". |
 | D-192 | **Lab rates are Aster Path Labs' MRP list** (owner: "the price list of the tests performed at KAHC"; `import-templates/aster-price-list.xlsx`). Each KAHC test was matched to its Aster row by hand, never by fuzzy match; 672 Aster tests KAHC lacked were added (930 in all), with two new departments, Molecular & Genetics and Health Packages. Where Aster gives two prices for one test (PT/INR, plasma metanephrine, 24-hour microalbumin, 24-hour urine sodium) no price was set. USG Pelvis was not added (an ultrasound, not a lab test) | `aster-price-match.csv` lists every match, every addition and every gap. |
 | D-193 | **The repo root holds only the app.** The imported item CSVs, the empty `tbd.md` and `.pitch-build/` are gone (its demo-data scripts wrote to whatever `TURSO_DATABASE_URL` pointed at, which here is KAHC's live database); the logo lives in `brand/`; a hand-out PDF for the clinic (`KAHC - *.pdf`, with passwords) is gitignored | Owner asked for the root to be tidied. |
+| D-194 | **A sales bill's number is plain digits: 000001**, on the printed bill, the screens, the register, exports and the books ("Bill 000001"). No SI- prefix and no fiscal year in it: the date says the year (owner: "according to the laws"). Returns and purchases keep SR-/PI-. **The counter sends the bill first and prints it with the server's number** (waits up to 8 s); offline it prints "Slip …" and the numbered bill is reprinted from Bills. "(pending)" is gone from the print. Searching 000123 finds bill 123 | A printed tax invoice must carry its real sequential number; before this every counter print said "Slip … (pending)". |
+| D-195 | **A lab-report QR points at `PUBLIC_APP_URL`** when it is set (KAHC: https://clinicnp-kahc.infobytesnepal.com), otherwise at the address the page was opened on | Opened on the *.vercel.app address, the QR printed that address. |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---
@@ -1011,3 +1014,14 @@ logins was made for the clinic (gitignored).
 (930 tests, 52 unpriced); each doctor signed in on a phone-size browser and
 landed on their consultations; backup 401 without the cron secret, 200 and
 kept with it.
+
+### C-034  ·  2083-08-05  ·  Plain bill numbers, the QR address, a fresh start
+
+The owner's test bill (with its lab order, visit and patient) was deleted and
+every counter reset to 1, so KAHC's first real bill is 000001 (owner chose
+this). Bill numbers became plain digits and the counter prints only once the
+server has numbered the bill (D-194). The report QR follows `PUBLIC_APP_URL`
+(D-195). **Verified:** typecheck, the full suite (`tests/public-origin.test.ts`
+new), and Chromium on a scratch DB: a lab bill at the counter printed
+"000002" with no "(pending)" and a QR on the clinic's address; the register
+listed plain numbers; searching 000001 found bill 1.

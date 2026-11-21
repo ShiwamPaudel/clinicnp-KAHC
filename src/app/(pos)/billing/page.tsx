@@ -5,6 +5,7 @@ import { PosScreen } from "@/components/pos/pos-screen";
 import { getModules } from "@/lib/modules";
 import { appNameFor } from "@/lib/app-name";
 import type { PosConfig } from "@/components/pos/bill-table";
+import { publicAppOrigin } from "@/lib/lab-report-view";
 
 export default async function BillingPage() {
   const user = await requirePermission("counter.use");
@@ -36,6 +37,7 @@ export default async function BillingPage() {
       vatRegistered: company.vatRegistered,
       logoUrl: company.logoUrl,
     },
+    publicOrigin: publicAppOrigin() ?? "",
   };
 
   return <PosScreen config={config} />;

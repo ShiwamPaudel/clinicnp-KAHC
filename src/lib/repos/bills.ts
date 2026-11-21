@@ -828,7 +828,8 @@ export async function listBills(
     );
     // No digits typed means there is nothing to match an invoice or a
     // patient number against; NULL makes those two comparisons not true.
-    const numeric = digits === "" ? null : digits;
+    // Bill numbers print zero-padded (000123); the column holds 123.
+    const numeric = digits === "" ? null : digits.replace(/^0+(?=\d)/, "");
     args.push(`%${q.toLowerCase()}%`, `%${q.toLowerCase()}%`, numeric, numeric);
   }
 

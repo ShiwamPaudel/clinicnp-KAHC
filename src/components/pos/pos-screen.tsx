@@ -40,7 +40,8 @@ import {
   syncPatients,
   applyLocalAllocation,
 } from "@/offline/catalog-cache";
-import { enqueueBill, flushOutbox, startOutboxLoop } from "@/offline/outbox";
+import { enqueueBill, flushOutbox, sendBillNow, startOutboxLoop } from "@/offline/outbox";
+import { formatDocNo } from "@/lib/invoice-number";
 import { mintReportToken, reportUrl } from "@/lib/lab-token";
 import { holdBill, listHeld, resumeHeld, MAX_HELD } from "@/offline/held";
 import { SearchBox, type SearchBoxHandle } from "@/components/pos/search-box";
@@ -347,7 +348,7 @@ export function PosScreen({ config }: { config: PosConfig }) {
     const labReportToken = hasLabTest ? mintReportToken() : undefined;
     let labReport: PrintBill["labReport"] = null;
     if (labReportToken) {
-      const url = reportUrl(window.location.origin, labReportToken);
+      const url = reportUrl(config.publicOrigin || window.location.origin, labReportToken);
       let qrDataUrl = "";
       try {
         const QR = (await import("qrcode")).default;
@@ -406,11 +407,23 @@ export function PosScreen({ config }: { config: PosConfig }) {
     };
     await enqueueBill(outbox);
 
-    // provisional slip number until the server assigns the final invoice number
+    // The printed bill carries the number the server assigns, so send it now
+    // and wait a little for the answer. Offline, or with no answer in time,
+    // the slip prints with its own reference; the bill keeps its place in the
+    // queue and gets its number when it goes (reprint it from Bills).
+    const sent = navigator.onLine
+      ? await Promise.race([
+          sendBillNow(id),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
+        ])
+      : null;
+    const numbered = sent?.ok && sent.invoiceNo != null;
     setPrintBill({
       company: config.company,
-      invoiceLabel: `Slip ${id.slice(-6).toUpperCase()}`,
-      provisional: true,
+      invoiceLabel: numbered
+        ? formatDocNo("SI", sent.fiscalLabel ?? "", sent.invoiceNo!)
+        : `Slip ${id.slice(-6).toUpperCase()}`,
+      provisional: !numbered,
       dateBsLong: config.todayBsLong,
       timeStr: new Date().toLocaleTimeString("en-GB", {
         hour: "2-digit",

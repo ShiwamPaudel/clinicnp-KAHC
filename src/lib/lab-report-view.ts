@@ -44,9 +44,28 @@ export async function toReportView(data: ReportData, origin: string, pendingNote
   };
 }
 
-/** The address this request came in on, for the QR. */
+/**
+ * The address a report's QR points at. PUBLIC_APP_URL (the clinic's own
+ * domain) wins, so a QR printed while someone happened to open the app on
+ * another address (the hosting provider's *.vercel.app, say) still points at
+ * the clinic. Without it, the address this request came in on.
+ */
 export function originOf(h: Headers): string {
+  const pinned = publicAppOrigin();
+  if (pinned) return pinned;
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost";
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   return `${proto}://${host}`;
+}
+
+/** PUBLIC_APP_URL as an origin, or null when it is unset or not an http(s) address. */
+export function publicAppOrigin(): string | null {
+  const raw = process.env.PUBLIC_APP_URL?.trim();
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.origin : null;
+  } catch {
+    return null;
+  }
 }
