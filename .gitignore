@@ -24,3 +24,6 @@ backups/prod-*.json
 # the WebAssembly runtime for the invoice reader, copied out of node_modules
 public/ort/
 
+
+# hands-out for the clinic with login passwords: never committed
+KAHC - *.pdf

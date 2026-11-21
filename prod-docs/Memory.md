@@ -27,7 +27,7 @@
 **This install:** **Koshi Aarogya Healthcare Pvt. Ltd.** (KAHC), Milan Chowk, Itahari. One database for all three modules.
 **Origin:** forked 2083-08-03 from the first ClinicNP install's tree (all five phases complete, C-001 … C-027 below). That install stays live on its own; **nothing in this repo points at it, and nothing here may write to it.**
 **Repo:** `D:\IBN\Installations\clinicnp-kahc`, branch `main`, fresh history (no commits yet), **no remote yet** — the owner will connect one.
-**Database:** hosted Turso `kahc-clinicnp-kahc.aws-ap-south-1.turso.io` (in `.env.local`). Not deployed yet; a separate Vercel project comes later.
+**Database:** hosted Turso `kahc-clinicnp-kahc.aws-ap-south-1.turso.io` (in `.env.local`). Not deployed yet; a separate Vercel project comes later. Its private Blob store is connected in `.env.local` (`BLOB_STORE_ID`, `BLOB_READ_WRITE_TOKEN`); the same two must be set on the Vercel project.
 
 ### What is in the database (read back 2083-08-03, C-028)
 
@@ -61,6 +61,7 @@
 - **Testing note:** integration tests import repos with the vitest `@` alias plus a `server-only` stub (`tests/stubs/server-only.ts`); point `TURSO_DATABASE_URL` at a temp file DB before importing repos; `fileParallelism: false`; `__resetDbForTests()` between files. Run `pnpm test` with `TURSO_DATABASE_URL` blanked in the shell.
 - 2083-08-03 after C-031: typecheck clean, **52 files / 594 tests** green, `pnpm build` passes (`/billing` 149 kB First Load, unchanged).
 - 2083-08-05 after C-032: see C-032 for the counts.
+- 2083-08-05 C-033: data and housekeeping only (no app code changed).
 
 ### Working practices that were earned the hard way
 
@@ -71,7 +72,7 @@
 **Next up**
 1. Before go-live: real PAN and phone in Settings → Company; change the Admin password; add KAHC's bank accounts under Accounts → Chart of accounts; enter opening balances (Accounts → Vouchers → Opening balance).
 2. Accounting, waiting on the owner: insurance / SSF / corporate credit billing at the counter (bill to a party); TDS rates (account exists, nothing applied); patients' opening dues from the old software; a Tally export; matching a supplier payment to a chosen bill (oldest first today). See prod-docs/Accounting.md.
-3. Before go-live, the owner fills in: rates for the 258 lab tests, 17 profiles and 91 Clinic services (all Rs 0 — Lab → Tests has a "No price yet" filter); reference ranges (lab in-charge); each outside laboratory under Settings → Outside labs, and its price list as tests are sent.
+3. Before go-live, the owner fills in: rates for the 52 lab tests and 3 profiles Aster's list did not price, and the 91 Clinic services (Lab → Tests has a "No price yet" filter; `import-templates/aster-price-match.csv` says what each rate came from); reference ranges (lab in-charge); each outside laboratory under Settings → Outside labs, and its price list as tests are sent.
 3a. Lab follow-ups, not built yet: a screen to print only some tests of a report (the print route already takes `?only=`); filling in a reference range on results entered before the range existed.
 4. Lab-only install: patients and service billing follow Clinic **or** Lab, but the counter and patient screens have only been walked with all three modules on.
 
@@ -306,6 +307,8 @@
 | D-189 | **The dashboard and the day close count lab tests and profiles as "Laboratory"** (`IS_LAB_LINE`, repos/service-class.ts), not only old sent-out lines; "Samples to collect" counts `lab_samples` and links to Lab → Sample collection | They read the retired send-out and showed nothing for KAHC's own lab. |
 | D-190 | **The lab catalogue comes from the bgp install, with no rates and no ranges** (owner: "more accurate"): 258 tests (two switched-off duplicates skipped), 17 profiles, 31 values; its 91 non-lab items became Clinic services in matching groups (new groups Dental, Physiotherapy; consultations need a doctor; F/P items under Follow-up); Histopathology made a lab department so it can be sent out. Spelling fixed (Bilirubin, Salmonella Typhi / Para-Typhi, Ceramic, Biophysical, Scrotum, Axilla, Anomaly) and Body Fluid - Sugar's copied code. Short codes that only repeated the name were cleared; code limits raised to 40 | The earlier nhp copy was incomplete. Codes equal to the name add nothing to search and broke the 20-character limit. |
 | D-191 | **A lab test is edited on its own page** (`/lab/tests/new`, `/lab/tests/[id]`), not in a dialog: Test, Result, Billing, On the report; result type as buttons; choices as chips; values in aligned columns with a folding range. **`Dialog` now honours a caller's `max-w-*`** (it never did: Roles and Receive dues were squeezed too) and settings tabs match exactly (Outside labs no longer lit Laboratory) | Owner: the screen was "designed poorly with mismatched UI and layout". |
+| D-192 | **Lab rates are Aster Path Labs' MRP list** (owner: "the price list of the tests performed at KAHC"; `import-templates/aster-price-list.xlsx`). Each KAHC test was matched to its Aster row by hand, never by fuzzy match; 672 Aster tests KAHC lacked were added (930 in all), with two new departments, Molecular & Genetics and Health Packages. Where Aster gives two prices for one test (PT/INR, plasma metanephrine, 24-hour microalbumin, 24-hour urine sodium) no price was set. USG Pelvis was not added (an ultrasound, not a lab test) | `aster-price-match.csv` lists every match, every addition and every gap. |
+| D-193 | **The repo root holds only the app.** The imported item CSVs, the empty `tbd.md` and `.pitch-build/` are gone (its demo-data scripts wrote to whatever `TURSO_DATABASE_URL` pointed at, which here is KAHC's live database); the logo lives in `brand/`; a hand-out PDF for the clinic (`KAHC - *.pdf`, with passwords) is gitignored | Owner asked for the root to be tidied. |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---
@@ -994,3 +997,17 @@ toolbar, bring back, sugar approved, Reports shows "Vitamin D → City Reference
 Lab" and prints only once approved, "1 without a price", price saved and
 charged, owed 1,500, statement, Checks, dashboard, phone width on three
 screens). 0026 – 0028 applied to KAHC.
+
+### C-033  ·  2083-08-05  ·  Aster rates, four doctors, Blob, a tidy root
+
+Data and housekeeping; no app code changed. Rates from Aster Path Labs' list
+set on 222 tests and profiles; 672 missing tests added (D-192). Four doctors
+added with Doctor-role logins (Dr. Prabhat B. Pande, Dr. Arun K. Yadav,
+Dr. Baidyanath Pradhan, Dr. Ashish Kumar Panthi), no share set. The Blob store
+checked: private, and a real nightly backup (`/api/cron/backup`) written and
+read back. Root tidied (D-193). A phone-install guide with the doctors'
+logins was made for the clinic (gitignored).
+**Verified:** dry run of the import on a scratch DB, then the live counts
+(930 tests, 52 unpriced); each doctor signed in on a phone-size browser and
+landed on their consultations; backup 401 without the cron secret, 200 and
+kept with it.

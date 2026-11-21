@@ -1,0 +1,898 @@
+﻿What happened,KAHC name,Aster name / note,Department,Rate (Rs)
+Price set,Semen Analysis (Sperm Count),Semen Analysis,,700
+Price set,24 Hr. URINE CORTISOL,"Cortisol, 24 Hours Urine",,1950
+Price set,24 Hr. URINE CREATININE,"Creatinine, 24 Hours Urine",,350
+Price set,24 Hr. URINE PROTEIN,"Urine Protein, 24 Hours Urine",,300
+Price set,24 Hr. URINE VMA,Vanillyl Mandelic Acid (VMA) 24 hour Urine,,7040
+Price set,25 OH Vitamin D3,"Vitamin D, 25 - OH",,2400
+Price set,ALKALINE PHOSPHATASE,Alkaline Phosphatase (ALP),,250
+Price set,Acetone,"Acetone / Ketone, Random Urine",,150
+Price set,Albumin,Albumin,,250
+Price set,Amylase,"Amylase, Serum",,900
+Price set,Ascitic Fluid - ADA,Adenosine Deaminase (ADA) - Ascitic Fluid,,1350
+Price set,Ascitic Fluid - Albumin,"Albumin, Ascitic Fluid",,300
+Price set,Ascitic Fluid - LDH,"Lactate Dehydrogenase (LDH), Fluid",,800
+Price set,Ascitic Fluid - Protein,Fluid for Proteins,,300
+Price set,Ascitic Fluid - Sugar,Fluid Glucose,,300
+Price set,Bilirubin (Direct),"Bilirubin, Direct",,225
+Price set,Bilirubin (Total),"Bilirubin, Total",,225
+Price set,Body Fluid - ADA,Adenosine Deaminase-(ADA),,1350
+Price set,Body Fluid - Albumin,"Albumin, Fluid",,300
+Price set,Body Fluid - LDH,"Lactate Dehydrogenase (LDH), Fluid",,800
+Price set,Body Fluid - Protein,Fluid for Proteins,,300
+Price set,Body Fluid - Sugar,Fluid Glucose,,300
+Price set,CK NAC,"Creatine Phosphokinase (CK/CPK), Serum",,1500
+Price set,CPK,"Creatine Phosphokinase (CK/CPK), Serum",,1500
+Price set,CKMB,Creatine Phosphokinase MB (CPK-MB),,1500
+Price set,CSF - ADA,Adenosine Deaminase (ADA) - CSF,,1350
+Price set,CSF - Albumin,Albumin-CSF,,300
+Price set,CSF - LDH,"Lactate Dehydrogenase (LDH), Fluid",,800
+Price set,CSF - Protein,Fluid for Proteins,,300
+Price set,CSF - Sugar,Fluid Glucose,,300
+Price set,Calcium (Ca++),Calcium,,350
+Price set,Calcium Ionised,Calcium Ionized,,720
+Price set,Cholesterol,Cholesterol Total,,220
+Price set,Creatinine,Creatinine,,250
+Price set,Folic Acid,"Folate/Folic Acid, Serum",,1500
+Price set,Gamma GT (γ-GT),Gamma Glutamyl Transferase (GGT),,400
+Price set,Globulin,Globulin,,300
+Price set,HDL Cholesterol,"HDL Cholesterol, Direct",,450
+Price set,LDH,"Lactate Dehydrogenase (LDH), Serum",,600
+Price set,LDL Cholesterol,"LDL Cholesterol, Direct",,630
+Price set,Lipase,Lipase,,500
+Price set,Lipoprotein A,Lipoprotein (a); Lp(a),,2500
+Price set,MICROALBUMIN,"Microalbumin, Urine",,900
+Price set,Magnesium,Magnesium,,600
+Price set,PSA Total,"Prostate Specific Antigen, Total (Total PSA)",,1400
+Price set,Pericardial Fluid - ADA,Adenosine Deaminase (ADA) - Pericardial Fluid,,1350
+Price set,Pericardial Fluid - Albumin,"Albumin, Fluid",,300
+Price set,Pericardial Fluid - LDH,"Lactate Dehydrogenase (LDH), Fluid",,800
+Price set,Pericardial Fluid - Protein,Fluid for Proteins,,300
+Price set,Pericardial Fluid - Sugar,Fluid Glucose,,300
+Price set,Phosphorous (PO4),Phosphorus,,325
+Price set,Pleural Fluid - ADA,Adenosine Deaminase (ADA) - Pleural Fluid,,1350
+Price set,Pleural Fluid - Albumin,"Albumin, Fluid",,300
+Price set,Pleural Fluid - LDH,"Lactate Dehydrogenase (LDH), Fluid",,800
+Price set,Pleural Fluid - Protein,Fluid for Proteins,,300
+Price set,Pleural Fluid - Sugar,Fluid Glucose,,300
+Price set,Pleural Fluid TC/DC,"Fluid examination, Cell count",,500
+Price set,Ascitic Fluid TC/DC,"Fluid examination, Cell count",,500
+Price set,Body Fluid TC/DC,"Fluid examination, Cell count",,500
+Price set,CSF TC/DC,"Fluid examination, Cell count",,500
+Price set,Pericardial Fluid TC/DC,"Fluid examination, Cell count",,500
+Price set,S. Aldosterone,"Aldosterone, Serum",,4200
+Price set,S. IgE Total,Immunoglobulin IgE (Total IgE),,1440
+Price set,IgE Test,Immunoglobulin IgE (Total IgE),,1440
+Price set,SGOT,Aspartate Aminotransferase (AST) SGOT,,250
+Price set,SGPT,Alanine Amino-transferase (ALT) SGPT,,250
+Price set,Serum CORTISOL,Cortisol (Morning Sample),,1350
+Price set,Spot A/C Ratio,"Albumin/Creatinine Ratio, Spot Urine",,1000
+Price set,Spot P/C Ratio,"Protein Creatinine Ratio, Spot Urine",,1000
+Price set,Stool Occoult Blood,Occult blood Stool,,600
+Price set,Stool Reducing Sugar,Stool Examination for Reducing Substances,,450
+Price set,Sugar 1 Hr. PP on 75gm Glucose (After Meal 1 Hr.),"Blood Glucose, 1 Hour",,100
+Price set,Sugar 2 Hr. PP on 75gm Glucose (After Meal 2 Hr.),"Blood Glucose, 2 Hour",,100
+Price set,Sugar Fasting,Blood Glucose Fasting (FBS),,100
+Price set,Sugar PP,Blood Glucose Post Prandial (PPBS),,100
+Price set,Sugar Random,Blood Glucose Random (RBS),,100
+Price set,Total Protein,Total Protein,,275
+Price set,Triglyceride,"Triglycerides, Serum",,250
+Price set,Urea,Urea,,250
+Price set,Uric Acid,"Uric Acid, Serum",,250
+Price set,Urine Metanephrone,"Metanephrines, 24 Hours Urine",,5280
+Price set,Zinc,"Zinc, Serum",,3240
+Price set,LBC,PAP Smear By Liquid Based Cytology,,1500
+Price set,PAP SMEAR,"PAP smear, Conventional",,900
+Price set,APTT,Activated Partial Thromboplastin Time - APTT/ PTTK,,500
+Price set,Blood Grouping,Blood Group ABO and Rh Typing,,150
+Price set,DCT (Direct Combs Test),"Coombs Test, Direct",,900
+Price set,ESR,Erythrocyte Sedimentation Rate (ESR),,100
+Price set,HbA1c,HbA1c (Glycated Haemoglobin),,1000
+Price set,Hemoglobin,Hemoglobin (Hb),,100
+Price set,Peripheral Blood Smear,Peripheral Blood Smear Examination (PBS),,300
+Price set,Platelets,Platelet Count (Manual),,250
+Price set,Retics Count,Reticulocyte Count,,500
+Price set,FNAC,FNAC study (Interpretation),,1350
+Price set,HPV-DNA,"HPV DNA DETECTION(HR) ,PCR",,3000
+Price set,3rd Gen. Ultra Sensitive TSH,"Thyroid Stimulating Hormone (TSH), Ultrasensitive",,400
+Price set,ACTH,Adrenocorticotropic hormone (ACTH),,2550
+Price set,ADA,Adenosine Deaminase (ADA) - Serum,,1350
+Price set,AFP,"Alpha Fetoprotein (AFP), Serum",,1800
+Price set,AMH,"Anti Mullerian Hormone (AMH), Serum",,3240
+Price set,ANA,ANA by EIA,,1500
+Price set,APLA,APLA Total (Anti Phospholipid Antibody),,9900
+Price set,ASO Titer,Anti Streptolysin-O (ASO) Quantitative,,900
+Price set,ASO,ASO- Qualitative,,250
+Price set,Anti Pro-BNP,NT-pro BNP,,4000
+Price set,Anti TPO AB,Anti TPO (Thyroid Peroxidase) Antibody),,1800
+Price set,Anti Thyroglobulin AB,Anti Tg (Thyroglobulin Antibody),,2375
+Price set,Thyroglobulin Antibodies (ATA-AB) / (THG-AB),Anti Tg (Thyroglobulin Antibody),,2375
+Price set,Anti-Acetylcholine Receptor Antibody,ACETYL-CHOLINE RECEPTOR(ACHR) BINDING ANTIBODY(Serum),,4859
+Price set,Anti-CCP,Anti Cyclic Citrullinated Peptide (CCP),,1400
+Price set,Anti-dsDNA,"Anti -ds DNA Antibody, EIA",,2100
+Price set,BhCG,"Beta hCG, Serum",,1600
+Price set,Brucella Antibody IgG,Brucella IgG Antibody,,2000
+Price set,Brucella Antibody IgM,Brucella IgM Antibody,,2000
+Price set,C-Peptide F,C -Peptide (Fasting),,1650
+Price set,C-Peptide PP,C - Peptide (PP),,1650
+Price set,CA 125,CA 125,,1620
+Price set,CA 15.3,CA 15-3,,2160
+Price set,CA 19.9,CA 19.9,,1800
+Price set,CEA,"Carcino Embyonic Antigen (CEA), Serum",,1800
+Price set,CRP Quantitative,"C-Reactive Protein (CRP), Quantitative",,900
+Price set,CRP,"C-Reactive Protein (CRP), Qualitative",,450
+Price set,D-Dimer,D-Dimer,,1800
+Price set,DHEAS,Dehydroepiandrostenedione Sulphate (DHEAS),,2200
+Price set,Double Marker,Dual Marker (Double Marker)- First Trimester,,4150
+Price set,ENA Panel,Extractable Nuclear Antigen (ENA) Profile,,6300
+Price set,Estradiol,E2 (Estradiol),,1400
+Price set,FSH,Follicle Stimulating Hormone (FSH),,1200
+Price set,Ferritin,Ferritin,,1350
+Price set,Free Thyroxine (FT4),Free T4 (FT4),,400
+Price set,Free Triiodothyronine (FT3),Free T3 (FT3),,400
+Price set,Growth Hormone,Growth Hormone,,1710
+Price set,HAV,Hepatitis A Virus IgM Antibody (HAV IgM),,1620
+Price set,HAV Spot,HEPATITIS A VIRUS - IGM RAPID,,1100
+Price set,HBsAg CLIA,"Hepatitis B surface Antigen (HBsAg), CLIA",,1500
+Price set,HCV CLIA,"Hepatitis C Antibodies (HCV), CLIA",,1800
+Price set,HEV,Hepatitis E Virus IgM Antibody (HEV IgM),,1620
+Price set,Hepatitis E,Hepatitis E Virus IgM Antibody (HEV IgM),,1620
+Price set,HEV Spot,Hepatitis E Virus IgM Antibody (HEV IgM)-Rapid,,1100
+Price set,HIV CLIA,HIV 1 & 2 Ab -CLIA,,1500
+Price set,IGF 1 (Insulin like Growth Factor),"Insulin Like Growth Factor -1, IGF-1 (Somatomedin C)",,10650
+Price set,Insulin,Insulin (Fasting),,1350
+Price set,Insulin Antibodies,Anti Insulin Antibodies,,4840
+Price set,Iron,"Iron, Serum",,450
+Price set,LH,Luteinizing Hormone (LH),,1200
+Price set,Leptospire Antibody Igm/Igg- Qualitative,Leptospira IgG & IgM antibodies,,2000
+Price set,Malaria Antigen,Malaria Antigen Test,,630
+Price set,MP Optimal,Malaria Antigen Test,,630
+Price set,PARATHYROID (IPTH),PTH (Intact)-Parathyroid Hormone,,1800
+Price set,PSA Free,"Prostate Specific Antigen, Free (Free PSA)",,1800
+Price set,Pregnency Test,Pregnancy Test Urine,,150
+Price set,Proaclcitonin,"Procalcitonin, Serum",,3500
+Price set,Prolactin,Prolactin,,1200
+Price set,Quadruple Test,Quadruple Marker- Second Trimester,,5985
+Price set,RA Factor Quantitative,"Rheumatoid Factor(RA), Quantitative",,900
+Price set,RA Titer,"Rheumatoid Factor(RA), Quantitative",,900
+Price set,RA Factor,Rheumatoid Factor(RA) Qualitative,,400
+Price set,S. ACE Level,Angiotensin Converting Enzyme (ACE),,1350
+Price set,Scrub Typhus igG,Scrub Typhus Antibody IgG,,2995
+Price set,Scrub Typhus igM,Scrub Typhus Antibody IgM,,1585
+Price set,TIBC,Total Iron Binding Capacity (TIBC),,900
+Price set,TSH Receptor Antibodies,TSH Receptor Antibody,,8000
+Price set,Testosterone Free,Testosterone Free,,2500
+Price set,Testosterone Total,Testosterone Total,,1800
+Price set,Thyroglobulin,Thyroglobulin (Tg),,3170
+Price set,Torch,TORCH 10 Profile,,5500
+Price set,Vitamin B12,Vitamin B12 (Cyanocobalamin),,1600
+Price set,p-ANCA,p-ANCA/MPO ELISA,,2610
+Price set,Ascitic Fluid - AFB,AFB (Acid fast bacilli),,400
+Price set,Ascitic Fluid - C/S,Culture and Sensitivity Routine - Fluid,,900
+Price set,Ascitic Fluid - Gram Stain,Grams Stain,,450
+Price set,Body Fluid - AFB,AFB (Acid fast bacilli),,400
+Price set,Body Fluid - C/S,Culture and Sensitivity Routine - Fluid,,900
+Price set,Body Fluid - Gram Stain,Grams Stain,,450
+Price set,Pericardial Fluid - AFB,AFB (Acid fast bacilli),,400
+Price set,Pericardial Fluid - C/S,Culture and Sensitivity Routine - Fluid,,900
+Price set,Pericardial Fluid - Gram Stain,Grams Stain,,450
+Price set,Pleural Fluid - AFB,AFB (Acid fast bacilli),,400
+Price set,Pleural Fluid - C/S,Culture and Sensitivity Routine - Fluid,,900
+Price set,Pleural Fluid - Gram Stain,Grams Stain,,450
+Price set,Blood - C/S,BLOOD CULTURE & SENSITIVITY,,900
+Price set,CSF - C/S,Culture and Sensitivity Routine - CSF,,900
+Price set,CSF - Gram Stain,Grams Stain,,450
+Price set,Eye Swab for Gram Stain,Grams Stain,,450
+Price set,High Varginal Swab (C/S),Culture and Sensitivity Routine - PUS / Swab,,450
+Price set,HVS C/S,Culture and Sensitivity Routine - PUS / Swab,,450
+Price set,Pus C/S,Culture and Sensitivity Routine - PUS / Swab,,450
+Price set,KOH,Fungal stain by KOH mount,,720
+Price set,Scroping for 10% KOH,Fungal stain by KOH mount,,720
+Price set,Mantoux,Mantoux Test,,500
+Price set,Sputum for C/S,Culture and Sensitivity Routine - Sputum,,900
+Price set,Stool C/S,Stool Culture and Sensitivity,,900
+Price set,Throat Swab C/S,Culture and Sensitivity Routine - Throat Swab,,900
+Price set,Urine C/S,Urine Culture & Sensitivity,,600
+Price set,Dengue NS1Ag,"Dengue NS1 Antigen, Rapid",,800
+Price set,H. Pylori Antibody,H PYLORI ANTIBODY- RAPID,,900
+Price set,HBsAG,"Hepatitis B surface Antigen (HBsAg), Rapid method",,500
+Price set,HCV,"Hepatitis C Antibodies (HCV), Rapid",,500
+Price set,HIV 1 & 2,"HIV 1 & 2 Antibodies, Rapid",,600
+Price set,Stool H. Pylori,"HELICOBACTER PYLORI ANTIGEN, RAPID STOOL TEST",,1200
+Price set,TPHA,TPHA (Treponema Palladium Hemagglutination),,1350
+Price set,Troponin I,"Troponin - I, Qualitative",,2300
+Price set,Typhoid igG,Typhi Dot IgG,,750
+Price set,Typhoid igM,Typhi Dot IgM,,750
+Price set,VDRL,"VDRL (RPR), Serum",,500
+Price set,Sugar 1 Hr. PP on 75gm Glucose (After Meal 0.5 Hr),(not listed; every Aster blood glucose is Rs 100),,100
+Price set,Sugar 1 Hr. PP on 75gm Glucose (After Meal 1.5 Hr.),(not listed; every Aster blood glucose is Rs 100),,100
+Price set,Sugar Pre-Dinner,(not listed; every Aster blood glucose is Rs 100),,100
+Price set (profile),Complete Blood Count (CBC),Complete Blood Count (CBC),,500
+Price set (profile),Lipid Profile Test,Lipid Profile,,950
+Price set (profile),Liver Function Test (LFT),Liver Function Test,,1050
+Price set (profile),Renal Function Test (RFT),Kidney Function Test-KFT,,950
+Price set (profile),TFT Free,Thyroid Profile Free-FTFT,,1000
+Price set (profile),Iron Profile,Iron Profile Comprehensive,,2000
+Price set (profile),Bilirubin (Total & Direct),"Bilirubin Total, Direct & Indirect",,400
+Price set (profile),Dengue,Dengue Profile-Rapid,,1500
+Price set (profile),Sodium Potassium,"Electrolytes, Serum",,500
+Price set (profile),Stool R/E,Stool Routine Examination,,120
+Price set (profile),Urine R/E,Urine Routine Examination,,150
+Price set (profile),Widal Test,Widal (Slide Agglutination),,450
+Price set (profile),Scrub Typhus,Scrub Typhus Antibody,,1900
+Price set (profile),OGTT 3 Sample,Glucose Tolerance Test (GTT) 75 gm,,400
+No price: Aster lists two prices,S. Metanephrine,Metanephrine-Free Plasma 10500 / 9680,,
+No price: Aster lists two prices,PT / INR,Prothombin Time (PT/INR) 500 / 630,,
+Added,"T, B, NK Cell Lymphocyte Subset Analysis by Flowcytometry",,Hematology,14100
+Added,"1,3 BETA-D-GLUCAN",,Microbiology,16500
+Added,17 -OH Progesterone (17-Hydroxy Progesterone),,Immunology,2650
+Added,1p & 19q co deletion by FISH,,Molecular & Genetics,17600
+Added,"5-Hydroxyindoleacetic acid (5-HIAA), 24hrs Urine",,Biochemistry,6688
+Added,AAROGYAM PACKAGE4,,Health Packages,8000
+Added,Abnormal Hemoglobin study (Hb Electrophoresis),,Hematology,1850
+Added,ABO Group,,Hematology,180
+Added,ACCENT EXPORT EMPLOYMENT,,Health Packages,2700
+Added,Acetylcholine Receptor (ACHR) Blocking antibodies,,Immunology,18000
+Added,"Acid Phosphatase, Total",,Biochemistry,1000
+Added,ADAMTS13 Activity,,Hematology,44000
+Added,Additional family member (investigational) testing - 1 variant,,Molecular & Genetics,12800
+Added,Adenosine Deaminase (ADA) - Synovial Fluid,,Biochemistry,1350
+Added,Adenosine Deaminase (ADA) - Perinephric,,Biochemistry,1350
+Added,Adenovirus DNA detection by PCR,,Molecular & Genetics,8800
+Added,Advance Fluid Examination,,Clinical Pathology,1950
+Added,AFB STAIN DAY 2,,Microbiology,400
+Added,AFB STAIN DAY 3,,Microbiology,250
+Added,Albert Stain,,Microbiology,700
+Added,Albumin Creatinine Ratio,,Biochemistry,1200
+Added,"Albumin Quantitative, 24 hours Urine",,Biochemistry,450
+Added,"Albumin, Urine",,Biochemistry,300
+Added,ALCIAN BLUE STAIN,,Histopathology,1250
+Added,"Alcohol (Ethanol), Serum",,Toxicology,3200
+Added,"Alcohol (Ethanol), Urine",,Toxicology,1200
+Added,"Aldosterone, 24 hours Urine",,Immunology,3500
+Added,Aldosterone/Direct Renin Ratio,,Immunology,13600
+Added,ALK by FISH,,Molecular & Genetics,17600
+Added,ALK IHC + ROS1 IHC,,Histopathology,21120
+Added,"Alkaline Phosphatase Isoenzymes, Serum",,Biochemistry,10720
+Added,ALL Multiplex Basic,,Molecular & Genetics,14960
+Added,ALL Panel By FISH,,Molecular & Genetics,23760
+Added,ALL risk stratification gene panel- T-ALL,,Molecular & Genetics,37000
+Added,Allergic Bronchopulmonary Aspergillosis (ABPA) Panel,,Immunology,6200
+Added,Allergy Comprehensive Panel (220 Allergen),,Immunology,12000
+Added,Allergy Drug panel,,Immunology,8000
+Added,"Allergy Screen, Phadiatop Infants (<5 years)",,Immunology,3000
+Added,Allergy Screen-Adults (>5 years),,Immunology,3000
+Added,Allergy Food & Inhalation Panel-Immunoblot,,Immunology,11500
+Added,Allergy Food Panel-Immunoblot,,Immunology,6000
+Added,Allergy Inhalation Panel-Immunoblot,,Immunology,6000
+Added,"Allergy, Aspergillus Fumigatus",,Immunology,3000
+Added,"Alpha Fetoprotein (AFP), Fluid",,Biochemistry,1800
+Added,Alpha Thalassemia mutation screening By MLPA,,Molecular & Genetics,17600
+Added,"Alpha-1 Anti Trypsin - AAT, Quantitative",,Immunology,4500
+Added,Aluminium,,Toxicology,4300
+Added,Alzheimers Disease Screening Profile,,Molecular & Genetics,24000
+Added,AMA-M2,,Immunology,4800
+Added,AMH Gold plus,,Immunology,7200
+Added,"AML Multiplex Advance Panel(BCR - ABL, PML-RARA, AML-ETO, Inv 16, NPM1, FLT3, c-KIT, CEBPA)",,Molecular & Genetics,24640
+Added,"AML Multiplex Basic Panel(BCR - ABL, PML-RARA, AML-ETO, Inv 16, NPM1, FLT3, c-KIT)",,Molecular & Genetics,14960
+Added,Ammonia,,Biochemistry,2200
+Added,"Amniotic Fluid karyotyping + FISH (5 probes -13,18,21, X/Y)",,Molecular & Genetics,14400
+Added,"Amylase, Fluid",,Biochemistry,900
+Added,"ANA IFA, in dilutions",,Immunology,2100
+Added,"ANCA Profile, ELISA",,Immunology,5500
+Added,Androstenedione,,Immunology,3950
+Added,"ANTI - ds DNA , IFA in Dilutions",,Immunology,3200
+Added,Anti - MPO,,Immunology,2970
+Added,Anti Aquaporin 4 Antibody,,Immunology,8100
+Added,Anti Centromere Antibody,,Immunology,3200
+Added,"Anti Cysticercosis Antibody, IgG",,Immunology,2800
+Added,Anti diuretic Hormone (ADH),,Immunology,10440
+Added,Anti -DNAse B (Deoxyribonuclease B),,Immunology,2800
+Added,Anti Glomerular Basement Membrane IgG Antibody (Anti GBM),,Immunology,3520
+Added,Anti Hu Antibody,,Immunology,9000
+Added,"Anti LKM -1 Antibody (Liver Kidney Microsomal antibody), IFA",,Immunology,3960
+Added,Anti MAG (Myelin Associated Glycoprotein) Antibody,,Immunology,7600
+Added,"Anti Mitochondrial Antibody - AMA, IFA",,Immunology,4500
+Added,Anti Musk Antibody,,Immunology,11800
+Added,"Anti Phospholipid Antibodies (APA), IgG",,Immunology,1700
+Added,"Anti Phospholipid Antibodies (APA), IgM",,Immunology,1700
+Added,Anti Phospholipid Antibodies IgG & IgM,,Immunology,3000
+Added,Anti Platelet Antibody,,Immunology,14080
+Added,Anti Scl-70 Antibody,,Immunology,3330
+Added,Anti Smith Antibody,,Immunology,2095
+Added,"Anti Smooth Muscle Antibody (ASMA), IFA",,Immunology,5280
+Added,Anti Soluble Liver Antigen (SLA) Antibody,,Immunology,5500
+Added,Anti Sperm Antibody,,Immunology,2200
+Added,Anti SS-A / Ro (Antibody Serum Soluble Substance -A Antibody),,Immunology,3600
+Added,Anti SS-B / La (Antibody Serum Soluble Substance -B Antibody),,Immunology,3600
+Added,Anti-Microsomal Antibodies / Anti TPO Antibodies,,Immunology,2290
+Added,Anti-MOG (MYELIN OLIGODENDROCYTE GLYCOPROTEIN) ANTIBODY,,Immunology,14960
+Added,"Anti-MOG (MYELIN OLIGODENDROCYTE GLYCOPROTEIN) ANTIBODY, CSF",,Immunology,14960
+Added,"Antineutrophil Cytoplasmic Antibodies (ANCA), IFA in Dilutions",,Immunology,4700
+Added,Antithrombin III Activity,,Hematology,6500
+Added,Apolipoprotein A1,,Biochemistry,1150
+Added,Apolipoprotein B,,Biochemistry,1150
+Added,"Aquaporin 4 Antibody (NMO), Serum",,Immunology,8800
+Added,aryl sulphate,,Biochemistry,1000
+Added,ASCA Antibody,,Immunology,5500
+Added,Aspergillosis IgG Antibodies,,Immunology,4225
+Added,Aspergillus Antibody IgE (A. fumigatus),,Immunology,3875
+Added,Aspergillus Galactomannan,,Microbiology,8800
+Added,"ASPERGILLUS GALACTOMANNAN,BRONCHOALVEOLAR LAVAGE (BAL)",,Microbiology,8500
+Added,ASTER AAROGYAM 2,,Health Packages,4500
+Added,ASTER AAROGYAM 3,,Health Packages,6000
+Added,ASTER ADVANCE HEALTH PACKAGE,,Health Packages,5000
+Added,ASTER BASIC HEALTH PACKAGE,,Health Packages,3500
+Added,Aster Full Body Check Up Package,,Health Packages,4000
+Added,Aster Mini Health Package,,Health Packages,2500
+Added,Autoimmune Encephalitis Panel,,Immunology,35200
+Added,Autoimmune Hepatitis Panel,,Immunology,12320
+Added,BCL 2 (18q21) Gene rearrangement,,Molecular & Genetics,10560
+Added,BCL 6 Gene Rearrangement,,Molecular & Genetics,9700
+Added,BCL2(18q21.3) Gene Rearrangement FFPE,,Molecular & Genetics,19360
+Added,BCL6 (3q27.3) Gene Rearrangement FFPE,,Molecular & Genetics,17800
+Added,BCR/ABL by FISH,,Molecular & Genetics,7920
+Added,BCR/ABL Qualitative RT PCR,,Molecular & Genetics,7920
+Added,BCR/ABL Quantitative (International Scale),,Molecular & Genetics,11440
+Added,BCR-ABL1 Kinase Domain Mutation Analysis [IRMA] by NGS,,Molecular & Genetics,15500
+Added,BCR-ABL1 Kinase Domain Mutation Analysis [IRMA] by PCR,,Molecular & Genetics,14500
+Added,Bence Jones Protein (BJ Protein),,Biochemistry,1000
+Added,"Bence Jones Protein, Spot Urine",,Biochemistry,1000
+Added,Beta 2 Glycoprotein I IgA,,Immunology,2115
+Added,Beta 2 Glycoprotein I IgG,,Immunology,2115
+Added,Beta 2 Glycoprotein I IgM,,Immunology,2115
+Added,Beta thalassemia [HBB] gene analysis,,Molecular & Genetics,17600
+Added,"Beta-2 Microglobulin, Serum",,Immunology,2800
+Added,Bicarbonate,,Biochemistry,1150
+Added,"Bicarbonate, Serum",,Biochemistry,1350
+Added,"BILE ACIDS, TOTAL",,Biochemistry,3600
+Added,"Bile Pigment (BP), Urine",,Biochemistry,400
+Added,Bile Salts,,Biochemistry,120
+Added,"Bile Salts & Pigments, Urine",,Biochemistry,400
+Added,"Bilirubin, Fluid",,Biochemistry,300
+Added,"Bilirubin, Indirect",,Biochemistry,350
+Added,"Biofire Meningoencephalitis panel, CSF",,Molecular & Genetics,38720
+Added,BIOPSY FOR H. PYLORI,,Histopathology,900
+Added,BK Quantitative PCR,,Molecular & Genetics,11440
+Added,Bleeding Time & Clotting Time,,Hematology,220
+Added,"Blood Glucose, 3 Hour",,Biochemistry,100
+Added,Body fluid Leukemia/Lymphoma screen - Flowcytometry,,Hematology,30400
+Added,Bone Marrow Aspirate,,Histopathology,1600
+Added,Bone Marrow Aspiration Slides For Review,,Histopathology,1550
+Added,Bone marrow biopsy,,Histopathology,1850
+Added,Bone Marrow Failure Syndrome,,Molecular & Genetics,38400
+Added,BRCA 1 & 2 DELETION AND DUPLICATION DETECTION BY MLPA,,Molecular & Genetics,24000
+Added,BRCA 1 & 2 Gene Panel BY FFPE BLOCK-SOMATIC,,Molecular & Genetics,32000
+Added,BRCA 1 and 2 Gene Panel Germline,,Molecular & Genetics,26400
+Added,"Breast Cancer Panel -2 ( ER, PR, HER2 ,Ki67 )",,Histopathology,7500
+Added,"Breast Cancer Panel-1 (ER,PR,Her2neu)",,Histopathology,5550
+Added,"Brucella Antibodies, Total",,Immunology,2000
+Added,"C- PEPTIDE ,RANDOM",,Immunology,1650
+Added,C3 Complement,,Immunology,1000
+Added,C4 Complement,,Immunology,1000
+Added,CA 72-4 (Gastric Cancer),,Immunology,3260
+Added,Cadaveric CDC Crossmatch (T cell & B cell) with DTT & AHG Augmentation,,Immunology,10560
+Added,CAH (Congenital Adrenal Hyperplasia-CYP21A2) full gene sequence analysis + MLPA,,Molecular & Genetics,32000
+Added,Calcitonin,,Immunology,4400
+Added,"Calcium, 24 Hours Urine",,Biochemistry,400
+Added,"Calcium, Urine",,Biochemistry,350
+Added,CALR,,Molecular & Genetics,10560
+Added,"c-ANCA/PR3, ELISA",,Immunology,2610
+Added,CANCERTAIN 10 DRUGS PANEL,,Molecular & Genetics,205000
+Added,"Carbamazepine, Serum",,Toxicology,1950
+Added,"Cardiolipin Antibodies IgG, IgM",,Immunology,3200
+Added,Cardiolipin Antibody IgA,,Immunology,1600
+Added,Cardiolipin Antibody IgG,,Immunology,1600
+Added,Cardiolipin Antibody IgM,,Immunology,1600
+Added,CCND1 t(11;14 translocation)- Cyclin D1,,Molecular & Genetics,10000
+Added,CD 10,,Histopathology,4225
+Added,CD117 / C-KIT Flowcytometry,,Hematology,3610
+Added,"CD19, Flowcytometry",,Hematology,3610
+Added,"CD20, Flowcytometry",,Hematology,3610
+Added,CD25,,Hematology,3610
+Added,CD4 Enumeration,,Hematology,2910
+Added,CD4/CD8 Enumeration,,Hematology,4600
+Added,Cell Block Preparation,,Histopathology,1100
+Added,"Ceruloplasmin, Serum",,Biochemistry,2500
+Added,Charcot-Marie- Tooth and Sensory Neuropathies Gene Panel,,Molecular & Genetics,36960
+Added,Chimerism-Post Engraftment,,Molecular & Genetics,10560
+Added,"Chimerism-Pre Engraftment, Donor & Recipient",,Molecular & Genetics,19360
+Added,CHLAMYDIA TRACHOMATIS AND NEISSERIA GONORRHOEAE BY NAAT QUALITATIVE,,Molecular & Genetics,6500
+Added,CHLAMYDIA TRACHOMATIS AND NEISSERIA GONORRHOEAE PCR QUALITATIVE,,Molecular & Genetics,3500
+Added,Chlamydia Trachomatis By NAAT Qualitative,,Molecular & Genetics,3500
+Added,"Chloride, Spot Urine",,Biochemistry,450
+Added,Cholangioseq Genomic Profiling panel - Advance [15 DNA+11 RNA] Includes MSI,,Molecular & Genetics,60460
+Added,Chromogranin A,,Immunology,12500
+Added,Chromosomal Microarray - Affymetrix Cytoscan Optima low resolution genechip,,Molecular & Genetics,27200
+Added,"Chromosomal SNP Microarray, 750K, High resolution-MGM",,Molecular & Genetics,39000
+Added,"Chromosomal SNP Microarray, 750K, High resolution-SNG",,Molecular & Genetics,35200
+Added,"Chromosomes ,X & Y By Fish",,Molecular & Genetics,8500
+Added,Chylomicron Qualitative,,Biochemistry,1145
+Added,"Citrate, 24 Hours Urine",,Biochemistry,2750
+Added,cKIT Mutation Screening Analysis,,Molecular & Genetics,14080
+Added,Clinical Exome Sequencing,,Molecular & Genetics,28000
+Added,CLL Prognostic Panel by FISH,,Molecular & Genetics,17600
+Added,"Clostridium difficile Toxin A+B, GDH",,Microbiology,4600
+Added,CLPD Advance by Flowcytometry,,Hematology,21300
+Added,CLPD Leukemia Panel By Flowcytometry,,Hematology,26400
+Added,CLPD-Basic,,Hematology,13550
+Added,CMV BY IHC,,Histopathology,4225
+Added,CMV DNA Quantitative PCR SN,,Molecular & Genetics,10500
+Added,CMV PCR-Quantitative- CORE,,Molecular & Genetics,12320
+Added,CMV PCR-Quantitative MGM,,Molecular & Genetics,15000
+Added,C-Myc Gene Rearrangement by FISH,,Molecular & Genetics,10560
+Added,C-MYC Gene Rearrangement FFPE,,Molecular & Genetics,11620
+Added,COLOCORE PANEL 2,,Molecular & Genetics,44000
+Added,COLON CANCER PANEL 3,,Molecular & Genetics,28160
+Added,COLON PANEL GERMLINE AND SOMATIC,,Molecular & Genetics,38000
+Added,Coloseq Genomic Profile Basic Include MSI (23DNA+13RNA),,Molecular & Genetics,40320
+Added,COLOSEQ GENOMIC PROFILE(9 DNA INCLUDE MSI),,Molecular & Genetics,20700
+Added,Comprehensive Alpha and Beta thalassemia gene panel,,Molecular & Genetics,24000
+Added,Comprehensive Hereditary Cancer Panel (154 Genes),,Molecular & Genetics,40000
+Added,Comprehensive Hereditary Cancer Panel (32 genes)Breast and Ovarian cancer,,Molecular & Genetics,32000
+Added,Congenital Adrenal Hyperplasia CYP21A2 (21-OH) Combo - NGS and Deletion/Duplication Analysis,,Molecular & Genetics,32000
+Added,Congenital Myopathy Gene Panel,,Molecular & Genetics,32000
+Added,"Coombs Test, Indirect",,Hematology,900
+Added,"Copper, 24 Hours Urine",,Biochemistry,3675
+Added,"Copper, Serum",,Biochemistry,3240
+Added,Cortisol (Midnight),,Immunology,1350
+Added,Cortisol (Morning & Evening Sample),,Immunology,2700
+Added,"Cortisol, Urine",,Immunology,1350
+Added,COUPLE KARYOTYPING GENETIC DISORDER,,Molecular & Genetics,11500
+Added,"Creatinine, Urine",,Biochemistry,250
+Added,Creatinine/Estimated Glomerular Filtration Rate (eGFR),,Biochemistry,500
+Added,"Cryptococcus Antigen, Serum",,Microbiology,4800
+Added,Culture and Sensitivity Routine - Any Specimen,,Microbiology,900
+Added,Culture and Sensitivity Routine - Bronchial washings,,Microbiology,900
+Added,Culture and Sensitivity Routine - Semen,,Microbiology,900
+Added,"Culture and Sensitivity Routine - Tips (Et Tubes, Central Lines)",,Microbiology,900
+Added,Culture Fungus,,Microbiology,2150
+Added,"Culture, AFB (Mycobacterium), Rapid",,Microbiology,2250
+Added,Cyclosporine (C0),,Toxicology,5200
+Added,Cyfra 21-1,,Immunology,6800
+Added,"CYSTATIN C, SERUM",,Biochemistry,2700
+Added,Cystic Fibrosis mutation screening,,Molecular & Genetics,19500
+Added,Cysticercus (Taenia Solium) IgG,,Immunology,3700
+Added,Cytomegalovirus (CMV) IgG,,Immunology,1150
+Added,Cytomegalovirus (CMV) IgG & IgM,,Immunology,2300
+Added,Cytomegalovirus (CMV) IgM,,Immunology,1150
+Added,DCP-Decarboxy Prothrombin PIVKA-II,,Biochemistry,8800
+Added,Dehydroepiandrosterone (DHEA),,Immunology,5500
+Added,del5q (Monosomy 5) by FISH,,Molecular & Genetics,9680
+Added,"Dengue Antibody IgG, ELISA",,Immunology,900
+Added,"Dengue Antibody IgM, ELISA",,Immunology,900
+Added,"Dengue Fever Antibodies ( IgG, IgM) ELISA",,Immunology,1800
+Added,Dengue IgG & IgM- Rapid,,Serology,1000
+Added,DHR Test for CGD,,Hematology,11440
+Added,Di-George Syndrome (FISH del(22q)),,Molecular & Genetics,8500
+Added,Digistain Prognostic Risk Score,,Molecular & Genetics,210000
+Added,Digoxin,,Toxicology,2100
+Added,DMD mutation screening (79 Exons) [Prenatal],,Molecular & Genetics,16000
+Added,DMD/ BMD-79 exons Deletion/ Duplication Analysis by MLPA,,Molecular & Genetics,16000
+Added,DMPK GENE REPEAT EXPANSION ANALYSIS FOR MYOTONIC DYSTROPHY,,Molecular & Genetics,11500
+Added,DNA Extraction and Storage,,Molecular & Genetics,4000
+Added,Donor Specific Antibody (DSA),,Immunology,18500
+Added,"Drugs of Abuse- 6 Drug panel, Spot Urine",,Toxicology,4500
+Added,"Drugs of Abuse- 9 Drug panel, Spot Urine",,Toxicology,7200
+Added,DUALCORE UNLIMITED MARKER,,Molecular & Genetics,17600
+Added,Duchenne Muscular Dystrophy (DMD) by NGS,,Molecular & Genetics,32000
+Added,Early Infantile Epileptic Encephalopathy Gene Panel,,Molecular & Genetics,32000
+Added,"EBV DNA, Qualitative PCR",,Molecular & Genetics,6500
+Added,"EBV DNA, Quantitative Viral Load PCR",,Molecular & Genetics,12585
+Added,EBV VCA IgG Antibody,,Immunology,3500
+Added,EBV VCA IgM Antibody,,Immunology,3500
+Added,Echinococcus IgG Antibody,,Immunology,2850
+Added,EGFR by FISH,,Molecular & Genetics,17600
+Added,"EGFR Mutation Detection (Exons -18, 19, 20, 21), FFPE Tissue",,Molecular & Genetics,12320
+Added,EGFR Somatic Mutation (Exon 18-21) Analysis,,Molecular & Genetics,14960
+Added,"Electrolytes, Spot Urine",,Biochemistry,500
+Added,"Endomysial Antibody, IgA",,Immunology,4930
+Added,Entamoeba histolytica IgG Antibody (Amoebiasis) - Serum,,Immunology,4750
+Added,Erythropoietin EPO,,Immunology,3700
+Added,EWSR1 gene (Ewings sarcoma),,Molecular & Genetics,16800
+Added,EXOMEMAX-MGM,,Molecular & Genetics,40000
+Added,Factor IX Functional,,Hematology,3700
+Added,Factor V Leiden mutation,,Molecular & Genetics,11500
+Added,Factor VII Functional,,Hematology,6100
+Added,Factor VIII Functional,,Hematology,3170
+Added,Factor X Assay,,Hematology,10560
+Added,Factor XI Functional,,Hematology,7030
+Added,Factor XII Functional,,Hematology,6700
+Added,Factor XIII Functional,,Hematology,1200
+Added,Faecal Calprotectin,,Biochemistry,6160
+Added,Faecal Elastase,,Biochemistry,10560
+Added,Fanconis Anaemia-Chromosomal Breakage Analysis,,Molecular & Genetics,13200
+Added,FETALSEQ,,Molecular & Genetics,15000
+Added,Fibrinogen,,Hematology,2000
+Added,Fibrinogen Degradation Products (FDP),,Hematology,2300
+Added,Filaria Antibody,,Immunology,2450
+Added,Filaria Antigen,,Immunology,1950
+Added,First Trimester Triple marker,,Immunology,4550
+Added,FISH - Her2/neu,,Molecular & Genetics,17600
+Added,FISH - PML/RARA,,Molecular & Genetics,9700
+Added,FISH - ROS gene Rearrangement,,Molecular & Genetics,17600
+Added,"FISH- Prenatal Aneuploidy Detection (5 probes- Trisomy 13,18,21,X,Y)",,Molecular & Genetics,14400
+Added,FLORESCENT TREPONEMAL Ab - (FTA-ABS),,Serology,3500
+Added,Flowcytometry - Acute Leukemia Panel Basic,,Hematology,17424
+Added,Flowcytometry - B-ALL MRD,,Hematology,24640
+Added,Flowcytometry CLL-MRD,,Hematology,24600
+Added,Flowcytometry - T-ALL MRD,,Hematology,24640
+Added,Flowcytometry AML-MRD,,Hematology,24600
+Added,Flu Comprehensive Panel,,Molecular & Genetics,9410
+Added,Fluid cytology for malignant cells,,Cytology,1350
+Added,Fluid Examination Biochemistry,,Biochemistry,950
+Added,FRACTIONAL EXCRETION OF SODIUM,,Biochemistry,1760
+Added,Fragile X (FMR1) Carrier Screening,,Molecular & Genetics,17600
+Added,Fragile X Mutation-FMR1 CGG Repeat Analysis,,Molecular & Genetics,14500
+Added,Free Androgen Index,,Immunology,6160
+Added,Free Fatty Acid Levels- Comprehensive,,Biochemistry,15000
+Added,Friedreich ataxia (FXN) - Repeat expansion analysis,,Molecular & Genetics,12000
+Added,Fructosamine,,Biochemistry,1100
+Added,FSHD1 repeat contraction testing,,Molecular & Genetics,117000
+Added,Fungal Culture - Fluid,,Microbiology,2150
+Added,GAD 65 Antibody,,Immunology,12200
+Added,Ganglioside Antibody IgG,,Immunology,5025
+Added,Ganglioside Antibody IgM,,Immunology,6700
+Added,Gastrin,,Immunology,2900
+Added,GAUCHER DISEASE (GBA) GENE ANALYSIS,,Molecular & Genetics,20000
+Added,geneCORE Predict Basic,,Molecular & Genetics,38720
+Added,geneCORE Somatic 161 Gene Panel,,Molecular & Genetics,60800
+Added,geneCORE Somatic 52 Gene Panel,,Molecular & Genetics,48000
+Added,GeneXpert MTB/RIF,,Molecular & Genetics,4250
+Added,Genome Signature Panel (HRD/GIS SCAR Score- LOH+ TAI+ LST),,Molecular & Genetics,130000
+Added,"Giardia Antigen, Stool",,Microbiology,3000
+Added,Giemsa Stain,,Microbiology,450
+Added,GIST PANEL 1,,Molecular & Genetics,24640
+Added,GISTseq Genomic Profiling Panel- Basic(27DNA),,Molecular & Genetics,21600
+Added,"Gliadin Antibody (DGP), IgA",,Immunology,3800
+Added,GLUCOSE CHALLENGE TEST 75 GM AFTER 2 HOURS (GCT 75GM),,Biochemistry,360
+Added,"Glucose Tolerance Test (GTT) 100 gms, 3 Hours",,Biochemistry,500
+Added,"Glucose Tolerance Test (GTT)Pregnancy (Fasting), 75 gms, 2 Hours",,Biochemistry,400
+Added,Glucose-6-Phosphate Dehydrogenase (G6PD) Qualitative,,Hematology,1500
+Added,Glucose-6-Phosphate Dehydrogenase (G6PD) Quantitative,,Hematology,1800
+Added,GN PROFILE,,Immunology,10500
+Added,Gram Staining - PUS,,Microbiology,450
+Added,Gram Stain-Urine,,Microbiology,450
+Added,H. Pylori Antibody IgG ELISA,,Immunology,3500
+Added,"H3 Viral Marker Profile HIV, HbsAg,HCV-Rapid",,Serology,1500
+Added,"Hanging Drop Preparation, Stool",,Microbiology,250
+Added,Haptoglobin,,Biochemistry,4000
+Added,HBV DNA Qualitative PCR,,Molecular & Genetics,6000
+Added,"HBV DNA Quantitative Viral Load, PCR",,Molecular & Genetics,6800
+Added,HCV Genotyping,,Molecular & Genetics,9680
+Added,"HCV RNA PCR Quantitative, Real Time PCR",,Molecular & Genetics,6800
+Added,HCV RNA Qualitative PCR,,Molecular & Genetics,6000
+Added,HCV RNA Quantitative RTPCR and HCV Genotyping combo,,Molecular & Genetics,11000
+Added,HEALTH PACKAGE,,Health Packages,500
+Added,hemaCORE MDS Extended Panel - 8 markers,,Molecular & Genetics,22000
+Added,Hemseq Comprehensive Panel by NGS + Karyotyping,,Molecular & Genetics,48000
+Added,HEPATITIS A VIRUS - IGG RAPID,,Serology,1100
+Added,Hepatitis A Virus IgG Antibody (HAV IgG),,Immunology,1620
+Added,Hepatitis B core IgM & Total (HBc IgM and Total),,Immunology,3400
+Added,Hepatitis B Surface Antigen (HBsAg) Confirmatory Test,,Immunology,1600
+Added,Hepatitis B Virus core IgM Antibody (HBc IgM),,Immunology,1700
+Added,Hepatitis B Virus core Total Antibody (HBc Total),,Immunology,1700
+Added,Hepatitis B Virus envelope Antibody (HBe Ab),,Immunology,1800
+Added,Hepatitis B Virus envelope Antigen (HBeAg),,Immunology,1800
+Added,Hepatitis B Surface Antibody (Anti-HBs),,Immunology,1600
+Added,Hepatitis Delta IgM Antibody (HDV IgM),,Immunology,5500
+Added,Hepatitis E Virus IgG Antibody (HEV IgG),,Immunology,1620
+Added,Hepatitis E Virus IgG Antibody (HEV IgG)-Rapid,,Serology,1100
+Added,Hereditary Spastic Paraplegia Gene Panel,,Molecular & Genetics,32000
+Added,"HERPES SIMPLEX VIRUS (HSV) QUALITATIVE PCR , CSF",,Molecular & Genetics,12000
+Added,High Sensitivity C-Reactive Protein (hsCRP),,Immunology,1620
+Added,Histopathology - Bone biopsy,,Histopathology,2800
+Added,Histopathology - Liver Biopsy,,Histopathology,5800
+Added,Histopathology Endoscopic Biopsy Jar-1,,Histopathology,1800
+Added,Histopathology Endoscopic Biopsy Jar-2,,Histopathology,2400
+Added,Histopathology Endoscopic Biopsy Jar-3,,Histopathology,3000
+Added,Histopathology Endoscopic Biopsy Jar-4,,Histopathology,3500
+Added,Histopathology- Large Specimen,,Histopathology,3500
+Added,Histopathology- Medium specimen,,Histopathology,2000
+Added,Histopathology- Radical resection specimen,,Histopathology,4500
+Added,Histopathology- Skin Biopsy LM,,Histopathology,3900
+Added,Histopathology- Skin Biopsy LM & IF,,Histopathology,7400
+Added,Histopathology slides for Second Opinion (Upto 2-5 slides),,Histopathology,3880
+Added,Histopathology- Small specimen,,Histopathology,1350
+Added,Histopathology-Extra Large Specimen,,Histopathology,5500
+Added,HIV 1 & 2 Ab & P24 Ag Combo,,Immunology,1800
+Added,HIV 1 & 2 by Western Blot,,Immunology,5650
+Added,HIV 1 & 2 Tridot,,Serology,700
+Added,"HIV 1 RNA Quantitative Viral Load, PCR",,Molecular & Genetics,8500
+Added,HIV-1 Proviral DNA,,Molecular & Genetics,5550
+Added,HLA - DR4 (DRB1*04),,Molecular & Genetics,8000
+Added,HLA B-27 by Flowcytometry,,Hematology,3800
+Added,HLA B-27 by PCR,,Molecular & Genetics,4200
+Added,"HLA Typing - A, B, C, DRB1, DQB1 ,DPB1 [High Resolution]",,Molecular & Genetics,23760
+Added,HOMA IR (Insulin Resistance),,Immunology,2160
+Added,Homocysteine,,Biochemistry,2600
+Added,Homovanillic Acid (HVA),,Biochemistry,10560
+Added,HORMONAL PROFILE FEMALE,,Health Packages,4000
+Added,HSV 1 & 2 QUANTITATIVE (IgG+IgM),,Immunology,4000
+Added,"HSV 1&2 DNA detection, Qualitative PCR",,Molecular & Genetics,8500
+Added,HSV-1 IgG,,Immunology,1100
+Added,HSV-1 IgG Antibody,,Immunology,800
+Added,HSV-1 IgM,,Immunology,1100
+Added,HSV-1 IgM Antibody,,Immunology,800
+Added,HSV-1+2 IgG Antibodies,,Immunology,1000
+Added,HSV-1+2 IgM Antibodies,,Immunology,1000
+Added,HSV-2 IgG,,Immunology,1100
+Added,HSV-2 IgG Antibody,,Immunology,800
+Added,HSV-2 IgM Antibody,,Immunology,800
+Added,HSV-2-IGM,,Immunology,1100
+Added,HTLV I & II Antibodies,,Immunology,9300
+Added,Human Epididymis Protein 4 (HE4),,Immunology,4900
+Added,Huntington Disease (HD) mutation screening,,Molecular & Genetics,9680
+Added,IA2 Insulin Autoantibodies,,Immunology,5280
+Added,IDH 1 & IDH 2 Gene Mutation Analysis,,Molecular & Genetics,14080
+Added,IDH-1 & 2 mutation (AML Patient only),,Molecular & Genetics,15840
+Added,IgG4 subclass,,Immunology,11440
+Added,IHC P16 Ventana (E6H4),,Histopathology,6776
+Added,IHC Final Diagnosis Panel,,Histopathology,11500
+Added,IHC marker - BRAF V600E,,Histopathology,8600
+Added,IHC marker - p16,,Histopathology,6425
+Added,"IHC marker - PDL-1(22C3, DAKO)",,Histopathology,28160
+Added,IHC marker- CD20,,Histopathology,4225
+Added,IHC marker- E cadherin,,Histopathology,4225
+Added,IHC marker- EGFR,,Histopathology,4225
+Added,IHC marker- ER PR,,Histopathology,4400
+Added,IHC marker- Her2/neu,,Histopathology,3700
+Added,IHC marker- p53,,Histopathology,4225
+Added,IHC marker- PDL-1 Ventana,,Histopathology,10560
+Added,IHC-Any Three Markers,,Histopathology,35200
+Added,Immature Platelet Fraction(IPF),,Hematology,1800
+Added,"Immunofixation Electrophoresis, Serum",,Immunology,14100
+Added,Immunoglobulin IgA,,Immunology,1170
+Added,Immunoglobulin IgG,,Immunology,1170
+Added,"Immunoglobulin IgG, CSF",,Immunology,3500
+Added,Immunoglobulin IgM,,Immunology,1170
+Added,"Immunoglobulin IgM, CSF",,Immunology,3500
+Added,Immunoglobulin Profile,,Immunology,3200
+Added,Infertility Panel Female,,Health Packages,4000
+Added,Infertility Panel Male,,Health Packages,6500
+Added,"Influenza-A Virus Antibody, IgM",,Immunology,4400
+Added,Inhibin A,,Immunology,1950
+Added,Inhibin B,,Immunology,4050
+Added,Insulin Like Growth Factor Binding Protein -3 (IGF BP3 ),,Immunology,7600
+Added,Insulin PP,,Immunology,1350
+Added,Interferon Gamma release assay (IGRA),,Immunology,4400
+Added,Intrinsic Factor Antibody,,Immunology,5280
+Added,JAK 2 Mutation Analysis (Exon 14),,Molecular & Genetics,10200
+Added,JAK2 Exon 12 mutations,,Molecular & Genetics,10200
+Added,JAK-2 Exon 14 to 12 (Reflex Testing),,Molecular & Genetics,12320
+Added,Jak2 Mutation Detection Panel (Exons 12-15),,Molecular & Genetics,13200
+Added,JEV-Japanese Encephalitis Virus RNA detection,,Molecular & Genetics,7745
+Added,"Kappa Free Light Chain, Serum",,Immunology,9000
+Added,KaryoSeq,,Molecular & Genetics,14500
+Added,KaryoSeq Prenatal,,Molecular & Genetics,14500
+Added,Karyotyping for Genetic Disorder,,Molecular & Genetics,5900
+Added,Karyotyping for Hematological Malignancy,,Molecular & Genetics,7040
+Added,"Karyotyping, Amniotic Fluid",,Molecular & Genetics,8000
+Added,"Karyotyping, Cord",,Molecular & Genetics,13200
+Added,"Karyotyping, High resolution",,Molecular & Genetics,6500
+Added,Ketones body,,Biochemistry,5455
+Added,Lactate,,Biochemistry,2400
+Added,"Lactate,CSF",,Biochemistry,2300
+Added,LAP Score (Leukocyte Alkaline Phosphatase),,Hematology,2290
+Added,"Lead, Blood",,Toxicology,5500
+Added,Leptospira IgG Antibody,,Immunology,1100
+Added,Leptospira IgM Antibody,,Immunology,1100
+Added,Leukemia Advance Panel by Flowcytometry,,Hematology,17424
+Added,Liquicore 52 gene panel,,Molecular & Genetics,84480
+Added,"Liquid Bx. Cell Free EGFR [T790M,L858R, Exon 19 deletion]",,Molecular & Genetics,26400
+Added,Liquidseq Actionable gene Panel [23 genes],,Molecular & Genetics,40000
+Added,Liquidseq Breast & Ovarian cancer panel [65 genes],,Molecular & Genetics,44500
+Added,Liquidseq Colorectal cancer panel [71 genes],,Molecular & Genetics,102080
+Added,Liquidseq Comprehensive panel [275 DNA+5 RNA - 280 Genes],,Molecular & Genetics,237600
+Added,Liquidseq Lung cancer panel [72 DNA+5 RNA -77 Genes],,Molecular & Genetics,102080
+Added,Liquidseq Oncolite Panel(6 DNA + 6 RNA),,Molecular & Genetics,40000
+Added,LITE HEALTH PACKAGE,,Health Packages,2000
+Added,"Lithium, Serum",,Toxicology,500
+Added,LUNG CANCER BASIC PANEL,,Molecular & Genetics,26400
+Added,"Lung Cancer Panel 4 [EGFR,ALK1,ROS1,MET,BRAF]",,Molecular & Genetics,22880
+Added,Lupus Anticoagulant (dRVVT),,Hematology,2700
+Added,"Manganese, Serum",,Toxicology,6200
+Added,Maternal Cell Contamination (MCC) Check in Prenatal,,Molecular & Genetics,8000
+Added,MDS MRD,,Molecular & Genetics,24640
+Added,Measles Virus IgG Antibody by EIA - CSF,,Immunology,9410
+Added,Methotrexate level,,Toxicology,6000
+Added (no price: Aster lists two prices),"Microalbumin, 24 Hours Urine",,Biochemistry,
+Added,Microarray 750K (AF/CVS/CB/POC/PB),,Molecular & Genetics,48000
+Added,Microsatellite Instability (MSI) by PCR,,Molecular & Genetics,23760
+Added,Mismatch Repair (MMR) protein Panel,,Histopathology,14960
+Added,Mitochondrial genome sequencing,,Molecular & Genetics,12800
+Added,Mixing Studies (APTT),,Hematology,5300
+Added,Modified ZN staining for Nocardia,,Microbiology,800
+Added,MPAL MRD,,Hematology,26400
+Added,MPL Mutation Analysis,,Molecular & Genetics,10560
+Added,MPN PANEL 4,,Molecular & Genetics,25200
+Added,"MPN Panel 1 (JAK2 PANEL(12-15),CALR, MPL)",,Molecular & Genetics,24640
+Added,MPN PANEL 3,,Molecular & Genetics,26400
+Added,MTB DNA PCR / TB PCR,,Molecular & Genetics,3800
+Added,Mucopolysaccharides or Glycosaminoglycans (GAGs).,,Biochemistry,1100
+Added,"Multiple Myeloma Comprehensive Panel Quantitative, Serum",,Biochemistry,14100
+Added,"Multiple Myeloma Comprehensive Panel Quantitative, Urine",,Biochemistry,14960
+Added,Multiple Myeloma Diagnostic Panel,,Biochemistry,16500
+Added,Multiple Myeloma MRD,,Hematology,24640
+Added,Multiple Myeloma PANEL BY FISH,,Molecular & Genetics,24700
+Added,Myasthenia Gravis Profile,,Immunology,17600
+Added,Mycoplasma Genitalium (MG) By NAAT Qualitative,,Molecular & Genetics,2000
+Added,Mycoplasma Hominis (MH) By NAAT Qualitative,,Molecular & Genetics,2000
+Added,Mycoplasma Pneumoniae IgG Antibody,,Immunology,4755
+Added,Mycoplasma Pneumoniae IgM Antibody,,Immunology,4775
+Added,MYD88 gene Mutation Analysis,,Molecular & Genetics,29920
+Added,Myelodysplastic Syndrome (MDS) Panel,,Molecular & Genetics,18480
+Added,MYELOPROLIFERATIVE NEOPLASIA (MPN) MUTATION ANALYSIS,,Molecular & Genetics,10560
+Added,NATURAL KILLER CELLS,,Hematology,8450
+Added,Neisseria Gonorrhoea By NAAT Qualitative,,Molecular & Genetics,3500
+Added,neoCORE TMS + GCMS,,Molecular & Genetics,9600
+Added,Neuro Virus Panel Qualitative,,Molecular & Genetics,13750
+Added,Neuronal Antibody profile (Paraneoplastic syndrome profile),,Immunology,27500
+Added,NEW BORN SCREENING 7 DISORDER,,Molecular & Genetics,2900
+Added,NGS Comprehensive Hereditary Cancer Panel (154 genes),,Molecular & Genetics,32000
+Added,NGS COUPLE CARRIER SCREENING,,Molecular & Genetics,65000
+Added,NGS COUPLE CARRIER SCREENING + DMD+SMA,,Molecular & Genetics,98000
+Added,NGS Homologous Recombinant Deficiency Panel (HRD Panel),,Molecular & Genetics,130000
+Added,NGS Homologous Recombinant Repair [HRR] Panel -28 Genes,,Molecular & Genetics,48000
+Added,NGS Mini Colon Cancer Panel [13 DNA],,Molecular & Genetics,24000
+Added,NGS Mini Colon Cancer Panel [13 DNA] + MSI By Sequencing,,Molecular & Genetics,35200
+Added,NGS Mini Focus Panel [25 DNA+23 RNA],,Molecular & Genetics,30800
+Added,NGS Mini Lung Cancer Panel [20 DNA],,Molecular & Genetics,25000
+Added,NGS Mini Lung Cancer Panel [20 DNA+23 RNA],,Molecular & Genetics,35200
+Added,NGS Target 25 Panel [only DNA],,Molecular & Genetics,25000
+Added,NMDA profile CSF,,Immunology,12320
+Added,NMDA Profile Serum,,Immunology,12320
+Added,NMO with MOG Profile,,Immunology,12800
+Added,"NODOPATHY, PARANODOPATHY PANEL",,Molecular & Genetics,40000
+Added,Non- invasive Prenatal Test (NIPT) MGM,,Molecular & Genetics,27200
+Added,Non- invasive Prenatal Test (NIPT) with Microdeletions,,Molecular & Genetics,35200
+Added,Non-invasive Prenatal Test (NIPT),,Molecular & Genetics,24000
+Added,"Nor Metanephrines, Free - Plasma",,Biochemistry,8625
+Added,Nor Metanephrines-Urine,,Biochemistry,8650
+Added,Oligoclonal Bands with IgG Index,,Immunology,10200
+Added,"Oncomine Myeloid Panel [MDS,MPN,AML,CML,CMML,JMML] + FLT3",,Molecular & Genetics,32000
+Added,ONCOTYPE DX,,Molecular & Genetics,590000
+Added,"Osmolality, Spot Urine",,Biochemistry,1225
+Added,Osmotic (RBCs) Fragility Test,,Hematology,1500
+Added,"Oxalate, 24 Hours Urine",,Biochemistry,3240
+Added,Pancreatitis Mutation Panel,,Molecular & Genetics,35200
+Added,Paracetamol (Acetaminophen),,Toxicology,3000
+Added,PARENTAL SANGER SEQUENCING SN,,Molecular & Genetics,13000
+Added,"Parietal Cell Antibody, IFA",,Immunology,3170
+Added,"Parvovirus B19, Quantitative, PCR",,Molecular & Genetics,5810
+Added,PAS Stain,,Histopathology,1950
+Added,PD1,,Histopathology,4225
+Added,PDGFR Mutation Analysis,,Molecular & Genetics,13200
+Added,PDGFRß (CMML),,Molecular & Genetics,9240
+Added,PDGFRα (HES),,Molecular & Genetics,9240
+Added,Peripheral Blood Smear for Malarial Parasite (PS for MP),,Parasitology,300
+Added,Peripheral Smear for Microfilaria,,Parasitology,300
+Added,Phenytoin,,Toxicology,1725
+Added,"Phospholipase A2 Receptor Antibody (PLA2R),Quantitative",,Immunology,9860
+Added,"Phosphorus, Spot Urine",,Biochemistry,350
+Added,Placental Growth Factor (PlGF),,Immunology,6150
+Added,Plasma Renin,,Immunology,5500
+Added,"PML/RARA - t(15;17) Qualitative,Blood",,Molecular & Genetics,10560
+Added,PML/RARA:t(15;17) Quantitative,,Molecular & Genetics,12320
+Added,PNH Advance,,Hematology,11440
+Added,PNH Basic,,Hematology,7745
+Added,PNH Diagnostic Panel,,Hematology,5810
+Added,Pole gene Mutation Analysis,,Molecular & Genetics,15840
+Added,Porphobilinogen Quantitative,,Biochemistry,10560
+Added,"Potassium, 24 Hours Urine",,Biochemistry,250
+Added,"Potassium, Urine",,Biochemistry,250
+Added,Prader-Willi/ Angelman Syndrome Methylation MLPA,,Molecular & Genetics,16000
+Added,Pre-Eclampsia Screening - First Trimester,,Biochemistry,5900
+Added,PREMIUM HEALTH PACKAGE,,Health Packages,4800
+Added,"Prenatal Diagnostic Screening by Karyotyping + FISH (for any one 13, 18, 21, X and Y) TISSUE",,Molecular & Genetics,17600
+Added,PRENATAL SANGER VARIANT ANALYSIS [1 VARIANT] MGM,,Molecular & Genetics,18000
+Added,Progesterone,,Immunology,1500
+Added,Protein C & S Anti Thrombin - III,,Hematology,22500
+Added,Protein C Activity,,Hematology,8400
+Added,"Protein Electrophoresis, 24 Hours Urine",,Biochemistry,3875
+Added,Protein S Activity,,Hematology,7000
+Added,Prothrombin Gene Mutation,,Molecular & Genetics,7040
+Added,pulmoCORE 12 gene,,Molecular & Genetics,31680
+Added,pulmoCORE Extended Panel,,Molecular & Genetics,44000
+Added,Pulmoseq Genomic Profiling Panel - Lite,,Molecular & Genetics,20700
+Added,Pulmoseq Genomic Profiling Panel-Basic,,Molecular & Genetics,38640
+Added,"QF PCR Panel [13,18,21,X,Y]",,Molecular & Genetics,14400
+Added,RAPID WHOLE EXOME SEQUENCING,,Molecular & Genetics,48000
+Added,RBC Folate,,Immunology,5000
+Added,Rubella IgG,,Immunology,1150
+Added,Sanger validation [2 variants],,Molecular & Genetics,20000
+Added,SARS-CoV-2 (COVID-19) Spike IgG Antibody Quantitative,,Immunology,3000
+Added,Scl-70,,Immunology,2910
+Added,SCN1A Gene Analysis,,Molecular & Genetics,15000
+Added,Serum Protein Electrophoresis (SPE),,Biochemistry,1675
+Added,Sex Hormone Binding Globulin (SHBG),,Immunology,4950
+Added,Sexually Transmitted Infection (STI) Panel 2,,Molecular & Genetics,10000
+Added,Sexually Transmitted Infection (STI) Panel 3,,Molecular & Genetics,15000
+Added,Sexually Transmitted Infection (STI) Panel 4,,Molecular & Genetics,17500
+Added,Sexually Transmitted Infections(STI) Panel 1,,Molecular & Genetics,10000
+Added,Skin Biopsy Panel,,Histopathology,7400
+Added,Skin Biopsy-DIF,,Histopathology,3875
+Added,Slide/Block Review (Upto 2 Blocks/Slides),,Histopathology,1935
+Added,Slide/Block Review (Upto 8 Blocks/Slides),,Histopathology,7745
+Added,SNS ADVANCE HEALTH PACKAGE FEMALE,,Health Packages,5000
+Added,SNS ADVANCE HEALTH PACKAGE MALE,,Health Packages,5000
+Added (no price: Aster lists two prices),"Sodium, 24 Hours Urine",,Biochemistry,
+Added,"Sodium, Urine",,Biochemistry,250
+Added,"Solid Tumor Combo1 EGFR,ALK1,ROS1,MET,PDL1 by IHC]",,Histopathology,40000
+Added,Solidseq Actionable gene Panel [23 Genes],,Molecular & Genetics,35200
+Added,Solidseq Breast & Ovarian cancer panel [93 genes],,Molecular & Genetics,52800
+Added,Solidseq CGP (>550 genes panel + TMB+ MSI),,Molecular & Genetics,123200
+Added,Solidseq CGP plus (>550 genes panel + TMB + MSI + HRD score),,Molecular & Genetics,158400
+Added,Solidseq Colorectal cancer panel [71 genes],,Molecular & Genetics,52800
+Added,Solidseq Comprehensive panel [275 genes],,Molecular & Genetics,65120
+Added,Solidseq Lung cancer panel [72 genes],,Molecular & Genetics,52800
+Added,SOLIDSEQ ONCOLITE PANEL BY NGS (23 GENE),,Molecular & Genetics,30000
+Added,Spinal Muscular Atrophy (SMN1/SMN2) deletion/duplication analysis,,Molecular & Genetics,16800
+Added,"Spino Cerebral Ataxia (SCA Panel - 1, 2, 3, 6, 7, 10 & 12)",,Molecular & Genetics,26400
+Added,SPUTUM FOR FAT GLOBULES,,Clinical Pathology,250
+Added,Sputum for malignant cells,,Cytology,900
+Added,STI (Sexually Transmitted Infections) - 14 PCR Panel,,Molecular & Genetics,20500
+Added,Stone Analysis,,Clinical Pathology,2375
+Added,Stone Screening Profile,,Biochemistry,6500
+Added,"Stool Examination, pH and Reducing Substances",,Clinical Pathology,450
+Added,Sudan IV Stain,,Histopathology,1500
+Added,SYPHILIS SEROLOGY,,Serology,250
+Added,Tacrolimus,,Toxicology,3000
+Added,Thalassemia beta globin gene sequencing,,Molecular & Genetics,22000
+Added,"Thrombophilia Profile, Advanced",,Hematology,26600
+Added,"Thrombophilia Profile, Comprehensive",,Hematology,28200
+Added,Thyroid Profile Total-TFT,,Immunology,800
+Added,Tissue Transglutaminase (tTG) IgA Antibody,,Immunology,2300
+Added,Tissue Transglutaminase IgG Antibody (Anti TTG IgG),,Immunology,3200
+Added,TNF Alpha (Tumour Necrosis Factor Alpha),,Immunology,9150
+Added,Total T3,,Immunology,400
+Added,Total T4,,Immunology,400
+Added,Toxoplasma IgG,,Immunology,1200
+Added,Toxoplasma IgM,,Immunology,1200
+Added,TPHA (Treponema Pallidum Hemagglutination) - Titre,,Serology,1350
+Added,TPMT (Thiopurine Methyltransferase) GENOTYPE,,Molecular & Genetics,10560
+Added,TPMT and NUDT15 gene analysis,,Molecular & Genetics,25600
+Added,Trichomonas vaginalis (TV) By NAAT Qualitative,,Molecular & Genetics,3500
+Added,"Triglycerides, Urine",,Biochemistry,250
+Added,"Troponin - I, High sensitive (hsTnI)",,Immunology,4750
+Added,Troponin - T,,Immunology,2700
+Added,Troponin I Quantitative,,Immunology,2200
+Added,UGT1A1 Gene Polymorphism,,Molecular & Genetics,16020
+Added,UGT1A1 Repeat Analysis Medgenome,,Molecular & Genetics,8800
+Added,Unconjugated Estriol (uE3),,Immunology,3000
+Added,Ureaplasma Urealyticum(UU) By NAAT Qualitative,,Molecular & Genetics,3500
+Added,"Uric Acid, 24 Hours Urine",,Biochemistry,575
+Added,"Uric Acid, Urine",,Biochemistry,630
+Added,"URINARY PROTEIN CREATININE RATIO, 24 HRS",,Biochemistry,1000
+Added,Urine Cytology for Malignant Cells,,Cytology,1000
+Added,Urine Examination For Reducing Substances,,Clinical Pathology,270
+Added,Urine for Chyle,,Clinical Pathology,1620
+Added,Urine for Dysmorphic RBCs,,Clinical Pathology,615
+Added,URINE FOR FAT GLOBULES,,Clinical Pathology,175
+Added,Urine for Hemoglobin,,Clinical Pathology,400
+Added,Valproate Level (Valproic Acid),,Toxicology,2000
+Added,Varicella Zoster Virus IgG (Chicken Pox),,Immunology,2900
+Added,Varicella Zoster Virus IgM (Chicken Pox),,Immunology,2900
+Added,"VDRL, CSF",,Serology,1000
+Added,VGCC (Voltage gated Calcium channel),,Immunology,22355
+Added,Visceral Leishmaniasis /KALA AZAR (K39),,Serology,1100
+Added,Vitamin A (Retinol),,Biochemistry,9600
+Added,Vitamin B1 (Thiamine),,Biochemistry,8270
+Added,Vitamin B6,,Biochemistry,6340
+Added,Vitamin E (Tocopherol),,Biochemistry,9200
+Added,VLCFA,,Biochemistry,15000
+Added,Von Willebrand Factor (vWF) Antigen,,Hematology,19200
+Added,Voriconazole,,Toxicology,12320
+Added,VZV-Varicella Zoster Virus DNA detection by PCR,,Molecular & Genetics,8500
+Added,Weil Felix Test,,Serology,2000
+Added,Wet Mount,,Microbiology,250
+Added,Whole Exome sequencing (WES) 80-100x,,Molecular & Genetics,32000
+Added,Whole Exome sequencing + Mitochondrial Genome Sequencing(MG),,Molecular & Genetics,45000
+Added,Whole Exome sequencing + Mitochondrial Genome Sequencing(SNG),,Molecular & Genetics,32000
+Added,Whole Exome Sequencing- Advanced by NGS,,Molecular & Genetics,40000
+Added,Whole Exome Sequencing From FFPE Block,,Molecular & Genetics,45000
+Added,Whole Exome Sequencing with Mitochondrial + Karyoseq (SNG),,Molecular & Genetics,40000
+Added,Williams Syndrome,,Molecular & Genetics,6500
+Added,XERODERMA PIGMENTOSUM GENE PANEL,,Molecular & Genetics,26000
+Added,Y Chromosome Microdeletion,,Molecular & Genetics,8800
+Not added,,"USG PELVIS 1500 (an ultrasound, not a lab test; KAHC has USG Gyno (Only Pelvis) under Ultrasound)",,
