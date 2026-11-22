@@ -680,6 +680,8 @@ export interface OrderResult {
   testId: string;
   testName: string;
   groupName: string;
+  /** the package this test was billed in, "" when it was not part of one */
+  packageName: string;
   departmentId: string | null;
   departmentName: string;
   departmentOrder: number;
@@ -772,6 +774,9 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
     db().execute({ sql: "SELECT * FROM lab_samples WHERE order_id = ? ORDER BY code", args: [orderId] }),
     db().execute({
       sql: `SELECT r.*, ot.group_name, ot.sort_order, t.method, t.description, t.result_type, t.unit, t.select_options,
+                   (SELECT g.name FROM bill_service_lines bsl
+                      JOIN lab_test_groups g ON g.service_id = bsl.service_id AND g.kind = 'package'
+                     WHERE bsl.id = ot.bill_service_line_id LIMIT 1) AS package_name,
                    t.ref_text, t.ref_low, t.ref_high, t.critical_low, t.critical_high, t.ref_overrides, t.default_remarks,
                    t.department_id, d.name AS department_name, d.sort_order AS department_order,
                    d.show_unit, d.show_range, s.status AS sample_status
@@ -866,6 +871,7 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
       testId: r.test_id as string,
       testName: r.test_name as string,
       groupName: (r.group_name as string) ?? "",
+      packageName: (r.package_name as string | null) ?? "",
       departmentId: (r.department_id as string | null) ?? null,
       departmentName: (r.department_name as string | null) ?? "",
       departmentOrder: r.department_order == null ? 9999 : Number(r.department_order),

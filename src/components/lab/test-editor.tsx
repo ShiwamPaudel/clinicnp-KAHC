@@ -510,7 +510,7 @@ export function TestEditor({
 
       <Section title="On the report">
         <div className="grid gap-4">
-          <Field label="Note under the test">
+          <Field label="Note on the report">
             <textarea
               value={form.description}
               rows={3}

@@ -139,6 +139,8 @@ describe("a test package", () => {
       ["Sugar fasting", "Diabetes"],
       ["TSH", ""],
     ]);
+    // each knows the package it was billed in, so the report puts its notes at the end
+    expect(new Set(order.results.map((r) => r.packageName))).toEqual(new Set(["Whole Body Test"]));
     expect(order.samples).toHaveLength(1);
     const { db } = await import("@/lib/db");
     const line = (await db().execute("SELECT name_snapshot, amount_paisa FROM bill_service_lines")).rows[0]!;

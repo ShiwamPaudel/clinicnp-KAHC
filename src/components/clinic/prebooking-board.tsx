@@ -503,7 +503,7 @@ function BookingDialog({
                 </button>
               </span>
             ))}
-            <span className="ml-auto text-[13px] text-sage-600 tnum">About {formatPaisa(total)}</span>
+            <span className="ml-auto text-[13px] text-sage-600 tnum">Total {formatPaisa(total)}</span>
           </div>
         )}
         <Field label="Note">

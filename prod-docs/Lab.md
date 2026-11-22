@@ -90,6 +90,24 @@ entered, so a report always shows the range in force when it was validated.
 Every submit and every change after approval writes a `lab_result_versions`
 snapshot; approve / send back writes `lab_result_approvals`.
 
+## The printed report (D-202)
+
+`components/lab/report-sheet.tsx` draws the report for printing, for the
+paged preview and for the patient's `/r/` page.
+
+- A low, high or critical value and its `L` / `H` / `LL` / `HH` are weight
+  800; normal values are 400. Weight, not colour, so it shows in black and
+  white.
+- A test's **Note on the report** (`lab_tests.description`) prints after the
+  last test of its group, starting with the test's name; a test on its own has
+  its note right under it. Tests billed in a package (`OrderResult.packageName`,
+  found from the order test's bill line) put their notes together under
+  **Notes** after all the results, just before End of report and the
+  signatures. Method and the result's remarks stay under the test; the
+  approver's interpretation prints in the Comments box.
+- Line height 1.3 and tight padding, so more tests fit on a page; the font
+  sizes are unchanged. The header row's underline is 25% ink.
+
 ## Pages and permissions
 
 | Page | Route | Permission |

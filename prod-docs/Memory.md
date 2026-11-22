@@ -93,6 +93,8 @@
 - *(latent, not fixed)* `billRequestBody` in `offline/outbox.ts` drops the inline `patient` snapshot, although D-064 and `ingestBill` expect it. It self-heals (the patient queue drains first and a bill that overtakes it retries), but D-064's "the bill can create the patient itself" is not what ships.
 - The per-line "Disc." boxes on medicine and service lines are still rupees only; only the bill discount has the `रू | %` switch (C-015).
 - Per-report recomputation beyond the `?fy=` range, and "refund a closed-year bill into the open year", remain unbuilt.
+- **Lab report preview repeats the report** (found 2083-08-06, owner: fix later). The paged.js view in `components/lab/report-print-view.tsx` showed one report as "Page 1 of 3 … 3 of 3", each page holding the whole report (staff print and the patient's `/r/` page), with the header and footer on or off. Seen on a dev server; not yet checked on the live build.
+- `/stock` draws all 6,768 items in one table (about 3 minutes on a dev server). Needs paging or an in-stock filter.
 
 **Requested but deliberately NOT built** *(keep this list; it is the scope fence)*
 - EMR features, prescription printing, SMS, patient portal.
@@ -319,6 +321,7 @@
 | D-199 | **Pre-Booking** replaces the Doctors menu: the day's booked tests or services and doctors' consultations; Issue bill opens the counter with the booking; an advance can be taken on either kind, refunded on cancel / did not come, handed back as change when more than the bill (0031, Prebooking.md) | Owner, 2083-08-06, answers 1–4. |
 | D-200 | **The counter shows its saved catalogue at once** and refreshes it in the background; with nothing saved yet the search says "Loading the list…" and fills in by itself. **Enter in Result entry** goes to the next result box, skipping remarks | Owner: the search "doesn't work on the first go"; Enter as well as Tab. |
 | D-201 | **A test booking is always for a registered patient**: the Book tests dialog searches patients first (the same picker as a doctor's booking) and registers someone new from inside it; the booking keeps the patient's name and phone. Issue bill therefore opens the counter with the patient attached. A new patient is only registered once the booking is sure to save | Owner, 2083-08-06: "should search existing patient, if not then register from there … when issued a bill, the patient is already attached". |
+| D-202 | **The printed lab report**: a low/high value and its H/L are heavy (800) and normal values regular (400), so they stand out in black and white. A test's *Note on the report* prints after the last test of its group, named; for tests billed in a package (`OrderResult.packageName`) all notes print together under **Notes** after the results, just before End of report and the signatures. Lines at 1.3 and tighter padding fit more tests per page at the same font size; the header-row underline is darker (25%) | Owner, 2083-08-06. |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---

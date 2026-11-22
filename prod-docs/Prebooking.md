@@ -23,6 +23,9 @@ at a time:
   `appointment_id`) the first time an advance is taken on it or a bill issued.
 - **Book a consultation** — the doctor cards, each opening the doctor's day.
 
+The booking dialog shows the **Total** of the booked services at today's
+rates; the counter can still change a rate when the bill is made.
+
 Actions on a waiting booking: **Issue bill**, **Advance**, change (tests only),
 close (**Cancelled** or **Did not come**). Permission `appointments.manage`;
 Issue bill also needs `counter.use`.

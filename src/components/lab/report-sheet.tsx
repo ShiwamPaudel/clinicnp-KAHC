@@ -102,9 +102,10 @@ function ValueRow({ v, label, indent, showUnit, showRange }: { v: ResultValueVie
   return (
     <tr style={{ breakInside: "avoid" }}>
       <td style={{ padding: `1px 0 1px ${indent * 4}mm` }}>{label}</td>
-      <td style={{ padding: "1px 0", fontWeight: flagged ? 700 : 500 }}>
+      {/* weight, not colour, marks a low or high value: the report is often printed in black and white */}
+      <td style={{ padding: "1px 0", fontWeight: flagged ? 800 : 400 }}>
         {v.valueText || "-"}
-        {flagged && <span style={{ marginLeft: 4 }}>{flagSymbol(v.flag)}</span>}
+        {flagged && <span style={{ marginLeft: 4, fontWeight: 800 }}>{flagSymbol(v.flag)}</span>}
       </td>
       {showUnit && <td style={{ padding: "1px 0", color: MUTED }}>{v.unit}</td>}
       {showRange && <td style={{ padding: "1px 0", color: MUTED }}>{v.refText}</td>}
@@ -114,9 +115,15 @@ function ValueRow({ v, label, indent, showUnit, showRange }: { v: ResultValueVie
 
 /** Everything between the letterhead header and footer. */
 export function ReportBody({ d }: { d: ReportViewData }) {
-  const notes = d.sections.flatMap((s) => s.results).filter((r) => r.interpretation.trim());
+  const all = d.sections.flatMap((s) => s.results);
+  const notes = all.filter((r) => r.interpretation.trim());
+  // A test's note prints after the last test of its group; for tests billed in
+  // a package, all of them together at the end of the report, just above the
+  // signatures (owner, 2083-08-06).
+  const packageNotes = all.filter((r) => r.packageName && r.description.trim());
   return (
-    <div style={{ color: INK, fontSize: 13 }}>
+    // tighter lines than the app's 1.5, so more tests fit on a page at the same font size
+    <div style={{ color: INK, fontSize: 13, lineHeight: 1.3 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
         <div style={{ width: "45mm" }} />
         <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", border: `1px solid ${INK}`, padding: "2px 14px" }}>
@@ -168,17 +175,17 @@ export function ReportBody({ d }: { d: ReportViewData }) {
           g.items.push(r);
         }
         return (
-          <div key={s.departmentName} style={{ marginTop: 10 }}>
-            <div style={{ background: "#eef2ee", padding: "3px 6px", fontWeight: 800, fontSize: 13.5, textTransform: "uppercase", letterSpacing: 0.5, breakAfter: "avoid" }}>
+          <div key={s.departmentName} style={{ marginTop: 8 }}>
+            <div style={{ background: "#eef2ee", padding: "2px 6px", fontWeight: 800, fontSize: 13.5, textTransform: "uppercase", letterSpacing: 0.5, breakAfter: "avoid" }}>
               {s.departmentName}
             </div>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
               <thead>
-                <tr style={{ textAlign: "left", color: MUTED, borderBottom: `1px solid ${INK}26` }}>
-                  <th style={{ width: w.name, padding: "3px 0", fontWeight: 600 }}>Investigation</th>
-                  <th style={{ width: w.result, padding: "3px 0", fontWeight: 600 }}>Result</th>
-                  {s.showUnit && <th style={{ width: w.unit, padding: "3px 0", fontWeight: 600 }}>Unit</th>}
-                  {s.showRange && <th style={{ width: w.ref, padding: "3px 0", fontWeight: 600 }}>Reference range</th>}
+                <tr style={{ textAlign: "left", color: MUTED, borderBottom: `1px solid ${INK}40` }}>
+                  <th style={{ width: w.name, padding: "2px 0", fontWeight: 600 }}>Investigation</th>
+                  <th style={{ width: w.result, padding: "2px 0", fontWeight: 600 }}>Result</th>
+                  {s.showUnit && <th style={{ width: w.unit, padding: "2px 0", fontWeight: 600 }}>Unit</th>}
+                  {s.showRange && <th style={{ width: w.ref, padding: "2px 0", fontWeight: 600 }}>Reference range</th>}
                 </tr>
               </thead>
               <tbody>
@@ -186,7 +193,7 @@ export function ReportBody({ d }: { d: ReportViewData }) {
                   <Fragment key={g.key}>
                     {g.name && (
                       <tr>
-                        <td colSpan={cols} style={{ paddingTop: 5, fontWeight: 700, fontSize: 13.5 }}>
+                        <td colSpan={cols} style={{ paddingTop: 3, fontWeight: 700, fontSize: 13.5 }}>
                           {g.name}
                         </td>
                       </tr>
@@ -202,7 +209,7 @@ export function ReportBody({ d }: { d: ReportViewData }) {
                           ) : (
                             <>
                               <tr>
-                                <td colSpan={cols} style={{ paddingTop: 3, paddingLeft: inGroup ? "4mm" : 0, fontWeight: 600, textDecoration: "underline" }}>
+                                <td colSpan={cols} style={{ paddingTop: 2, paddingLeft: inGroup ? "4mm" : 0, fontWeight: 600, textDecoration: "underline" }}>
                                   {r.testName}
                                 </td>
                               </tr>
@@ -218,16 +225,29 @@ export function ReportBody({ d }: { d: ReportViewData }) {
                               </td>
                             </tr>
                           )}
-                          {(r.technicianRemarks || r.description) && (
+                          {r.technicianRemarks && (
                             <tr>
                               <td colSpan={cols} style={{ paddingLeft: inGroup ? "4mm" : 0, fontSize: 10.5, fontStyle: "italic", color: MUTED }}>
-                                {[r.technicianRemarks, r.description].filter(Boolean).join(" · ")}
+                                {r.technicianRemarks}
                               </td>
                             </tr>
                           )}
                         </Fragment>
                       );
                     })}
+                    {g.items
+                      .filter((r) => !r.packageName && r.description.trim())
+                      .map((r, i) => (
+                        <tr key={`note-${r.id}`} style={{ breakInside: "avoid" }}>
+                          <td
+                            colSpan={cols}
+                            style={{ padding: `${i === 0 ? 3 : 1}px 0 1px ${g.name ? "4mm" : 0}`, fontSize: 10.5, fontStyle: "italic", color: MUTED }}
+                          >
+                            {g.name && <span style={{ fontStyle: "normal", fontWeight: 600, color: INK }}>{r.testName}: </span>}
+                            {r.description}
+                          </td>
+                        </tr>
+                      ))}
                   </Fragment>
                 ))}
               </tbody>
@@ -252,6 +272,18 @@ export function ReportBody({ d }: { d: ReportViewData }) {
         <div style={{ marginTop: 12, border: "1px solid #e8c77a", background: "#fdf6e3", padding: 6, fontSize: 11.5, breakInside: "avoid" }}>
           <span style={{ fontWeight: 700 }}>Part of the report · </span>
           {d.pendingNote}
+        </div>
+      )}
+
+      {packageNotes.length > 0 && (
+        <div style={{ marginTop: 12, fontSize: 10.5, color: MUTED }}>
+          <div style={{ fontWeight: 700, fontSize: 12, color: INK, marginBottom: 2 }}>Notes</div>
+          {packageNotes.map((r) => (
+            <div key={r.id} style={{ fontStyle: "italic", marginBottom: 2, breakInside: "avoid" }}>
+              <span style={{ fontStyle: "normal", fontWeight: 600, color: INK }}>{r.testName}: </span>
+              {r.description}
+            </div>
+          ))}
         </div>
       )}
 
