@@ -86,6 +86,10 @@ export const supplierPaymentSchema = z.object({
   note: z.string(),
   /** the bank it was paid from, for a bank or cheque payment (0025) */
   accountId: z.string().nullable().optional(),
+  /** the bank's or wallet's fee for sending it, on top (0030) */
+  transferChargePaisa: z.number().int().min(0).max(1_000_000, "That transfer charge looks too large").default(0),
+  /** the purchase bill this pays, if one is chosen (0030) */
+  purchaseId: z.string().nullable().optional(),
 });
 
 export const purchaseLineSchema = z
@@ -209,6 +213,8 @@ export const ingestBillSchema = z.object({
   visitId: z.string().optional(),
   /** the short code the counter printed on the bill's lab-report QR */
   labReportToken: z.string().max(32).optional(),
+  /** the pre-booking the bill is issued from (0031) */
+  prebookingId: z.string().max(40).optional(),
   clientCreatedAt: z.string(),
 })
   // A bill has to be for something. Either block alone is a real bill: a
@@ -445,6 +451,8 @@ export const labPartnerPaymentSchema = z.object({
   note: z.string(),
   /** the bank it was paid from, for a bank or cheque payment (0025) */
   accountId: z.string().nullable().optional(),
+  /** the bank's or wallet's fee for sending it, on top (0030) */
+  transferChargePaisa: z.number().int().min(0).max(1_000_000, "That transfer charge looks too large").default(0),
 });
 
 // ---------------------------------------------------------------------------

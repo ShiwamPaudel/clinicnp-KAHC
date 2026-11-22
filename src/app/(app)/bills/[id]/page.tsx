@@ -22,6 +22,7 @@ import { BillDuesPanel } from "@/components/app/bill-dues-panel";
 import { ClosedYearBanner } from "@/components/app/closed-year-banner";
 import type { PrintBill } from "@/lib/print-types";
 import { expiryForPrint } from "@/lib/print-batches";
+import { advanceOnBill } from "@/lib/repos/prebookings";
 
 function bsShort(iso: string): string {
   return formatBS(toBS(adFromIso(iso)));
@@ -38,6 +39,7 @@ export default async function BillDetailPage({
   if (!bill) notFound();
   const company = await getCompany();
   const dues = bill.paymentMethod === "credit" ? await getBillDues(id) : null;
+  const advance = bill.paymentMethod === "credit" ? await advanceOnBill(id) : null;
   const who = {
     name: bill.registeredName || bill.patientName,
     patientNo: bill.patientNo,
@@ -115,7 +117,9 @@ export default async function BillDetailPage({
     // then and what was left owing. What is owed now is on the screen.
     paidNowPaisa: dues?.paidAtSalePaisa,
     paidNowMethod: dues?.paidNowMethod ?? undefined,
-    duePaisa: dues?.duePaisa,
+    // the part the pre-booking's advance paid is not owed (0031)
+    duePaisa: dues ? Math.max(0, dues.duePaisa - (advance?.usedPaisa ?? 0)) : undefined,
+    advance,
     userName: bill.userName,
     labReport,
   };

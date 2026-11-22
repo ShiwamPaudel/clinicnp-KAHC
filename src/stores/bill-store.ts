@@ -41,7 +41,18 @@ export interface AttachedPatient {
   };
 }
 
+/** The pre-booking this bill is issued from (0031): who, and the advance it holds. */
+export interface CounterPrebooking {
+  id: string;
+  name: string;
+  advancePaisa: number;
+  /** "AR-000001, AR-000002" */
+  receiptLabels: string;
+}
+
 interface BillState {
+  prebooking: CounterPrebooking | null;
+  setPrebooking: (p: CounterPrebooking | null) => void;
   lines: BillLine[];
   serviceLines: ServiceLine[];
   /** the patient this bill is for, once one is attached */
@@ -140,6 +151,8 @@ function makeServiceLine(service: PosService): ServiceLine {
 }
 
 export const useBillStore = create<BillState>((set) => ({
+  prebooking: null,
+  setPrebooking: (prebooking) => set({ prebooking }),
   lines: [],
   serviceLines: [],
   patient: null,
@@ -321,6 +334,7 @@ export const useBillStore = create<BillState>((set) => ({
   // does so on the next bill too. Only the figures go.
   reset: () =>
     set({
+      prebooking: null,
       lines: [],
       serviceLines: [],
       patient: null,
@@ -337,6 +351,7 @@ export const useBillStore = create<BillState>((set) => ({
 
   loadHeld: ({ lines, serviceLines, patient, patientName, visitId }) =>
     set({
+      prebooking: null,
       lines,
       serviceLines,
       patient,

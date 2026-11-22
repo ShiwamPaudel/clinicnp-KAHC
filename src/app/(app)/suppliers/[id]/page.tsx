@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { requirePermission } from "@/lib/session";
 import { requireModulePage } from "@/lib/modules";
-import { getSupplier, supplierLedger } from "@/lib/repos/suppliers";
+import { getSupplier, supplierLedger, listSupplierPurchaseChoices } from "@/lib/repos/suppliers";
 import { formatPaisa } from "@/lib/money";
 import { PageShell } from "@/components/app/page-shell";
 import { Table, THead, TR, TH, TD } from "@/components/ui/table";
@@ -89,7 +89,7 @@ export default async function SupplierDetailPage({
           </div>
         </div>
 
-        <SupplierPaymentForm supplierId={id} banks={await listBankAccounts()} />
+        <SupplierPaymentForm supplierId={id} banks={await listBankAccounts()} purchases={await listSupplierPurchaseChoices(id)} />
       </div>
     </PageShell>
   );

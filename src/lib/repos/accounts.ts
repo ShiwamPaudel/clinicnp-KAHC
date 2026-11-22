@@ -347,6 +347,8 @@ export interface VoucherInput {
   narration: string;
   lines: VoucherLineInput[];
   userId: string;
+  /** a delivery or other charge paid for this purchase bill (0030) */
+  purchaseId?: string | null;
 }
 
 /** The open fiscal year a date falls in, or a ClosedFiscalYearError. */
@@ -401,9 +403,9 @@ export async function createVoucher(input: VoucherInput): Promise<{ id: string; 
     });
     const no = Number(seq.rows[0]!.next_value) - 1;
     await tx.execute({
-      sql: `INSERT INTO vouchers (id, voucher_type, voucher_no, fiscal_year_id, date_ad, date_bs, narration, total_paisa, status, user_id, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'posted', ?, ?)`,
-      args: [id, input.type, no, fy.id, input.dateAd, input.dateBs, input.narration.trim(), total, input.userId, now],
+      sql: `INSERT INTO vouchers (id, voucher_type, voucher_no, fiscal_year_id, date_ad, date_bs, narration, total_paisa, status, user_id, created_at, purchase_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'posted', ?, ?, ?)`,
+      args: [id, input.type, no, fy.id, input.dateAd, input.dateBs, input.narration.trim(), total, input.userId, now, input.purchaseId ?? null],
     });
     let n = 0;
     for (const l of lines) {

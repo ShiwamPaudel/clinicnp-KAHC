@@ -15,10 +15,13 @@ import { strings } from "@/lib/strings";
 export function SupplierPaymentForm({
   supplierId,
   banks = [],
+  purchases = [],
 }: {
   supplierId: string;
   /** the clinic's bank accounts (Accounts > Chart of accounts) */
   banks?: { id: string; name: string }[];
+  /** this supplier's recent purchase bills, newest first */
+  purchases?: { id: string; label: string }[];
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -27,13 +30,22 @@ export function SupplierPaymentForm({
   const [method, setMethod] = useState("cash");
   const [note, setNote] = useState("");
   const [bankId, setBankId] = useState("");
+  const [charge, setCharge] = useState("");
+  const [purchaseId, setPurchaseId] = useState("");
   const [busy, setBusy] = useState(false);
   const bankPaid = method === "bank" || method === "cheque";
+  // the bank's or wallet's own fee: only when the money is sent, not handed over
+  const sent = bankPaid || method === "qr";
 
   async function submit() {
     const amt = toPaisa(Number(amount) || 0);
     if (amt <= 0) {
       toast.error("Enter an amount.");
+      return;
+    }
+    const chargePaisa = sent ? toPaisa(Number(charge) || 0) : 0;
+    if (chargePaisa < 0) {
+      toast.error("The transfer charge cannot be below zero.");
       return;
     }
     setBusy(true);
@@ -44,12 +56,16 @@ export function SupplierPaymentForm({
       method,
       note,
       accountId: bankPaid && bankId ? bankId : null,
+      transferChargePaisa: chargePaisa,
+      purchaseId: purchaseId || null,
     });
     setBusy(false);
     if (res.ok) {
       toast.success("Payment recorded");
       setAmount("");
       setNote("");
+      setCharge("");
+      setPurchaseId("");
       router.refresh();
     } else {
       toast.error(res.userMessage ?? strings.somethingWentWrong);
@@ -76,10 +92,22 @@ export function SupplierPaymentForm({
         <Field label="Method">
           <Select value={method} onChange={(e) => setMethod(e.target.value)}>
             <option value="cash">Cash</option>
+            <option value="qr">QR / wallet</option>
             <option value="bank">Bank</option>
             <option value="cheque">Cheque</option>
           </Select>
         </Field>
+        {sent && (
+          <Field label="Transfer charge (रू)" hint="Bank or wallet fee, paid on top">
+            <Input
+              numeric
+              inputMode="decimal"
+              value={charge}
+              placeholder="0"
+              onChange={(e) => setCharge(e.target.value)}
+            />
+          </Field>
+        )}
         {bankPaid && banks.length > 0 && (
           <Field label="From which bank">
             <Select value={bankId} onChange={(e) => setBankId(e.target.value)}>
@@ -87,6 +115,18 @@ export function SupplierPaymentForm({
               {banks.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
+        {purchases.length > 0 && (
+          <Field label="For which bill">
+            <Select value={purchaseId} onChange={(e) => setPurchaseId(e.target.value)}>
+              <option value="">Not one bill</option>
+              {purchases.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
                 </option>
               ))}
             </Select>

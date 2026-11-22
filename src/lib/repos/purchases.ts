@@ -12,6 +12,7 @@ import {
   bootstrapCurrentFiscalYear,
 } from "@/lib/repos/fiscal";
 import { applyStockMove } from "@/lib/repos/batches";
+import { voucherNoLabel } from "@/lib/accounting";
 
 export interface PurchaseLineInput {
   itemId: string;
@@ -258,15 +259,46 @@ export interface PurchaseListRow {
   dateBs: string;
   dateAd: string;
   totalPaisa: number;
+  /** delivery paid to a courier for this bill, each a payment voucher (0030) */
+  delivery: PurchaseCharge[];
+}
+
+export interface PurchaseCharge {
+  voucherId: string;
+  voucherNo: string;
+  amountPaisa: number;
 }
 
 export async function listPurchases(): Promise<PurchaseListRow[]> {
-  const res = await db().execute(
-    `SELECT p.id, p.purchase_no, p.supplier_invoice_no, p.date_bs, p.date_ad,
-            p.total_paisa, s.name AS supplier_name
-     FROM purchases p JOIN suppliers s ON s.id = p.supplier_id
-     ORDER BY p.date_ad DESC, p.created_at DESC`,
-  );
+  const [res, charges] = await Promise.all([
+    db().execute(
+      `SELECT p.id, p.purchase_no, p.supplier_invoice_no, p.date_bs, p.date_ad,
+              p.total_paisa, s.name AS supplier_name
+       FROM purchases p JOIN suppliers s ON s.id = p.supplier_id
+       ORDER BY p.date_ad DESC, p.created_at DESC`,
+    ),
+    // delivery paid for a bill: payment vouchers that name it (0030), still standing
+    db().execute(
+      `SELECT v.purchase_id, v.id, v.voucher_no, f.bs_label,
+              COALESCE(SUM(CASE WHEN vl.account_id = 'acc:misc' THEN vl.debit_paisa ELSE 0 END), 0) AS delivery
+         FROM vouchers v
+         JOIN fiscal_years f ON f.id = v.fiscal_year_id
+         JOIN voucher_lines vl ON vl.voucher_id = v.id
+        WHERE v.purchase_id IS NOT NULL AND v.status = 'posted'
+        GROUP BY v.id
+        ORDER BY v.date_ad, v.created_at`,
+    ),
+  ]);
+  const byPurchase = new Map<string, PurchaseCharge[]>();
+  for (const c of charges.rows) {
+    const list = byPurchase.get(c.purchase_id as string) ?? [];
+    list.push({
+      voucherId: c.id as string,
+      voucherNo: voucherNoLabel("payment", c.bs_label as string, Number(c.voucher_no)),
+      amountPaisa: Number(c.delivery),
+    });
+    byPurchase.set(c.purchase_id as string, list);
+  }
   return res.rows.map((r: Row) => ({
     id: r.id as string,
     purchaseNo: (r.purchase_no as string | null) ?? null,
@@ -275,7 +307,21 @@ export async function listPurchases(): Promise<PurchaseListRow[]> {
     dateBs: r.date_bs as string,
     dateAd: r.date_ad as string,
     totalPaisa: Number(r.total_paisa),
+    delivery: byPurchase.get(r.id as string) ?? [],
   }));
+}
+
+/** A purchase bill's label for a narration: their bill number, else ours. */
+export async function purchaseLabel(purchaseId: string): Promise<string | null> {
+  const res = await db().execute({
+    sql: `SELECT p.purchase_no, p.supplier_invoice_no, s.name AS supplier_name
+            FROM purchases p JOIN suppliers s ON s.id = p.supplier_id WHERE p.id = ?`,
+    args: [purchaseId],
+  });
+  const r = res.rows[0];
+  if (!r) return null;
+  const no = r.supplier_invoice_no ? `bill #${r.supplier_invoice_no as string}` : ((r.purchase_no as string | null) ?? "purchase");
+  return `${r.supplier_name as string} ${no}`;
 }
 
 export interface PurchaseReturnLineInput {

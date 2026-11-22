@@ -82,7 +82,7 @@ export function BillDuesPanel({
                   {formatPaisa(p.amountPaisa)}
                 </TD>
                 <TD>
-                  {isMoneyMethod(p.method) ? MONEY_METHOD_LABEL[p.method] : p.method}
+                  {isMoneyMethod(p.method) ? MONEY_METHOD_LABEL[p.method] : p.method === "advance" ? "From the advance" : p.method}
                 </TD>
                 <TD>{p.userName || "—"}</TD>
                 <TD>

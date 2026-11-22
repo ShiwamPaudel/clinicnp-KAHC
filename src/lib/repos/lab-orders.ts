@@ -90,7 +90,7 @@ export async function openLabOrderForBill(tx: Transaction, ctx: OpenOrderContext
 
   const serviceIds = [...new Set(ctx.serviceLines.map((l) => l.serviceId))];
   const marks = serviceIds.map(() => "?").join(",");
-  const [singleRes, groupRes] = await Promise.all([
+  const [singleRes, groupRes, packageProfileRes] = await Promise.all([
     tx.execute({
       sql: `SELECT t.id, t.service_id, t.name, t.department_id, t.sample_type_id, st.name AS sample_type_name
               FROM lab_tests t LEFT JOIN lab_sample_types st ON st.id = t.sample_type_id
@@ -98,7 +98,7 @@ export async function openLabOrderForBill(tx: Transaction, ctx: OpenOrderContext
       args: serviceIds,
     }),
     tx.execute({
-      sql: `SELECT g.id AS group_id, g.service_id, g.name AS group_name,
+      sql: `SELECT g.id AS group_id, g.service_id, g.name AS group_name, g.kind,
                    t.id, t.name, t.department_id, t.sample_type_id, st.name AS sample_type_name
               FROM lab_test_groups g
               JOIN lab_test_group_items i ON i.group_id = g.id
@@ -106,6 +106,20 @@ export async function openLabOrderForBill(tx: Transaction, ctx: OpenOrderContext
               LEFT JOIN lab_sample_types st ON st.id = t.sample_type_id
              WHERE g.service_id IN (${marks})
              ORDER BY i.sort_order`,
+      args: serviceIds,
+    }),
+    // a package's profiles, each expanded into its tests (0029)
+    tx.execute({
+      sql: `SELECT pkg.service_id, pg.id AS group_id, pg.name AS group_name,
+                   t.id, t.name, t.department_id, t.sample_type_id, st.name AS sample_type_name
+              FROM lab_test_groups pkg
+              JOIN lab_test_group_profiles gp ON gp.group_id = pkg.id
+              JOIN lab_test_groups pg ON pg.id = gp.profile_id
+              JOIN lab_test_group_items i ON i.group_id = pg.id
+              JOIN lab_tests t ON t.id = i.test_id
+              LEFT JOIN lab_sample_types st ON st.id = t.sample_type_id
+             WHERE pkg.kind = 'package' AND pkg.service_id IN (${marks})
+             ORDER BY gp.sort_order, i.sort_order`,
       args: serviceIds,
     }),
   ]);
@@ -117,12 +131,27 @@ export async function openLabOrderForBill(tx: Transaction, ctx: OpenOrderContext
     sampleTypeName: (r.sample_type_name as string | null) ?? "",
   });
   const singleByService = new Map(singleRes.rows.map((r) => [r.service_id as string, testOf(r)]));
-  const groupByService = new Map<string, { groupId: string; groupName: string; tests: CatalogTest[] }>();
+  // Each grouped line becomes a list of tests, each with the group it prints
+  // under. A profile's tests print under the profile. A package's profiles'
+  // tests print under those profiles, and its single tests print on their own;
+  // a test in a package twice (in a profile and on its own) is done once.
+  type GroupedTest = CatalogTest & { groupId: string; groupName: string };
+  const groupByService = new Map<string, GroupedTest[]>();
+  const push = (key: string, t: GroupedTest) => {
+    const list = groupByService.get(key) ?? [];
+    if (!list.some((x) => x.id === t.id)) list.push(t);
+    groupByService.set(key, list);
+  };
+  for (const r of packageProfileRes.rows) {
+    push(r.service_id as string, { ...testOf(r), groupId: r.group_id as string, groupName: r.group_name as string });
+  }
   for (const r of groupRes.rows) {
-    const key = r.service_id as string;
-    const g = groupByService.get(key) ?? { groupId: r.group_id as string, groupName: r.group_name as string, tests: [] };
-    g.tests.push(testOf(r));
-    groupByService.set(key, g);
+    const isPackage = (r.kind as string) === "package";
+    push(r.service_id as string, {
+      ...testOf(r),
+      groupId: r.group_id as string,
+      groupName: isPackage ? "" : (r.group_name as string),
+    });
   }
 
   type Planned = CatalogTest & { lineId: string; groupId: string | null; groupName: string };
@@ -133,11 +162,8 @@ export async function openLabOrderForBill(tx: Transaction, ctx: OpenOrderContext
       planned.push({ ...single, lineId: line.lineId, groupId: null, groupName: "" });
       continue;
     }
-    const group = groupByService.get(line.serviceId);
-    if (group) {
-      for (const t of group.tests) {
-        planned.push({ ...t, lineId: line.lineId, groupId: group.groupId, groupName: group.groupName });
-      }
+    for (const t of groupByService.get(line.serviceId) ?? []) {
+      planned.push({ ...t, lineId: line.lineId });
     }
   }
   if (planned.length === 0) return null;

@@ -65,7 +65,7 @@ const GROUPS: NavGroup[] = [
       { href: "/visits/today", label: "Today", icon: CalendarClock, perm: "visits.view" },
       { href: "/patients", label: "Patients", icon: Users, perm: "patients.view" },
       { href: "/visits", label: "Visits", icon: Stethoscope, perm: "visits.view" },
-      { href: "/doctors", label: "Doctors", icon: CalendarCheck, perm: ["visits.view", "appointments.manage"] },
+      { href: "/prebooking", label: "Pre-Booking", icon: CalendarCheck, perm: ["visits.view", "appointments.manage"] },
     ],
   },
   {

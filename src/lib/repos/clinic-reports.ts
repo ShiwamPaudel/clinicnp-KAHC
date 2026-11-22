@@ -19,6 +19,7 @@ import { IS_LAB_LINE } from "@/lib/repos/service-class";
 import { db } from "@/lib/db";
 import type { Row } from "@/lib/db";
 import { openingMoves, openingTotal, openingSumSql } from "@/lib/repos/party-openings";
+import { formatPaisa } from "@/lib/money";
 
 export interface AdRange {
   fromIso: string;
@@ -250,7 +251,7 @@ export async function partnerStatement(
   });
 
   const payments = await db().execute({
-    sql: `SELECT date_bs, date_ad, amount_paisa, method, note
+    sql: `SELECT date_bs, date_ad, amount_paisa, method, note, transfer_charge_paisa
             FROM lab_partner_payments
            WHERE lab_partner_id = ? AND date_ad BETWEEN ? AND ?
            ORDER BY date_ad ASC, rowid ASC`,
@@ -288,7 +289,11 @@ export async function partnerStatement(
       dateBs: r.date_bs as string,
       dateAd: r.date_ad as string,
       kind: "payment" as const,
-      description: `Paid — ${r.method}${r.note ? ` · ${r.note}` : ""}`,
+      description:
+        `Paid — ${r.method}${r.note ? ` · ${r.note}` : ""}` +
+        (Number(r.transfer_charge_paisa ?? 0) > 0
+          ? ` · transfer charge ${formatPaisa(Number(r.transfer_charge_paisa))} (not owed to the lab)`
+          : ""),
       chargePaisa: 0,
       paymentPaisa: Number(r.amount_paisa),
     })),
@@ -402,13 +407,15 @@ export async function recordPartnerPayment(input: {
   userId: string;
   /** the bank it was paid from (0025); empty for cash */
   accountId?: string | null;
+  /** the bank's or wallet's own fee for sending it (0030); not owed to the lab */
+  transferChargePaisa?: number;
 }): Promise<string> {
   const { ulid } = await import("ulid");
   const id = ulid();
   await db().execute({
     sql: `INSERT INTO lab_partner_payments
-            (id, lab_partner_id, date_ad, date_bs, amount_paisa, method, note, user_id, created_at, account_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (id, lab_partner_id, date_ad, date_bs, amount_paisa, method, note, user_id, created_at, account_id, transfer_charge_paisa)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       id,
       input.partnerId,
@@ -420,6 +427,7 @@ export async function recordPartnerPayment(input: {
       input.userId,
       new Date().toISOString(),
       input.accountId ?? null,
+      input.transferChargePaisa ?? 0,
     ],
   });
   return id;

@@ -6,9 +6,44 @@ import { getModules } from "@/lib/modules";
 import { appNameFor } from "@/lib/app-name";
 import type { PosConfig } from "@/components/pos/bill-table";
 import { publicAppOrigin } from "@/lib/lab-report-view";
+import { getPrebooking } from "@/lib/repos/prebookings";
+import { getPatient } from "@/lib/repos/patients";
+import { displayAge } from "@/lib/age";
 
-export default async function BillingPage() {
+/**
+ * A booking still waiting, ready for the counter (Pre-Booking → Issue bill).
+ * One already billed, cancelled or missed is not put on the counter again.
+ */
+async function counterPrebooking(id: string): Promise<PosConfig["prebooking"]> {
+  const b = await getPrebooking(id);
+  if (!b || b.status !== "booked") return null;
+  const p = b.patientId ? await getPatient(b.patientId) : null;
+  return {
+    id: b.id,
+    name: b.name,
+    phone: b.phone,
+    serviceIds: b.items.map((i) => i.serviceId),
+    advancePaisa: Math.max(0, b.inHandPaisa),
+    receiptLabels: b.moves
+      .filter((m) => m.kind === "received")
+      .map((m) => m.receiptLabel)
+      .join(", "),
+    patient: p
+      ? {
+          id: p.id,
+          patientNo: p.patientNo,
+          name: p.name,
+          sex: p.sex,
+          ageShort: displayAge({ value: p.ageValue, unit: p.ageUnit, asOfAd: p.ageAsOfAd, dobAd: p.dobAd }, adToIso(new Date())).short,
+        }
+      : null,
+  };
+}
+
+export default async function BillingPage({ searchParams }: { searchParams: Promise<{ prebooking?: string }> }) {
   const user = await requirePermission("counter.use");
+  const sp = await searchParams;
+  const prebooking = sp.prebooking ? await counterPrebooking(sp.prebooking) : null;
   const company = await getCompany();
   const modules = await getModules();
   const bsToday = today();
@@ -38,6 +73,7 @@ export default async function BillingPage() {
       logoUrl: company.logoUrl,
     },
     publicOrigin: publicAppOrigin() ?? "",
+    prebooking,
   };
 
   return <PosScreen config={config} />;

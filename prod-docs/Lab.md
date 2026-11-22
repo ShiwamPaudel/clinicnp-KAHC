@@ -41,6 +41,10 @@ product's name appears nowhere in ClinicNP (owner's instruction).
    one `lab_samples` row per sample type, and one pending `lab_results` row per
    test. The counter's token is kept if well-formed and unused; otherwise the
    server mints one and the reprint shows it.
+   A **package** (`lab_test_groups.kind = 'package'`, 0029) holds profiles
+   (`lab_test_group_profiles`) and single tests; billed, it opens every test in
+   it once — a profile's tests under the profile's name, its single tests on
+   their own — and a test both in a profile and on its own is done once.
 4. Cancelling the bill cancels the order. A sale return of a lab line cancels
    its tests. A test already **sent to another laboratory** stays sent in both
    cases: the sample has gone, and that laboratory's charge is still owed.
@@ -98,6 +102,7 @@ snapshot; approve / send back writes `lab_result_approvals`.
 | Order detail | `/lab/orders/[orderId]` | any lab permission; reopen needs `lab.reopen` |
 | Tests (list; each test on its own page) | `/lab/tests`, `/lab/tests/new`, `/lab/tests/[id]` | `lab.catalog` |
 | Profiles | `/lab/profiles` | `lab.catalog` |
+| Packages (profiles and tests at one price, 0029) | `/lab/packages` | `lab.catalog` |
 | Outside labs and their price lists | `/settings/lab-partners`, `/settings/lab-partners/[id]` | `lab.catalog` or `clinic.setup` |
 | Departments, sample types, report letterhead, signatures | Settings → Laboratory | `lab.catalog` |
 | Patient's report | `/r/[token]` | public, rate-limited |

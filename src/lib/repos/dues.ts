@@ -418,12 +418,17 @@ export async function voidDueReceipt(
   userId: string,
 ): Promise<{ amountPaisa: number }> {
   const res = await db().execute({
-    sql: `SELECT id, amount_paisa, fiscal_year_id, voided_at
+    sql: `SELECT id, amount_paisa, fiscal_year_id, voided_at, method
             FROM due_payments WHERE receipt_id = ?`,
     args: [receiptId],
   });
   if (res.rows.length === 0) {
     throw new DuePaymentError("That payment is not there any more.");
+  }
+  // Paid from a pre-booking's advance (0031): it goes back with the bill, when
+  // the bill is cancelled, never on its own.
+  if (res.rows.some((r) => r.method === "advance")) {
+    throw new DuePaymentError("This was paid from the advance. Cancel the bill to give the advance back.");
   }
   const live = res.rows.filter((r) => r.voided_at == null);
   const amount = live.reduce((s, r) => s + Number(r.amount_paisa), 0);

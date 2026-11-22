@@ -100,6 +100,7 @@ export function billRequestBody(bill: OutboxBill): Record<string, unknown> {
     patientId: bill.patientId,
     visitId: bill.visitId,
     labReportToken: bill.labReportToken,
+    prebookingId: bill.prebookingId,
     clientCreatedAt: bill.clientCreatedAt,
   };
 }

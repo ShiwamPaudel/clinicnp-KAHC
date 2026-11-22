@@ -44,6 +44,9 @@ export default async function DayClosePage({
           <Line label="Cash" value={formatPaisa(summary.byMethod.cash)} />
           <Line label="QR / wallet" value={formatPaisa(summary.byMethod.qr)} />
           <Line label="Left on dues" value={formatPaisa(summary.byMethod.credit)} />
+          {summary.byMethod.advance > 0 && (
+            <Line label="Paid from advances" value={formatPaisa(summary.byMethod.advance)} />
+          )}
           {(summary.duesReceived.cash > 0 || summary.duesReceived.qr > 0) && (
             <div className="mt-2 border-t border-line pt-2">
               <Line
@@ -54,6 +57,18 @@ export default async function DayClosePage({
                 label="Dues paid back by QR / wallet"
                 value={formatPaisa(summary.duesReceived.qr)}
               />
+            </div>
+          )}
+          {(summary.advances.inCash + summary.advances.inQr + summary.advances.backCash + summary.advances.backQr > 0) && (
+            <div className="mt-2 border-t border-line pt-2">
+              {summary.advances.inCash > 0 && <Line label="Advances taken in cash" value={formatPaisa(summary.advances.inCash)} />}
+              {summary.advances.inQr > 0 && <Line label="Advances taken by QR / wallet" value={formatPaisa(summary.advances.inQr)} />}
+              {summary.advances.backCash > 0 && (
+                <Line label="Advances handed back in cash" value={`− ${formatPaisa(summary.advances.backCash, false)}`} />
+              )}
+              {summary.advances.backQr > 0 && (
+                <Line label="Advances handed back by QR / wallet" value={`− ${formatPaisa(summary.advances.backQr, false)}`} />
+              )}
             </div>
           )}
           {summary.returnsPaisa > 0 && (

@@ -62,7 +62,7 @@ export const PERMISSION_GROUPS = [
       { key: "visits.view", label: "See visits", module: "clinic" },
       { key: "visits.manage", label: "Record and edit visits", module: "clinic" },
       { key: "visits.cancel", label: "Cancel a visit", module: "clinic" },
-      { key: "appointments.manage", label: "Book, move and cancel consultations", module: "clinic" },
+      { key: "appointments.manage", label: "Pre-book tests and consultations, take advances", module: "clinic" },
       { key: "clinic.setup", label: "Set up services, doctors and outside laboratories", module: "clinic" },
     ],
   },

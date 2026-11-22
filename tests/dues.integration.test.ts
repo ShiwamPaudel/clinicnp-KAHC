@@ -352,7 +352,7 @@ describe("the day close", () => {
     const d = await daySummary(TODAY_AD);
     // bills: B1 100 dues · B2 50 (20 QR, 30 dues) · B3 10 dues · B4 10 dues · B5 50 cash
     expect(d.grossSalesPaisa).toBe(22_000);
-    expect(d.byMethod).toEqual({ cash: 5_000, qr: 2_000, credit: 15_000 });
+    expect(d.byMethod).toEqual({ cash: 5_000, qr: 2_000, credit: 15_000, advance: 0 });
     expect(d.byMethod.cash + d.byMethod.qr + d.byMethod.credit).toBe(d.grossSalesPaisa);
     expect(d.duesReceived).toEqual({ cash: 11_000, qr: 0 });
     // returns: B2 Rs 30 (20 off dues) + B5 Rs 10

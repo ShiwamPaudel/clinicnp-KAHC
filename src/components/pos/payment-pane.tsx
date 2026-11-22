@@ -6,6 +6,7 @@ import { counterTotals, clampPercent, type DiscountMode } from "@/lib/discount";
 import { toPaisa, formatPaisa, change } from "@/lib/money";
 import type { PosConfig } from "@/components/pos/bill-table";
 import { npLabels } from "@/lib/strings";
+import { advanceAgainst } from "@/lib/prebooking-format";
 import { cn } from "@/lib/cn";
 
 export interface PaymentPaneHandle {
@@ -28,6 +29,7 @@ export const PaymentPane = forwardRef<
   { config: PosConfig; saving: boolean; lang: "en" | "np"; onSave: () => void }
 >(({ config, saving, lang, onSave }, ref) => {
   const {
+    prebooking,
     lines,
     serviceLines,
     patient,
@@ -124,7 +126,9 @@ export const PaymentPane = forwardRef<
     },
   );
   const percentTooBig = billDiscountMode === "percent" && billDiscountPercent > 100;
-  const changeDue = change(tenderedPaisa, totals.totalPaisa);
+  // A pre-booking's advance comes off what is paid now (0031).
+  const adv = advanceAgainst(totals.totalPaisa, prebooking?.advancePaisa ?? 0);
+  const changeDue = change(tenderedPaisa, adv.toPayPaisa);
   const hasControlled = lines.some((l) => l.item.controlledFlag);
   const onDues = paymentMethod === "credit";
   // With patients switched on, whoever owes is attached in the patient bar.
@@ -132,8 +136,8 @@ export const PaymentPane = forwardRef<
   const duesNeedsName = onDues && !config.clinicOn;
   const needsPatient =
     (hasControlled || duesNeedsName) && patientName.trim() === "";
-  const leftOnDues = Math.max(0, totals.totalPaisa - paidNowPaisa);
-  const paysItAll = onDues && totals.totalPaisa > 0 && paidNowPaisa >= totals.totalPaisa;
+  const leftOnDues = Math.max(0, adv.toPayPaisa - paidNowPaisa);
+  const paysItAll = onDues && adv.toPayPaisa > 0 && paidNowPaisa >= adv.toPayPaisa;
 
   return (
     <div className="flex h-full w-full flex-col gap-4 bg-sage-900 p-5 text-cream-50">
@@ -239,6 +243,21 @@ export const PaymentPane = forwardRef<
           {formatPaisa(totals.totalPaisa)}
         </span>
       </div>
+      {prebooking && adv.usedPaisa + adv.handBackPaisa > 0 && (
+        <div className="-mt-2 flex flex-col gap-1 text-[14px]">
+          <Row label="Advance paid" value={`− ${formatPaisa(adv.usedPaisa, false)}`} />
+          <div className="flex items-center justify-between">
+            <span className="font-semibold">To pay</span>
+            <span className="text-[22px] font-bold tnum">{formatPaisa(adv.toPayPaisa)}</span>
+          </div>
+          {adv.handBackPaisa > 0 && (
+            <div className="flex items-center justify-between text-warn-100">
+              <span>Hand back from advance</span>
+              <span className="text-[18px] font-semibold tnum">{formatPaisa(adv.handBackPaisa)}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex gap-2">
         {METHODS.map((m) => (

@@ -451,7 +451,7 @@ function ReceiptsTable({
               >
                 {formatPaisa(r.amountPaisa)}
               </TD>
-              <TD>{isMoneyMethod(r.method) ? MONEY_METHOD_LABEL[r.method] : r.method}</TD>
+              <TD>{isMoneyMethod(r.method) ? MONEY_METHOD_LABEL[r.method] : r.method === "advance" ? "Advance" : r.method}</TD>
               <TD className="hidden sm:table-cell">{r.userName || "—"}</TD>
               <TD className="text-right">
                 {r.voided ? (
@@ -460,7 +460,8 @@ function ReceiptsTable({
                   <Badge tone="danger">Bill cancelled</Badge>
                 ) : (
                   isAdmin &&
-                  r.yearOpen && (
+                  r.yearOpen &&
+                  r.method !== "advance" && (
                     <Button variant="ghost" onClick={() => setUndoing(r)}>
                       <Undo2 className="h-4 w-4" />
                       Undo

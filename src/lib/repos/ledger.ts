@@ -208,7 +208,8 @@ return_legs AS (
 ),
 dues AS (
   SELECT dp.id, dp.bill_id, dp.receipt_id, dp.date_ad, ${NPT("dp.voided_at")} AS void_ad, dp.voided_at,
-         dp.amount_paisa AS amt, CASE dp.method WHEN 'qr' THEN 'sys:qr' ELSE 'sys:cash' END AS acc,
+         dp.amount_paisa AS amt,
+         CASE dp.method WHEN 'qr' THEN 'sys:qr' WHEN 'advance' THEN 'sys:patient_advances' ELSE 'sys:cash' END AS acc,
          CASE WHEN b.patient_id IS NOT NULL THEN 'patient' ELSE 'walkin' END AS ptype,
          COALESCE(b.patient_id, TRIM(b.patient_name)) AS pid
     FROM due_payments dp
@@ -238,11 +239,29 @@ SELECT 'return', l.id, rp.doc, '/bills/' || rp.bill_id, rp.date_ad,
        l.acc, l.pt, l.pi, l.seg, l.dr, l.cr, l.nar, NULL, NULL
   FROM return_legs l JOIN rp ON rp.id = l.id
 UNION ALL
-SELECT 'due_receipt', d.id, 'Dues receipt', '/bills/' || d.bill_id, d.date_ad, d.acc, NULL, NULL, NULL, d.amt, 0, 'Dues paid', NULL, NULL
+SELECT 'due_receipt', d.id, 'Dues receipt', '/bills/' || d.bill_id, d.date_ad, d.acc, NULL, NULL, NULL, d.amt, 0,
+       CASE WHEN d.acc = 'sys:patient_advances' THEN 'Paid from the advance' ELSE 'Dues paid' END, NULL, NULL
   FROM dues d WHERE ${IN_RANGE("d.date_ad")}
 UNION ALL
-SELECT 'due_receipt', d.id, 'Dues receipt', '/bills/' || d.bill_id, d.date_ad, 'sys:recv_patients', d.ptype, d.pid, NULL, 0, d.amt, 'Dues paid', NULL, NULL
+SELECT 'due_receipt', d.id, 'Dues receipt', '/bills/' || d.bill_id, d.date_ad, 'sys:recv_patients', d.ptype, d.pid, NULL, 0, d.amt,
+       CASE WHEN d.acc = 'sys:patient_advances' THEN 'Paid from the advance' ELSE 'Dues paid' END, NULL, NULL
   FROM dues d WHERE ${IN_RANGE("d.date_ad")}
+UNION ALL
+SELECT CASE am.kind WHEN 'refunded' THEN 'advance_refund' ELSE 'advance_receipt' END, am.id,
+       CASE WHEN am.receipt_no IS NULL THEN 'Advance returned' ELSE 'AR-' || printf('%06d', am.receipt_no) END,
+       '/prebooking?on=' || pb.date_bs, am.date_ad,
+       CASE am.method WHEN 'qr' THEN 'sys:qr' ELSE 'sys:cash' END, NULL, NULL, NULL,
+       CASE WHEN am.kind = 'received' THEN am.amount_paisa ELSE 0 END, CASE WHEN am.kind = 'refunded' THEN am.amount_paisa ELSE 0 END,
+       CASE am.kind WHEN 'refunded' THEN 'Advance handed back · ' || pb.name ELSE 'Advance taken · ' || pb.name END, NULL, NULL
+  FROM advance_moves am JOIN prebookings pb ON pb.id = am.prebooking_id WHERE ${IN_RANGE("am.date_ad")}
+UNION ALL
+SELECT CASE am.kind WHEN 'refunded' THEN 'advance_refund' ELSE 'advance_receipt' END, am.id,
+       CASE WHEN am.receipt_no IS NULL THEN 'Advance returned' ELSE 'AR-' || printf('%06d', am.receipt_no) END,
+       '/prebooking?on=' || pb.date_bs, am.date_ad,
+       'sys:patient_advances', NULL, NULL, NULL,
+       CASE WHEN am.kind = 'refunded' THEN am.amount_paisa ELSE 0 END, CASE WHEN am.kind = 'received' THEN am.amount_paisa ELSE 0 END,
+       CASE am.kind WHEN 'refunded' THEN 'Advance handed back · ' || pb.name ELSE 'Advance taken · ' || pb.name END, NULL, NULL
+  FROM advance_moves am JOIN prebookings pb ON pb.id = am.prebooking_id WHERE ${IN_RANGE("am.date_ad")}
 UNION ALL
 SELECT 'due_void', d.id, 'Dues receipt undone', '/bills/' || d.bill_id, d.void_ad, d.acc, NULL, NULL, NULL, 0, d.amt, 'Dues payment undone', NULL, NULL
   FROM dues d WHERE d.voided_at IS NOT NULL AND ${IN_RANGE("d.void_ad")}
@@ -286,6 +305,14 @@ SELECT 'supplier_payment', sp.id, 'Supplier payment', '/suppliers/' || sp.suppli
        CASE WHEN sp.note <> '' THEN 'Paid · ' || sp.note ELSE 'Paid' END, NULL, NULL
   FROM supplier_payments sp WHERE ${IN_RANGE("sp.date_ad")} AND sp.amount_paisa <> 0
 UNION ALL
+SELECT 'supplier_payment', sp.id, 'Supplier payment', '/suppliers/' || sp.supplier_id, sp.date_ad,
+       'acc:bank_charges', NULL, NULL, NULL, sp.transfer_charge_paisa, 0, 'Transfer charge', NULL, NULL
+  FROM supplier_payments sp WHERE ${IN_RANGE("sp.date_ad")} AND sp.transfer_charge_paisa <> 0
+UNION ALL
+SELECT 'supplier_payment', sp.id, 'Supplier payment', '/suppliers/' || sp.supplier_id, sp.date_ad,
+       COALESCE(sp.account_id, ${MONEY_ACCOUNT("sp.method")}), NULL, NULL, NULL, 0, sp.transfer_charge_paisa, 'Transfer charge', NULL, NULL
+  FROM supplier_payments sp WHERE ${IN_RANGE("sp.date_ad")} AND sp.transfer_charge_paisa <> 0
+UNION ALL
 SELECT 'lab_payment', lp.id, 'Laboratory payment', '/reports/lab-partners?partner=' || lp.lab_partner_id, lp.date_ad,
        'sys:pay_labs', 'lab_partner', lp.lab_partner_id, NULL, lp.amount_paisa, 0,
        CASE WHEN lp.note <> '' THEN 'Paid · ' || lp.note ELSE 'Paid' END, NULL, NULL
@@ -295,6 +322,14 @@ SELECT 'lab_payment', lp.id, 'Laboratory payment', '/reports/lab-partners?partne
        COALESCE(lp.account_id, ${MONEY_ACCOUNT("lp.method")}), NULL, NULL, NULL, 0, lp.amount_paisa,
        CASE WHEN lp.note <> '' THEN 'Paid · ' || lp.note ELSE 'Paid' END, NULL, NULL
   FROM lab_partner_payments lp WHERE ${IN_RANGE("lp.date_ad")} AND lp.amount_paisa <> 0
+UNION ALL
+SELECT 'lab_payment', lp.id, 'Laboratory payment', '/reports/lab-partners?partner=' || lp.lab_partner_id, lp.date_ad,
+       'acc:bank_charges', NULL, NULL, NULL, lp.transfer_charge_paisa, 0, 'Transfer charge', NULL, NULL
+  FROM lab_partner_payments lp WHERE ${IN_RANGE("lp.date_ad")} AND lp.transfer_charge_paisa <> 0
+UNION ALL
+SELECT 'lab_payment', lp.id, 'Laboratory payment', '/reports/lab-partners?partner=' || lp.lab_partner_id, lp.date_ad,
+       COALESCE(lp.account_id, ${MONEY_ACCOUNT("lp.method")}), NULL, NULL, NULL, 0, lp.transfer_charge_paisa, 'Transfer charge', NULL, NULL
+  FROM lab_partner_payments lp WHERE ${IN_RANGE("lp.date_ad")} AND lp.transfer_charge_paisa <> 0
 UNION ALL
 SELECT CASE m.kind WHEN 'undo' THEN 'lab_sendout_undo' ELSE 'lab_sendout' END, m.id, 'Sent out',
        '/reports/lab-partners?partner=' || m.partner_id, m.date_ad,

@@ -8,8 +8,13 @@ import {
   createPurchase,
   createPurchaseReturn,
   purchaseTotals,
+  purchaseLabel,
   type PurchaseLineInput,
 } from "@/lib/repos/purchases";
+import { createVoucher, listMoneyAccounts } from "@/lib/repos/accounts";
+import { ClosedFiscalYearError } from "@/lib/repos/fiscal";
+import { VoucherProblem } from "@/lib/accounting";
+import { z } from "zod";
 import { recordAudit } from "@/lib/repos/audit";
 import { ratesFromPurchasePrice } from "@/lib/purchase-entry";
 import { purchaseSchema, purchaseReturnSchema } from "@/lib/validators";
@@ -30,6 +35,8 @@ function fail(userMessage: string): ActionResult {
 function handle(err: unknown): ActionResult {
   if (err instanceof ModuleDisabledError) return fail(err.userMessage);
   if (err instanceof NotAuthorizedError) return fail(err.userMessage);
+  if (err instanceof VoucherProblem) return fail(err.userMessage);
+  if (err instanceof ClosedFiscalYearError) return fail(err.userMessage);
   console.error("[purchases action]", err);
   return fail("Something went wrong. Please try again.");
 }
@@ -178,6 +185,60 @@ export async function createPurchaseReturnAction(
     revalidatePath("/stock");
     revalidatePath(`/suppliers/${d.supplierId}`);
     return { ok: true, id };
+  } catch (err) {
+    return handle(err);
+  }
+}
+
+const deliverySchema = z.object({
+  purchaseId: z.string().min(1),
+  dateBs: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date"),
+  amountPaisa: z.number().int().min(1, "Enter the delivery charge").max(100_000_000),
+  moneyAccountId: z.string().min(1, "Choose what it was paid from"),
+  transferChargePaisa: z.number().int().min(0).max(1_000_000).default(0),
+  paidTo: z.string().trim().max(80),
+  note: z.string().trim().max(200),
+});
+
+/**
+ * Delivery paid to a courier for a purchase bill (owner, 2083-08-06). Not owed
+ * to the supplier and never on their bill: a payment voucher, Miscellaneous
+ * expenses, naming the purchase so it shows against it. Cancelled, like any
+ * voucher, from its own page.
+ */
+export async function recordDeliveryAction(input: unknown): Promise<ActionResult> {
+  try {
+    await requireModule("pharmacy");
+    const user = await assertPermission("purchases.manage");
+    const parsed = deliverySchema.safeParse(input);
+    if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Please check the details.");
+    const d = parsed.data;
+    const label = await purchaseLabel(d.purchaseId);
+    if (!label) return fail("That purchase is no longer there.");
+    const money = (await listMoneyAccounts()).find((a) => a.id === d.moneyAccountId);
+    if (!money) return fail("Choose what it was paid from again.");
+    // the bank's or wallet's fee: cash has none
+    const charge = money.id === "sys:cash" ? 0 : d.transferChargePaisa;
+    const narration = [`Delivery for ${label}`, d.paidTo ? `paid to ${d.paidTo}` : "", d.note].filter(Boolean).join(" · ");
+    const res = await createVoucher({
+      type: "payment",
+      dateBs: d.dateBs,
+      dateAd: bsToAdIso(d.dateBs),
+      narration,
+      purchaseId: d.purchaseId,
+      userId: user.id,
+      lines: [
+        { accountId: "acc:misc", partyType: null, partyId: null, debitPaisa: d.amountPaisa, creditPaisa: 0, refNo: "", refDateBs: null, refDateAd: null, note: "Delivery" },
+        ...(charge > 0
+          ? [{ accountId: "acc:bank_charges", partyType: null, partyId: null, debitPaisa: charge, creditPaisa: 0, refNo: "", refDateBs: null, refDateAd: null, note: "Transfer charge" }]
+          : []),
+        { accountId: money.id, partyType: null, partyId: null, debitPaisa: 0, creditPaisa: d.amountPaisa + charge, refNo: "", refDateBs: null, refDateAd: null, note: "" },
+      ],
+    });
+    await recordAudit(user.id, "purchase.delivery_paid", { purchaseId: d.purchaseId, voucherId: res.id, amountPaisa: d.amountPaisa });
+    revalidatePath("/purchases");
+    revalidatePath("/accounts", "layout");
+    return { ok: true, id: res.id, purchaseNo: res.voucherNo };
   } catch (err) {
     return handle(err);
   }

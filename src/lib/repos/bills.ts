@@ -27,6 +27,9 @@ import { resolveFollowup, doctorSharePaisa } from "@/lib/clinic-calc";
 import { splitAtSale, type MoneyMethod } from "@/lib/dues";
 import { DUE_FACTS_SQL, balanceOfRow } from "@/lib/repos/dues";
 import { openLabOrderForBill, cancelLabOrderForBill } from "@/lib/repos/lab-orders";
+import { bookingTermsTx, settleBookingOnBillTx, releaseBookingOnBillCancelTx } from "@/lib/repos/prebookings";
+import { advanceAgainst } from "@/lib/prebooking-format";
+import { formatDocNo } from "@/lib/invoice-number";
 
 export interface IngestLine {
   id: string;
@@ -92,6 +95,8 @@ export interface IngestBillInput {
   visitId?: string | null;
   /** the code on the bill's lab-report QR, minted by the counter (Lab.md) */
   labReportToken?: string | null;
+  /** the pre-booking this bill is issued from (0031): its advance is used here */
+  prebookingId?: string | null;
   userId: string;
   clientCreatedAt: string;
 }
@@ -126,6 +131,9 @@ export interface IngestResult {
   firstPriced?: { itemId: string; unitLevel: number; ratePaisa: number }[];
   /** the lab report code actually kept, when the bill opened a lab order */
   labReportToken?: string | null;
+  /** from a pre-booking: the advance this bill used, and what was handed back over it */
+  advanceUsedPaisa?: number;
+  advanceHandBackPaisa?: number;
 }
 
 /**
@@ -528,14 +536,27 @@ export async function ingestBill(input: IngestBillInput): Promise<IngestResult> 
     let total = afterBillDiscount + vatPaisa;
     if (company.roundingOn) total = roundToRupee(total);
 
+    // Issued from a pre-booking that holds an advance (0031): the part the
+    // advance covers is left on dues and the advance clears it below; the
+    // patient pays the rest now, by the method chosen. A booking already
+    // billed (the same booking issued twice) brings nothing.
+    const booking = input.prebookingId ? await bookingTermsTx(tx, input.prebookingId) : null;
+    const advanceUsed = booking?.live ? advanceAgainst(total, booking.advancePaisa).usedPaisa : 0;
+    const payment =
+      advanceUsed > 0
+        ? {
+            method: "credit" as const,
+            paidNow:
+              input.paymentMethod === "credit"
+                ? Math.min(input.paidNowPaisa ?? 0, total - advanceUsed)
+                : total - advanceUsed,
+            paidNowMethod: (input.paymentMethod === "credit" ? (input.paidNowMethod ?? "cash") : input.paymentMethod) as MoneyMethod,
+          }
+        : { method: input.paymentMethod, paidNow: input.paidNowPaisa ?? 0, paidNowMethod: input.paidNowMethod ?? "cash" };
+
     // What was paid now and what is left owing, against the total worked out
     // here rather than the counter's preview of it.
-    const sale = splitAtSale(
-      total,
-      input.paymentMethod,
-      input.paidNowPaisa ?? 0,
-      input.paidNowMethod ?? "cash",
-    );
+    const sale = splitAtSale(total, payment.method, payment.paidNow, payment.paidNowMethod);
 
     // What kind of bill this is, decided here and stored so reports never have
     // to join two tables to find out (Architecture §3.4).
@@ -722,6 +743,23 @@ export async function ingestBill(input: IngestBillInput): Promise<IngestResult> 
         })
       : null;
 
+    const settled =
+      booking?.live && input.prebookingId
+        ? await settleBookingOnBillTx(tx, {
+            prebookingId: input.prebookingId,
+            billId: input.id,
+            invoiceLabel: formatDocNo("SI", fy.bsLabel, invoiceNo),
+            totalPaisa: total,
+            advancePaisa: booking.advancePaisa,
+            patientId,
+            dateAd: input.dateAd,
+            dateBs: input.dateBs,
+            fiscalYearId: fy.id,
+            userId: input.userId,
+            now,
+          })
+        : null;
+
     await tx.commit();
     return {
       id: input.id,
@@ -731,6 +769,8 @@ export async function ingestBill(input: IngestBillInput): Promise<IngestResult> 
       alreadyExisted: false,
       firstPriced,
       labReportToken,
+      advanceUsedPaisa: settled?.usedPaisa ?? 0,
+      advanceHandBackPaisa: settled?.handBackPaisa ?? 0,
     };
   } catch (err) {
     await tx.rollback();
@@ -1042,6 +1082,8 @@ export async function cancelBill(id: string, userId: string): Promise<void> {
       args: [now, id],
     });
     await cancelLabOrderForBill(tx, id, "Bill cancelled");
+    // a bill issued from a pre-booking gives its advance back to the booking
+    await releaseBookingOnBillCancelTx(tx, id, userId, now);
     await tx.execute({
       sql: `INSERT INTO audit_log (id, user_id, action, detail_json, at)
             VALUES (?, ?, 'bill_cancelled', ?, ?)`,

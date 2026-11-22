@@ -25,5 +25,5 @@ backups/prod-*.json
 public/ort/
 
 
-# hands-out for the clinic with login passwords: never committed
-KAHC - *.pdf
+# PDFs in the root (clinic hand-outs with passwords, user manuals): never committed
+/*.pdf

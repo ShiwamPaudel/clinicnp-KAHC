@@ -196,6 +196,26 @@ export function InvoiceA4({ bill }: { bill: PrintBill }) {
               <td>Total</td>
               <td className="a4-r">{formatPaisa(bill.totalPaisa)}</td>
             </tr>
+            {bill.advance && bill.advance.usedPaisa > 0 && (
+              <>
+                <tr>
+                  <td>Advance paid{bill.advance.labels ? ` (${bill.advance.labels})` : ""}</td>
+                  <td className="a4-r">− {formatPaisa(bill.advance.usedPaisa, false)}</td>
+                </tr>
+                {bill.advance.handBackPaisa > 0 && (
+                  <tr>
+                    <td>Advance handed back</td>
+                    <td className="a4-r">{formatPaisa(bill.advance.handBackPaisa)}</td>
+                  </tr>
+                )}
+                {bill.paymentMethod !== "credit" && (
+                  <tr>
+                    <td>Paid ({bill.paymentMethod === "qr" ? "QR" : "Cash"})</td>
+                    <td className="a4-r">{formatPaisa(Math.max(0, bill.totalPaisa - bill.advance.usedPaisa))}</td>
+                  </tr>
+                )}
+              </>
+            )}
             {bill.paymentMethod === "cash" && bill.tenderedPaisa > 0 && (
               <>
                 <tr>
@@ -211,7 +231,7 @@ export function InvoiceA4({ bill }: { bill: PrintBill }) {
             {/* A bill on dues says what was paid and what is still owed, so
                 the patient's copy is the record of their debt. As at the
                 bill's own date: later payments are not printed back onto it. */}
-            {bill.paymentMethod === "credit" && bill.duePaisa != null && (
+            {bill.paymentMethod === "credit" && bill.duePaisa != null && !(bill.advance && bill.duePaisa === 0 && (bill.paidNowPaisa ?? 0) === 0) && (
               <>
                 <tr>
                   <td>

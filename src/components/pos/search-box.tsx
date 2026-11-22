@@ -60,6 +60,8 @@ interface Props {
   onPickService: (service: PosService) => void;
   /** Enter pressed on an empty box — jump to payment. */
   onEmptyEnter: () => void;
+  /** Nothing to search yet: the first download of the list is still coming. */
+  loading?: boolean;
 }
 
 /**
@@ -156,6 +158,7 @@ export const SearchBox = forwardRef<SearchBoxHandle, Props>(
       onPick,
       onPickService,
       onEmptyEnter,
+      loading = false,
     },
     ref,
   ) => {
@@ -330,6 +333,12 @@ export const SearchBox = forwardRef<SearchBoxHandle, Props>(
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {results.length === 0 && loading && query.trim() !== "" && (
+          <div className="absolute z-30 mt-1 w-full rounded-[10px] border border-line bg-cream-50 px-4 py-3 text-[14px] text-sage-600 shadow-[0_1px_2px_rgb(22_36_27_/_6%),0_4px_12px_rgb(22_36_27_/_5%)]">
+            Loading the list… results appear here in a moment.
           </div>
         )}
       </div>

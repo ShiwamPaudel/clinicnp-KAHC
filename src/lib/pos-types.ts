@@ -139,6 +139,8 @@ export interface OutboxBill {
   serviceLines?: OutboxServiceLine[];
   /** the code behind the lab-report QR printed on this bill (Lab.md) */
   labReportToken?: string;
+  /** issued from a pre-booking: the server uses its advance (0031) */
+  prebookingId?: string;
   clientCreatedAt: string;
   attempts: number;
   lastError?: string;

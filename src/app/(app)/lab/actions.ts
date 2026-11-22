@@ -349,6 +349,28 @@ export async function saveProfileAction(input: unknown): Promise<LabActionResult
   }
 }
 
+const packageSchema = profileSchema.extend({
+  name: z.string().trim().min(2, "Give the package a name").max(160),
+  profileIds: z.array(z.string()).max(60),
+});
+
+export async function savePackageAction(input: unknown): Promise<LabActionResult> {
+  try {
+    const user = await gate("lab.catalog");
+    const parsed = packageSchema.safeParse(input);
+    if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Please check the details.");
+    const { id, previousRatePaisa } = await saveProfile({ ...parsed.data, kind: "package" });
+    await recordAudit(user.id, parsed.data.id ? "lab_package.updated" : "lab_package.created", { packageId: id, name: parsed.data.name });
+    if (previousRatePaisa != null && previousRatePaisa !== parsed.data.ratePaisa) {
+      await recordAudit(user.id, "service.rate_changed", { labPackageId: id, from: previousRatePaisa, to: parsed.data.ratePaisa });
+    }
+    revalidatePath("/lab/packages");
+    return { ok: true, id };
+  } catch (err) {
+    return handle(err);
+  }
+}
+
 const deptSchema = z.object({
   id: z.string().optional(),
   name: z.string().trim().min(2, "Give it a name").max(80),

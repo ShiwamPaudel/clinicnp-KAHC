@@ -32,6 +32,7 @@ import {
 } from "@/lib/validators";
 import { bsFromDbText, toAD, adToIso } from "@/lib/bs";
 import { isSaneAge, type AgeUnit } from "@/lib/age";
+import { appointmentAdvanceInHand } from "@/lib/repos/prebookings";
 
 export interface ActionResult {
   ok: boolean;
@@ -60,6 +61,7 @@ async function guard() {
 
 function refresh(doctorId: string) {
   revalidatePath("/doctors");
+  revalidatePath("/prebooking");
   revalidatePath(`/doctors/${doctorId}`);
   revalidatePath("/my/schedule");
 }
@@ -209,6 +211,11 @@ export async function setConsultationStatusAction(
 
     const before = await getAppointment(data.id);
     if (!before) return fail("That consultation is no longer there.");
+    // An advance taken on it is handed back when it closes: that is done on
+    // Pre-Booking, where the refund is recorded with it (0031).
+    if ((data.status === "cancelled" || data.status === "missed") && (await appointmentAdvanceInHand(data.id)) > 0) {
+      return fail("An advance was paid on this booking. Close it from Pre-Booking so the advance is handed back.");
+    }
 
     await setAppointmentStatus(data.id, data.status, data.cancelReason.trim());
 

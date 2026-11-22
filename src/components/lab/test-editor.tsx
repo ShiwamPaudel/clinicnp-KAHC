@@ -503,7 +503,7 @@ export function TestEditor({
         </div>
         {profileNames.length > 0 && (
           <p className="mt-4 text-[13px] text-sage-600">
-            In profiles: <span className="text-sage-900">{profileNames.join(", ")}</span>
+            Part of: <span className="text-sage-900">{profileNames.join(", ")}</span>
           </p>
         )}
       </Section>

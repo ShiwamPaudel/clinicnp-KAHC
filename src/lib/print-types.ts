@@ -79,4 +79,10 @@ export interface PrintBill {
   userName: string;
   /** a bill with lab tests: where the patient opens the report, and its QR */
   labReport?: { url: string; qrDataUrl: string } | null;
+  /**
+   * Issued from a pre-booking (0031): the advance taken off the total, its
+   * receipt numbers, and what was handed back when it was more than the bill.
+   * With it, `duePaisa` is what is still owed after the advance.
+   */
+  advance?: { usedPaisa: number; labels: string; handBackPaisa: number } | null;
 }

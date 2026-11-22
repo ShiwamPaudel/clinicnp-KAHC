@@ -3,7 +3,7 @@
 import type { RackDisplay } from "@/lib/repos/company";
 import { useEffect, useRef, useState } from "react";
 import { Trash2, Layers, AlertTriangle } from "lucide-react";
-import { useBillStore } from "@/stores/bill-store";
+import { useBillStore, type AttachedPatient } from "@/stores/bill-store";
 import {
   lineAmountPaisa,
   lineBaseQty,
@@ -36,6 +36,16 @@ export interface PosConfig {
   company: PrintCompany;
   /** where a bill's lab-report QR points; empty means this page's own address */
   publicOrigin: string;
+  /** opened from Pre-Booking → Issue bill (0031): the booking to put on the counter */
+  prebooking?: {
+    id: string;
+    name: string;
+    phone: string;
+    serviceIds: string[];
+    advancePaisa: number;
+    receiptLabels: string;
+    patient: AttachedPatient | null;
+  } | null;
 }
 
 export function BillTable({

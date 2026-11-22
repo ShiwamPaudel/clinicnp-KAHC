@@ -35,6 +35,9 @@ on the day it is cancelled and keeps the original on its own day.
 | Purchase return | the supplier | Medicine stock |
 | Test sent out (Result entry, 0027) | Outside laboratory charges — on the day the laboratory's price became known; an undo reversed on its day | the laboratory |
 | Supplier / lab payment | the supplier / laboratory | Cash, QR, or the bank chosen ("Bank (account not chosen)" when none) |
+| Transfer charge on a supplier / lab payment (0030) | Bank and wallet charges | the same money account as the payment — never the supplier or laboratory |
+| Delivery for a purchase (0030) | a payment voucher naming the purchase: Miscellaneous expenses (plus Bank and wallet charges for a transfer charge) | Cash, QR or the bank |
+| Pre-booking advance (0031) | Cash or QR; refunded the other way | Advances from patients — used by the bill through a dues payment of method `advance`; see Prebooking.md |
 | Stock out | the reason's expense (written off / clinic use / free samples / count difference) | Medicine stock. A return to the supplier posts once, as its purchase return |
 | Opening stock | Medicine stock | Opening balances (to be moved) |
 

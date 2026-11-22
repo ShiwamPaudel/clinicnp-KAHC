@@ -490,9 +490,13 @@ export async function saveTest(input: TestInput): Promise<{ id: string; previous
 // profiles
 // ---------------------------------------------------------------------------
 
+export type GroupKind = "profile" | "package";
+
 export interface LabProfile {
   id: string;
   serviceId: string;
+  /** a profile holds tests; a package holds profiles and tests (0029) */
+  kind: GroupKind;
   name: string;
   shortCode: string;
   departmentId: string | null;
@@ -502,10 +506,14 @@ export interface LabProfile {
   vatApplicable: boolean;
   testIds: string[];
   testNames: string[];
+  /** a package's profiles; always empty for a profile */
+  profileIds: string[];
+  profileNames: string[];
 }
 
-export async function listProfiles(): Promise<LabProfile[]> {
-  const [groups, items] = await Promise.all([
+/** Profiles and packages; pass a kind for only one of them. */
+export async function listProfiles(kind?: GroupKind): Promise<LabProfile[]> {
+  const [groups, items, inner] = await Promise.all([
     db().execute(
       `SELECT g.*, s.rate_paisa, s.vat_applicable, d.name AS department_name
          FROM lab_test_groups g
@@ -518,7 +526,19 @@ export async function listProfiles(): Promise<LabProfile[]> {
          FROM lab_test_group_items i JOIN lab_tests t ON t.id = i.test_id
         ORDER BY i.sort_order`,
     ),
+    db().execute(
+      `SELECT gp.group_id, gp.profile_id, g.name
+         FROM lab_test_group_profiles gp JOIN lab_test_groups g ON g.id = gp.profile_id
+        ORDER BY gp.sort_order`,
+    ),
   ]);
+  const held = new Map<string, { ids: string[]; names: string[] }>();
+  for (const i of inner.rows) {
+    const m = held.get(i.group_id as string) ?? { ids: [], names: [] };
+    m.ids.push(i.profile_id as string);
+    m.names.push(i.name as string);
+    held.set(i.group_id as string, m);
+  }
   const members = new Map<string, { ids: string[]; names: string[] }>();
   for (const i of items.rows) {
     const m = members.get(i.group_id as string) ?? { ids: [], names: [] };
@@ -526,9 +546,12 @@ export async function listProfiles(): Promise<LabProfile[]> {
     m.names.push(i.name as string);
     members.set(i.group_id as string, m);
   }
-  return groups.rows.map((r) => ({
+  return groups.rows
+    .filter((r) => !kind || ((r.kind as string) ?? "profile") === kind)
+    .map((r) => ({
     id: r.id as string,
     serviceId: r.service_id as string,
+    kind: ((r.kind as string) === "package" ? "package" : "profile") as GroupKind,
     name: r.name as string,
     shortCode: (r.short_code as string) ?? "",
     departmentId: (r.department_id as string | null) ?? null,
@@ -538,6 +561,8 @@ export async function listProfiles(): Promise<LabProfile[]> {
     vatApplicable: Number(r.vat_applicable) === 1,
     testIds: members.get(r.id as string)?.ids ?? [],
     testNames: members.get(r.id as string)?.names ?? [],
+    profileIds: held.get(r.id as string)?.ids ?? [],
+    profileNames: held.get(r.id as string)?.names ?? [],
   }));
 }
 
@@ -550,22 +575,45 @@ export interface ProfileInput {
   ratePaisa: number;
   vatApplicable: boolean;
   testIds: string[];
+  /** packages only: the profiles it holds */
+  profileIds?: string[];
+  /** default "profile" */
+  kind?: GroupKind;
 }
 
 export async function saveProfile(input: ProfileInput): Promise<{ id: string; previousRatePaisa: number | null }> {
+  const kind: GroupKind = input.kind ?? "profile";
+  const what = kind === "package" ? "package" : "profile";
   const testIds = [...new Set(input.testIds)];
-  if (testIds.length === 0) throw new LabCatalogProblem("Put at least one test in the profile.");
-  const known = await db().execute({
-    sql: `SELECT id FROM lab_tests WHERE id IN (${testIds.map(() => "?").join(",")})`,
-    args: testIds,
-  });
-  if (known.rows.length !== testIds.length) {
-    throw new LabCatalogProblem("One of the tests in this profile no longer exists. Reload and try again.");
+  const profileIds = kind === "package" ? [...new Set(input.profileIds ?? [])] : [];
+  if (kind === "profile" && testIds.length === 0) throw new LabCatalogProblem("Put at least one test in the profile.");
+  if (kind === "package" && testIds.length + profileIds.length < 2) {
+    throw new LabCatalogProblem("Put at least two profiles or tests in the package.");
+  }
+  if (testIds.length > 0) {
+    const known = await db().execute({
+      sql: `SELECT id FROM lab_tests WHERE id IN (${testIds.map(() => "?").join(",")})`,
+      args: testIds,
+    });
+    if (known.rows.length !== testIds.length) {
+      throw new LabCatalogProblem(`One of the tests in this ${what} no longer exists. Reload and try again.`);
+    }
+  }
+  if (profileIds.length > 0) {
+    // only profiles go in a package — never another package, never itself
+    const known = await db().execute({
+      sql: `SELECT id FROM lab_test_groups WHERE kind = 'profile' AND id IN (${profileIds.map(() => "?").join(",")})`,
+      args: profileIds,
+    });
+    if (known.rows.length !== profileIds.length) {
+      throw new LabCatalogProblem("One of the profiles in this package no longer exists. Reload and try again.");
+    }
   }
   const groupId = await labServiceGroupId();
   const now = new Date().toISOString();
   const existing = input.id ? (await listProfiles()).find((p) => p.id === input.id) ?? null : null;
-  if (input.id && !existing) throw new LabCatalogProblem("That profile no longer exists. Reload and try again.");
+  if (input.id && !existing) throw new LabCatalogProblem(`That ${what} no longer exists. Reload and try again.`);
+  if (existing && existing.kind !== kind) throw new LabCatalogProblem(`That is not a ${what}. Reload and try again.`);
   const id = existing?.id ?? ulid();
   const serviceId = existing?.serviceId ?? ulid();
 
@@ -583,14 +631,20 @@ export async function saveProfile(input: ProfileInput): Promise<{ id: string; pr
           args: [input.name, input.shortCode, input.departmentId, input.active ? 1 : 0, now, id],
         }
       : {
-          sql: `INSERT INTO lab_test_groups (id, service_id, name, short_code, department_id, active, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          args: [id, serviceId, input.name, input.shortCode, input.departmentId, input.active ? 1 : 0, now, now],
+          sql: `INSERT INTO lab_test_groups (id, service_id, name, short_code, department_id, active, kind, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [id, serviceId, input.name, input.shortCode, input.departmentId, input.active ? 1 : 0, kind, now, now],
         },
     { sql: "DELETE FROM lab_test_group_items WHERE group_id = ?", args: [id] },
+    { sql: "DELETE FROM lab_test_group_profiles WHERE group_id = ?", args: [id] },
+    // a package lists its profiles first, then its single tests
+    ...profileIds.map((g, i) => ({
+      sql: "INSERT INTO lab_test_group_profiles (id, group_id, profile_id, sort_order) VALUES (?, ?, ?, ?)",
+      args: [ulid(), id, g, i],
+    })),
     ...testIds.map((t, i) => ({
       sql: "INSERT INTO lab_test_group_items (id, group_id, test_id, sort_order) VALUES (?, ?, ?, ?)",
-      args: [ulid(), id, t, i],
+      args: [ulid(), id, t, profileIds.length + i],
     })),
   ];
   await db().batch(stmts, "write");

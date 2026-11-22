@@ -101,9 +101,14 @@ export interface DaySummary {
    * at the counter — on a bill on dues, only the part paid then. `credit` is
    * what was left owing. The three add up to gross sales.
    */
-  byMethod: { cash: number; qr: number; credit: number };
+  byMethod: { cash: number; qr: number; credit: number; advance: number };
   /** money that came in today against dues from any day */
   duesReceived: { cash: number; qr: number };
+  /**
+   * Pre-booking advances (0031): taken today and handed back today, by how.
+   * Today's bills paid from an advance are `byMethod.advance`.
+   */
+  advances: { inCash: number; inQr: number; backCash: number; backQr: number };
   /** the part of today's returns that came off what somebody owed */
   returnsAgainstDuePaisa: number;
   expectedCashPaisa: number;
@@ -164,14 +169,36 @@ export async function daySummary(dayIso: string): Promise<DaySummary> {
     args: [dayIso],
   });
 
+  // Today's bills paid from a pre-booking's advance: left on dues at the
+  // counter only for the advance to clear it the same moment.
+  const fromAdvance = await db().execute({
+    sql: `SELECT IFNULL(SUM(dp.amount_paisa),0) AS s
+            FROM due_payments dp JOIN bills b ON b.id = dp.bill_id
+           WHERE dp.method = 'advance' AND dp.voided_at IS NULL AND b.date_ad = ? AND ${NOT_CANCELLED}`,
+    args: [dayIso],
+  });
+  const moves = await db().execute({
+    sql: `SELECT kind, method, IFNULL(SUM(amount_paisa),0) AS s FROM advance_moves WHERE date_ad = ? GROUP BY kind, method`,
+    args: [dayIso],
+  });
+  const advances = { inCash: 0, inQr: 0, backCash: 0, backQr: 0 };
+  for (const r of moves.rows) {
+    const qr = r.method === "qr";
+    if (r.kind === "received") advances[qr ? "inQr" : "inCash"] += Number(r.s);
+    else advances[qr ? "backQr" : "backCash"] += Number(r.s);
+  }
+
   const m0 = method.rows[0]!;
+  const paidFromAdvance = Number(fromAdvance.rows[0]!.s);
   const byMethod = {
     cash: Number(m0.cash),
     qr: Number(m0.qr),
-    credit: Number(m0.on_dues),
+    credit: Number(m0.on_dues) - paidFromAdvance,
+    advance: paidFromAdvance,
   };
   const duesReceived = { cash: 0, qr: 0 };
   for (const r of received.rows) {
+    if (r.method === "advance") continue; // counted in byMethod.advance
     if (r.method === "qr") duesReceived.qr += Number(r.s);
     else duesReceived.cash += Number(r.s);
   }
@@ -247,10 +274,12 @@ export async function daySummary(dayIso: string): Promise<DaySummary> {
     netSalesPaisa: gross - ret,
     byMethod,
     duesReceived,
+    advances,
     returnsAgainstDuePaisa: retAgainstDue,
     // A return that only came off somebody's dues took no money out of the
     // drawer, so only the part handed back is taken off.
-    expectedCashPaisa: byMethod.cash + duesReceived.cash - (ret - retAgainstDue),
+    expectedCashPaisa:
+      byMethod.cash + duesReceived.cash + advances.inCash - advances.backCash - (ret - retAgainstDue),
   };
 }
 

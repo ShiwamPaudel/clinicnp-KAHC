@@ -43,6 +43,8 @@ export const SOURCE_LABEL: Record<string, string> = {
   opening_stock: "Opening stock",
   voucher: "Voucher",
   voucher_cancel: "Voucher cancelled",
+  advance_receipt: "Advance taken",
+  advance_refund: "Advance handed back",
 };
 
 /** Where a party's statement lives. */

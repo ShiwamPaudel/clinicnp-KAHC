@@ -19,6 +19,7 @@ const TABS: { href: string; label: string; perm: Permission[]; count?: keyof Lab
   { href: "/lab/reports", label: "Reports", perm: ["lab.reports"] },
   { href: "/lab/tests", label: "Tests", perm: ["lab.catalog"] },
   { href: "/lab/profiles", label: "Profiles", perm: ["lab.catalog"] },
+  { href: "/lab/packages", label: "Packages", perm: ["lab.catalog"] },
 ];
 
 /** The laboratory's tab strip. Each tab shows only to a role that may open it. */

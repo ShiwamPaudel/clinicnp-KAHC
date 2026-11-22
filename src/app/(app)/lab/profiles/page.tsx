@@ -8,7 +8,7 @@ export const metadata = { title: "Lab profiles" };
 export default async function ProfilesPage() {
   await requireModulePage("lab");
   await requirePermission("lab.catalog");
-  const [profiles, tests, departments] = await Promise.all([listProfiles(), listTests(), listDepartments(false)]);
+  const [profiles, tests, departments] = await Promise.all([listProfiles("profile"), listTests(), listDepartments(false)]);
   return (
     <main className="mx-auto w-full max-w-[1240px] flex-1 p-6">
       <ProfileManager

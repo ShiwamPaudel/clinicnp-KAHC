@@ -65,6 +65,7 @@ const TABLES = [
   "lab_test_parameters",
   "lab_test_groups",
   "lab_test_group_items",
+  "lab_test_group_profiles",
   // each outside laboratory's price list (0027)
   "lab_partner_prices",
   "lab_settings",
@@ -83,6 +84,11 @@ const TABLES = [
   "sale_returns",
   "sale_return_lines",
   "sale_return_service_lines",
+  // pre-bookings (0031): after the bills and appointments they point at, before
+  // the dues payments that name them
+  "prebookings",
+  "prebooking_items",
+  "advance_moves",
   "due_payments",
   "lab_partner_payments",
 

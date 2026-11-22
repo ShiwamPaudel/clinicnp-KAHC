@@ -320,6 +320,7 @@ export async function recordPartnerPaymentAction(input: {
   method: string;
   note: string;
   accountId?: string | null;
+  transferChargePaisa?: number;
 }): Promise<ActionResult> {
   try {
     const user = await partnerGuard();
@@ -346,7 +347,13 @@ export async function recordPartnerPaymentAction(input: {
     const accountId = bankPaid && data.accountId ? data.accountId : null;
     if (accountId && !(await isUsableBank(accountId))) return fail("Choose the bank again.");
 
+    const sentElectronically = bankPaid || data.method === "qr";
+    if (data.transferChargePaisa > 0 && !sentElectronically) {
+      return fail("A transfer charge is only for a QR or bank payment.");
+    }
+
     const id = await recordPartnerPayment({
+      transferChargePaisa: sentElectronically ? data.transferChargePaisa : 0,
       accountId,
       partnerId: data.partnerId,
       dateAd,

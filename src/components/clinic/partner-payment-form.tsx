@@ -42,8 +42,11 @@ export function PartnerPaymentForm({
   const [method, setMethod] = useState("cash");
   const [note, setNote] = useState("");
   const [bankId, setBankId] = useState("");
+  const [charge, setCharge] = useState("");
   const [busy, setBusy] = useState(false);
   const bankPaid = method === "bank" || method === "cheque";
+  // the bank's or wallet's own fee: only when the money is sent, not handed over
+  const sent = bankPaid || method === "qr";
 
   async function submit() {
     const amt = toPaisa(Number(amount) || 0);
@@ -59,12 +62,14 @@ export function PartnerPaymentForm({
       method,
       note,
       accountId: bankPaid && bankId ? bankId : null,
+      transferChargePaisa: sent ? Math.max(0, toPaisa(Number(charge) || 0)) : 0,
     });
     setBusy(false);
     if (res.ok) {
       toast.success("Payment recorded");
       setAmount("");
       setNote("");
+      setCharge("");
       setOpen(false);
       router.refresh();
     } else {
@@ -128,6 +133,12 @@ export function PartnerPaymentForm({
                   </option>
                 ))}
               </Select>
+            </Field>
+          )}
+
+          {sent && (
+            <Field label="Transfer charge (रू)" hint="Bank or wallet fee, paid on top">
+              <Input numeric inputMode="decimal" value={charge} placeholder="0" onChange={(e) => setCharge(e.target.value)} />
             </Field>
           )}
 

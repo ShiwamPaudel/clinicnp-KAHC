@@ -63,6 +63,7 @@
 - 2083-08-05 after C-032: see C-032 for the counts.
 - 2083-08-05 C-033: data and housekeeping only (no app code changed).
 - 2083-08-05 C-034: typecheck clean, **54 files / 599 tests** green.
+- 2083-08-06 C-035: typecheck clean, **57 files / 616 tests** green, `pnpm build` passes (`/billing` 150 kB).
 
 ### Working practices that were earned the hard way
 
@@ -312,6 +313,11 @@
 | D-193 | **The repo root holds only the app.** The imported item CSVs, the empty `tbd.md` and `.pitch-build/` are gone (its demo-data scripts wrote to whatever `TURSO_DATABASE_URL` pointed at, which here is KAHC's live database); the logo lives in `brand/`; a hand-out PDF for the clinic (`KAHC - *.pdf`, with passwords) is gitignored | Owner asked for the root to be tidied. |
 | D-194 | **A sales bill's number is plain digits: 000001**, on the printed bill, the screens, the register, exports and the books ("Bill 000001"). No SI- prefix and no fiscal year in it: the date says the year (owner: "according to the laws"). Returns and purchases keep SR-/PI-. **The counter sends the bill first and prints it with the server's number** (waits up to 8 s); offline it prints "Slip …" and the numbered bill is reprinted from Bills. "(pending)" is gone from the print. Searching 000123 finds bill 123 | A printed tax invoice must carry its real sequential number; before this every counter print said "Slip … (pending)". |
 | D-195 | **A lab-report QR points at `PUBLIC_APP_URL`** when it is set (KAHC: https://clinicnp-kahc.infobytesnepal.com), otherwise at the address the page was opened on | Opened on the *.vercel.app address, the QR printed that address. |
+| D-196 | **Test packages** ("Whole Body Test") are `lab_test_groups` with `kind = 'package'`, holding profiles (`lab_test_group_profiles`) and tests, at their own price; never a package inside a package. Billed, each test inside opens once (0029, Lab → Packages) | Owner, 2083-08-06. As a kind of profile, every "is this a lab line?" check already counts it. |
+| D-197 | **Transfer charge** (IPS / bank fee) is the clinic's own expense, Bank and wallet charges, recorded on the supplier or laboratory payment (`transfer_charge_paisa`) or as a line on a payment voucher; it never changes what is owed. A supplier payment may name its purchase bill. Bank and wallet charges and Miscellaneous expenses became system accounts (0030) | Owner: suppliers never put it on their bill. |
+| D-198 | **Delivery** is paid to a courier, separately: a payment voucher (Miscellaneous expenses) that names the purchase (`vouchers.purchase_id`), recorded from Purchases → Add delivery; cancelled like any voucher | Owner chose "to the courier, separately"; the purchase bill itself is entered when the goods arrive and is never changed. |
+| D-199 | **Pre-Booking** replaces the Doctors menu: the day's booked tests or services and doctors' consultations; Issue bill opens the counter with the booking; an advance can be taken on either kind, refunded on cancel / did not come, handed back as change when more than the bill (0031, Prebooking.md) | Owner, 2083-08-06, answers 1–4. |
+| D-200 | **The counter shows its saved catalogue at once** and refreshes it in the background; with nothing saved yet the search says "Loading the list…" and fills in by itself. **Enter in Result entry** goes to the next result box, skipping remarks | Owner: the search "doesn't work on the first go"; Enter as well as Tab. |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---
@@ -1025,3 +1031,18 @@ server has numbered the bill (D-194). The report QR follows `PUBLIC_APP_URL`
 new), and Chromium on a scratch DB: a lab bill at the counter printed
 "000002" with no "(pending)" and a QR on the clinic's address; the register
 listed plain numbers; searching 000001 found bill 1.
+
+### C-035  ·  2083-08-06  ·  Packages, transfer and delivery charges, Pre-Booking
+
+Test packages (D-196); transfer charges on payments and delivery for purchases
+(D-197, D-198); Pre-Booking with advances (D-199, Prebooking.md); the counter's
+first-search fix and Enter in Result entry (D-200). 0029 – 0031 applied to KAHC.
+**Verified:** typecheck; the full suite, with `lab-packages`, `payment-charges`
+and `prebooking` integration tests new (advance used, handed back, bill
+cancelled and refunded, billed once, dues refuse to undo it, books and day close
+agree); Chromium on a scratch DB, 27 checks (search typed before the list
+arrived, Pre-Booking menu, book, advance and its receipt, Issue bill → counter
+banner, advance and To pay, printed bill, Billed with its bill, consultation
+advance and close with refund, day close, Enter skips remarks, package, supplier
+payment with transfer charge for a bill, delivery voucher, voucher transfer
+charge).

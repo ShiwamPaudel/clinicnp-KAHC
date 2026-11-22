@@ -28,6 +28,7 @@ const fullBill: Required<
   patientId: "01PATIENT",
   visitId: "01VISIT",
   labReportToken: "AbCdEfGh23",
+  prebookingId: "01BOOKING",
   paymentMethod: "credit",
   tenderedPaisa: 20_000,
   paidNowPaisa: 10_000,

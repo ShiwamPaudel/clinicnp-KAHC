@@ -8,11 +8,14 @@ import { PageShell } from "@/components/app/page-shell";
 import { Table, THead, TR, TH, TD } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PurchaseDelivery } from "@/components/app/purchase-delivery";
+import { listMoneyAccounts } from "@/lib/repos/accounts";
 
 export default async function PurchasesPage() {
   await requirePermission("purchases.manage");
   await requireModulePage("pharmacy");
-  const purchases = await listPurchases();
+  const [purchases, money] = await Promise.all([listPurchases(), listMoneyAccounts()]);
+  const moneyAccounts = money.map((m) => ({ id: m.id, name: m.name }));
 
   return (
     <PageShell
@@ -53,6 +56,7 @@ export default async function PurchasesPage() {
               <TH>Their invoice</TH>
               <TH>Date</TH>
               <TH numeric>Total</TH>
+              <TH numeric>Delivery</TH>
             </TR>
           </THead>
           <tbody>
@@ -63,6 +67,14 @@ export default async function PurchasesPage() {
                 <TD>{p.supplierInvoiceNo || "—"}</TD>
                 <TD>{p.dateBs}</TD>
                 <TD numeric>{formatPaisa(p.totalPaisa)}</TD>
+                <TD numeric>
+                  <PurchaseDelivery
+                    purchaseId={p.id}
+                    purchaseLabel={p.supplierInvoiceNo ? `${p.supplierName} bill #${p.supplierInvoiceNo}` : (p.purchaseNo ?? p.supplierName)}
+                    paid={p.delivery}
+                    moneyAccounts={moneyAccounts}
+                  />
+                </TD>
               </TR>
             ))}
           </tbody>

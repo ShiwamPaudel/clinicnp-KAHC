@@ -80,6 +80,10 @@ const TABLES_CHILD_FIRST = [
 
   // money, deepest first
   "due_payments",
+  // pre-bookings (0031), after the dues payments that name them
+  "advance_moves",
+  "prebooking_items",
+  "prebookings",
   "sale_return_service_lines",
   "sale_return_lines",
   "sale_returns",
@@ -109,6 +113,7 @@ const TABLES_CHILD_FIRST = [
 
   // catalogs
   "lab_partner_prices",
+  "lab_test_group_profiles",
   "lab_test_group_items",
   "lab_test_groups",
   "lab_test_parameters",
@@ -158,6 +163,7 @@ async function main() {
   const SETUP_TABLES = [
     "parties",
     "lab_partner_prices",
+    "lab_test_group_profiles",
     "lab_test_group_items",
     "lab_test_groups",
     "lab_test_parameters",
@@ -289,7 +295,7 @@ async function main() {
   if (present.has("counters")) {
     // voucher numbering starts again with the vouchers (0025)
     if (doomed.includes("vouchers")) await client.execute("DELETE FROM counters WHERE name LIKE 'voucher:%'");
-    for (const name of ["patient_no", "lab_order_no", "lab_sample_no"]) {
+    for (const name of ["patient_no", "lab_order_no", "lab_sample_no", "advance_receipt_no"]) {
       await client.execute({
         sql: "INSERT INTO counters (name, next_value) VALUES (?, 1) ON CONFLICT(name) DO UPDATE SET next_value = 1",
         args: [name],

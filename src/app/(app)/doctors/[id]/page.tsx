@@ -67,11 +67,11 @@ export default async function DoctorDayPage({
       <main className="mx-auto w-full max-w-[1240px] flex-1 p-6">
         <div className="flex flex-col gap-5">
           <Link
-            href={`/doctors?on=${onBs}`}
+            href={`/prebooking?on=${onBs}`}
             className="flex w-fit items-center gap-1.5 text-[13px] text-sage-500 hover:text-sage-700"
           >
             <ArrowLeft className="h-4 w-4" />
-            All doctors
+            Pre-Booking
           </Link>
 
           <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">

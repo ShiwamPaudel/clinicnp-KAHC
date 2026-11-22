@@ -42,6 +42,8 @@ import {
 } from "@/offline/catalog-cache";
 import { enqueueBill, flushOutbox, sendBillNow, startOutboxLoop } from "@/offline/outbox";
 import { formatDocNo } from "@/lib/invoice-number";
+import { advanceAgainst } from "@/lib/prebooking-format";
+import { formatPaisa } from "@/lib/money";
 import { mintReportToken, reportUrl } from "@/lib/lab-token";
 import { holdBill, listHeld, resumeHeld, MAX_HELD } from "@/offline/held";
 import { SearchBox, type SearchBoxHandle } from "@/components/pos/search-box";
@@ -63,6 +65,8 @@ export function PosScreen({ config }: { config: PosConfig }) {
   const toast = useToast();
   const [items, setItems] = useState<PosItem[]>([]);
   const [services, setServices] = useState<PosService[]>([]);
+  // false until the first catalog download has finished (or failed)
+  const [catalogFetched, setCatalogFetched] = useState(false);
   const [doctors, setDoctors] = useState<PosDoctor[]>([]);
   const [partners, setPartners] = useState<PosLabPartner[]>([]);
   const [racks, setRacks] = useState<PosRack[]>([]);
@@ -97,21 +101,52 @@ export function PosScreen({ config }: { config: PosConfig }) {
     setHeld(await listHeld());
   }, []);
 
-  // initial load: pull catalog, start the outbox retry loop, restore label pref
+  // initial load: show the catalog this computer already keeps straight away,
+  // then download the latest and show that. Waiting for the download first
+  // left the search finding nothing for the first few seconds after opening.
   useEffect(() => {
     (async () => {
-      await syncCatalog();
+      await refreshItems();
+      await refreshHeld();
+      if (await syncCatalog()) await refreshItems();
+      setCatalogFetched(true);
       // The recent-patients slice, so the patient bar can find somebody with
       // the connection down. Failing is fine — the counter keeps what it has.
       await syncPatients();
-      await refreshItems();
-      await refreshHeld();
     })();
     const saved = localStorage.getItem("pos-lang");
     if (saved === "np" || saved === "en") setLang(saved);
     const stop = startOutboxLoop();
     return stop;
   }, [refreshItems, refreshHeld]);
+
+  // Opened from Pre-Booking → Issue bill: the booking goes on the counter once
+  // the catalogue is here — its tests or services, its patient if registered,
+  // and the advance it holds (0031). Once only; a bill already on the counter
+  // is left alone.
+  const prebookingApplied = useRef(false);
+  useEffect(() => {
+    const pb = config.prebooking;
+    if (!pb || prebookingApplied.current || services.length === 0) return;
+    prebookingApplied.current = true;
+    const st = useBillStore.getState();
+    if (st.lines.length > 0 || st.serviceLines.length > 0) {
+      toast.error("Finish or hold the bill on the counter, then issue the booking again.");
+      return;
+    }
+    st.setPrebooking({ id: pb.id, name: pb.name, advancePaisa: pb.advancePaisa, receiptLabels: pb.receiptLabels });
+    if (pb.patient) st.setPatient(pb.patient);
+    else st.setPatientName(pb.name);
+    const byId = new Map(services.map((x) => [x.id, x]));
+    const missing: string[] = [];
+    for (const id of pb.serviceIds) {
+      const svc = byId.get(id);
+      if (svc) st.addService(svc);
+      else missing.push(id);
+    }
+    if (missing.length > 0) toast.error("Something booked is no longer billed here. Add it again from the search.");
+    if (!pb.patient) setPatientOpenSignal((n) => n + 1);
+  }, [config.prebooking, services, toast]);
 
   // re-sync the catalog when the tab regains focus (catch stock changes)
   useEffect(() => {
@@ -226,15 +261,18 @@ export function PosScreen({ config }: { config: PosConfig }) {
         toast.error("Enter the name of whoever owes this bill.");
         return;
       }
-      if (totals.totalPaisa > 0 && s.paidNowPaisa >= totals.totalPaisa) {
-        toast.error("That pays the whole bill. Choose Cash or QR instead.");
-        return;
-      }
+    }
+    // A pre-booking's advance comes off what is paid now (0031); the server
+    // works it out again from the booking itself.
+    const adv = advanceAgainst(totals.totalPaisa, s.prebooking?.advancePaisa ?? 0);
+    if (onDues && adv.toPayPaisa > 0 && s.paidNowPaisa >= adv.toPayPaisa) {
+      toast.error("That pays the whole bill. Choose Cash or QR instead.");
+      return;
     }
     const paidNowPaisa = onDues
-      ? Math.min(s.paidNowPaisa, totals.totalPaisa)
-      : totals.totalPaisa;
-    const duePaisa = onDues ? totals.totalPaisa - paidNowPaisa : 0;
+      ? Math.min(s.paidNowPaisa, adv.toPayPaisa)
+      : adv.toPayPaisa;
+    const duePaisa = onDues ? adv.toPayPaisa - paidNowPaisa : 0;
     // A service that needs a doctor, or goes to an outside laboratory, cannot
     // be saved half-answered.
     const svcById = new Map(services.map((x) => [x.id, x]));
@@ -402,6 +440,7 @@ export function PosScreen({ config }: { config: PosConfig }) {
         : undefined,
       visitId: s.visitId ?? undefined,
       labReportToken,
+      prebookingId: s.prebooking?.id,
       clientCreatedAt: nowIso,
       attempts: 0,
     };
@@ -455,13 +494,22 @@ export function PosScreen({ config }: { config: PosConfig }) {
       totalPaisa: totals.totalPaisa,
       paymentMethod: s.paymentMethod,
       tenderedPaisa: s.tenderedPaisa,
-      changePaisa: change(s.tenderedPaisa, totals.totalPaisa),
+      changePaisa: change(s.tenderedPaisa, adv.toPayPaisa),
       paidNowPaisa: onDues ? paidNowPaisa : undefined,
       paidNowMethod: onDues && paidNowPaisa > 0 ? s.paidNowMethod : undefined,
       duePaisa: onDues ? duePaisa : undefined,
       userName: config.userName,
       labReport,
+      advance:
+        s.prebooking && adv.usedPaisa > 0
+          ? { usedPaisa: adv.usedPaisa, labels: s.prebooking.receiptLabels, handBackPaisa: adv.handBackPaisa }
+          : null,
     });
+    if (s.prebooking) {
+      if (adv.handBackPaisa > 0) toast.success(`Hand back ${formatPaisa(adv.handBackPaisa)} from the advance.`);
+      // the booking is billed: reloading the counter must not put it on again
+      window.history.replaceState(null, "", "/billing");
+    }
 
     // print on the next frame, then reset for the next customer
     requestAnimationFrame(() => {
@@ -728,6 +776,29 @@ export function PosScreen({ config }: { config: PosConfig }) {
       {/* three zones */}
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <div className="flex min-w-0 flex-1 flex-col overflow-y-auto p-4">
+          {store.prebooking && (
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-[10px] border border-sage-300 bg-sage-75 px-4 py-2.5 text-[14px] text-sage-900">
+              <span>
+                <span className="font-semibold">Pre-booking</span> · {store.prebooking.name}
+                {store.prebooking.advancePaisa > 0 && (
+                  <>
+                    {" "}· Advance <span className="font-semibold tnum">{formatPaisa(store.prebooking.advancePaisa)}</span>
+                    {store.prebooking.receiptLabels && <span className="text-sage-600"> ({store.prebooking.receiptLabels})</span>}
+                  </>
+                )}
+              </span>
+              <button
+                type="button"
+                className="text-[13px] text-sage-600 underline-offset-2 hover:text-sage-900 hover:underline"
+                onClick={() => {
+                  store.setPrebooking(null);
+                  window.history.replaceState(null, "", "/billing");
+                }}
+              >
+                Not this booking
+              </button>
+            </div>
+          )}
           <SearchBox
             ref={searchRef}
             items={items}
@@ -739,6 +810,7 @@ export function PosScreen({ config }: { config: PosConfig }) {
             onPick={addItem}
             onPickService={(svc) => void addService(svc)}
             onEmptyEnter={() => paymentRef.current?.focusTendered()}
+            loading={!catalogFetched && items.length === 0 && services.length === 0}
           />
           {(services.length > 0 || config.clinicOn) && (
             <div className="mt-4">

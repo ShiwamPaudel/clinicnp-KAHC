@@ -91,12 +91,19 @@ export function VoucherForm({
   const [moneyId, setMoneyId] = useState(money[0]?.id ?? "");
   const [toId, setToId] = useState(money[1]?.id ?? "");
   const [contraAmount, setContraAmount] = useState("");
+  const [charge, setCharge] = useState("");
   const [rows, setRows] = useState<Row[]>(() => [blankRow(initialParty ?? ""), ...(type === "journal" ? [blankRow()] : [])]);
   const [busy, setBusy] = useState(false);
 
   const setRow = (key: number, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
 
   const isParty = (target: string) => target.startsWith("p:");
+
+  // A payment sent by QR or bank often costs a fee on top: the clinic's own
+  // expense, paid from the same money, never part of what the payee is owed.
+  const BANK_CHARGES = "acc:bank_charges";
+  const chargeable =
+    type === "payment" && moneyId !== "" && moneyId !== "sys:cash" && accounts.some((a) => a.id === BANK_CHARGES);
 
   function lineFor(target: string, debitPaisa: number, creditPaisa: number, r?: Row) {
     if (target.startsWith("p:")) {
@@ -133,15 +140,17 @@ export function VoucherForm({
     }
     if (type === "payment" || type === "receipt") {
       const used = rows.filter((r) => r.target && rupees(r.amount) > 0);
-      const total = used.reduce((s, r) => s + rupees(r.amount), 0);
+      const fee = chargeable && used.length > 0 ? Math.max(0, rupees(charge)) : 0;
+      const total = used.reduce((s, r) => s + rupees(r.amount), 0) + fee;
       const lines = used.map((r) => (type === "payment" ? lineFor(r.target, rupees(r.amount), 0, r) : lineFor(r.target, 0, rupees(r.amount), r)));
+      if (fee > 0) lines.push({ ...lineFor(`a:${BANK_CHARGES}`, fee, 0), note: "Transfer charge" });
       lines.push(type === "payment" ? lineFor(`a:${moneyId}`, 0, total) : lineFor(`a:${moneyId}`, total, 0));
       return lines;
     }
     return rows.filter((r) => r.target && (rupees(r.debit) > 0 || rupees(r.credit) > 0)).map((r) => lineFor(r.target, rupees(r.debit), rupees(r.credit), r));
     // lineFor reads only props and the rows passed in
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, rows, moneyId, toId, contraAmount]);
+  }, [type, rows, moneyId, toId, contraAmount, charge, chargeable]);
 
   const dr = built.reduce((s, l) => s + l.debitPaisa, 0);
   const cr = built.reduce((s, l) => s + l.creditPaisa, 0);
@@ -266,6 +275,13 @@ export function VoucherForm({
               </div>
             ))}
           </div>
+          {chargeable && (
+            <div className="mt-3 max-w-[240px]">
+              <Field label="Transfer charge (रू)" hint="Bank or wallet fee, paid on top">
+                <Input numeric inputMode="decimal" value={charge} placeholder="0" onChange={(e) => setCharge(e.target.value)} />
+              </Field>
+            </div>
+          )}
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <Button variant="secondary" onClick={() => setRows((rs) => [...rs, blankRow()])}>
               <Plus className="h-4 w-4" /> Add a line

@@ -6,6 +6,7 @@ import { ulid } from "ulid";
 import { db } from "@/lib/db";
 import type { Row } from "@/lib/db";
 import { openingMoves } from "@/lib/repos/party-openings";
+import { formatPaisa } from "@/lib/money";
 
 export interface Supplier {
   id: string;
@@ -111,11 +112,16 @@ export async function recordSupplierPayment(input: {
   userId: string;
   /** the bank it was paid from (0025); empty for cash */
   accountId?: string | null;
+  /** the bank's or wallet's own fee for sending it (0030); not owed to the supplier */
+  transferChargePaisa?: number;
+  /** the purchase bill it pays, when one is named (0030) */
+  purchaseId?: string | null;
 }): Promise<void> {
   await db().execute({
     sql: `INSERT INTO supplier_payments
-            (id, supplier_id, date_ad, date_bs, amount_paisa, method, note, user_id, created_at, account_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (id, supplier_id, date_ad, date_bs, amount_paisa, method, note, user_id, created_at, account_id,
+             transfer_charge_paisa, purchase_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       ulid(),
       input.supplierId,
@@ -127,8 +133,42 @@ export async function recordSupplierPayment(input: {
       input.userId,
       new Date().toISOString(),
       input.accountId ?? null,
+      input.transferChargePaisa ?? 0,
+      input.purchaseId ?? null,
     ],
   });
+}
+
+/** Whether a purchase bill is this supplier's. */
+export async function purchaseBelongsTo(purchaseId: string, supplierId: string): Promise<boolean> {
+  const res = await db().execute({
+    sql: "SELECT 1 FROM purchases WHERE id = ? AND supplier_id = ?",
+    args: [purchaseId, supplierId],
+  });
+  return res.rows.length > 0;
+}
+
+export interface SupplierPurchaseChoice {
+  id: string;
+  label: string;
+}
+
+/** A supplier's recent purchase bills, newest first, for "which bill is this for?". */
+export async function listSupplierPurchaseChoices(supplierId: string, limit = 60): Promise<SupplierPurchaseChoice[]> {
+  const res = await db().execute({
+    sql: `SELECT id, purchase_no, supplier_invoice_no, date_bs, total_paisa
+            FROM purchases WHERE supplier_id = ?
+           ORDER BY date_ad DESC, created_at DESC LIMIT ?`,
+    args: [supplierId, limit],
+  });
+  return res.rows.map((r) => ({
+    id: r.id as string,
+    label: [
+      r.supplier_invoice_no ? `Bill #${r.supplier_invoice_no as string}` : ((r.purchase_no as string | null) ?? "Purchase"),
+      r.date_bs as string,
+      formatPaisa(Number(r.total_paisa)),
+    ].join(" · "),
+  }));
 }
 
 export interface LedgerEntry {
@@ -182,18 +222,29 @@ export async function supplierLedger(supplierId: string): Promise<{
   }
 
   const payments = await db().execute({
-    sql: `SELECT date_ad, date_bs, amount_paisa, method, note
-          FROM supplier_payments WHERE supplier_id = ?`,
+    sql: `SELECT sp.date_ad, sp.date_bs, sp.amount_paisa, sp.method, sp.note, sp.transfer_charge_paisa,
+                 p.supplier_invoice_no, p.purchase_no
+          FROM supplier_payments sp LEFT JOIN purchases p ON p.id = sp.purchase_id
+          WHERE sp.supplier_id = ?`,
     args: [supplierId],
   });
   for (const p of payments.rows) {
     const note = ((p.note as string | null) ?? "").trim();
+    const forBill = p.supplier_invoice_no ? `for bill #${p.supplier_invoice_no}` : p.purchase_no ? `for ${p.purchase_no}` : "";
+    const charge = Number(p.transfer_charge_paisa ?? 0);
     rows.push({
       dateAd: p.date_ad as string,
       dateBs: p.date_bs as string,
       kind: "payment",
       // The note says which purchase a payment made at the time belongs to.
-      description: note ? `Payment (${p.method}) · ${note}` : `Payment (${p.method})`,
+      description: [
+        `Payment (${p.method})`,
+        forBill,
+        note,
+        charge > 0 ? `transfer charge ${formatPaisa(charge)} (not owed to the supplier)` : "",
+      ]
+        .filter(Boolean)
+        .join(" · "),
       deltaPaisa: -Number(p.amount_paisa),
     });
   }

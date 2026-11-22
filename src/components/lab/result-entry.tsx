@@ -21,6 +21,23 @@ type Draft = Record<string, { remarks: string; values: Record<string, { value: s
 
 const keyOf = (parameterId: string | null) => parameterId ?? "_";
 
+/**
+ * Enter moves to the next result box, as Tab does, but skips the remark boxes:
+ * from the last value of one test it goes to the first value of the next.
+ */
+function enterToNextResult(e: React.KeyboardEvent<HTMLElement>) {
+  if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) return;
+  e.preventDefault();
+  const here = e.currentTarget;
+  const next = Array.from(document.querySelectorAll<HTMLElement>("[data-result-field]:not([disabled])")).find(
+    (el) => el !== here && Boolean(here.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING),
+  );
+  if (next) {
+    next.focus();
+    if (next instanceof HTMLInputElement) next.select();
+  }
+}
+
 function initialDraft(results: OrderResult[]): Draft {
   const d: Draft = {};
   for (const r of results) {
@@ -204,6 +221,8 @@ export function ResultEntry({
                           <div className="flex items-center gap-2">
                             {f.resultType === "select" || f.resultType === "pos_neg" ? (
                               <Select
+                                data-result-field=""
+                                onKeyDown={enterToNextResult}
                                 value={v.value}
                                 disabled={locked || pending}
                                 onChange={(e) => setValue(r.id, key, { value: e.target.value })}
@@ -218,6 +237,8 @@ export function ResultEntry({
                               </Select>
                             ) : (
                               <Input
+                                data-result-field=""
+                                onKeyDown={enterToNextResult}
                                 value={v.value}
                                 disabled={locked || pending}
                                 inputMode={f.resultType === "numeric" ? "decimal" : undefined}
@@ -234,6 +255,7 @@ export function ResultEntry({
                         <td className="px-2 py-2 text-sage-600">{f.refText || "—"}</td>
                         <td className="px-4 py-2">
                           <Input
+                            onKeyDown={enterToNextResult}
                             value={v.remarks}
                             disabled={locked || pending}
                             onChange={(e) => setValue(r.id, key, { remarks: e.target.value })}
@@ -249,6 +271,7 @@ export function ResultEntry({
             {!noSample && (
               <div className="border-t border-line px-4 py-2">
                 <Input
+                  onKeyDown={enterToNextResult}
                   value={draft[r.id]?.remarks ?? ""}
                   disabled={locked || pending}
                   placeholder="Note on this test (printed on the report)"
