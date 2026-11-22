@@ -107,7 +107,7 @@ describe("displayAge — nothing recorded", () => {
       { value: null, unit: null, asOfAd: null, dobAd: null },
       "2026-08-29",
     );
-    expect(a.short).toBe("—");
+    expect(a.short).toBe("-");
     expect(a.long).toBe("Not recorded");
     expect(a.exact).toBe(false);
   });
@@ -117,7 +117,7 @@ describe("displayAge — nothing recorded", () => {
       { value: 30, unit: "y", asOfAd: null, dobAd: null },
       "2026-08-29",
     );
-    expect(a.short).toBe("—");
+    expect(a.short).toBe("-");
   });
 });
 

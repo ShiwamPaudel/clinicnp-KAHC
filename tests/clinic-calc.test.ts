@@ -76,7 +76,7 @@ describe("resolveFollowup — the boundaries", () => {
 
   it("says 'no charge' in words when the follow-up is free", () => {
     const r = resolveFollowup(consult, "2026-08-03", "2026-08-01");
-    expect(r.note).toBe("Follow-up within 7 days — no charge.");
+    expect(r.note).toBe("Follow-up within 7 days: no charge.");
   });
 
   it("ignores a previous consultation dated in the future", () => {
