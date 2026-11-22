@@ -99,7 +99,7 @@ export async function notifyDoctorOfBooking(
   } else {
     const out = await pushToUser(doctor.userId, {
       title: headline,
-      body: `${appointment.patientName} — ${whenLine(appointment)}`,
+      body: `${appointment.patientName} · ${whenLine(appointment)}`,
       url: "/my/schedule",
       tag: `booking-${appointment.id}`,
     });

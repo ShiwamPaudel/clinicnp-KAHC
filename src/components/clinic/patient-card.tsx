@@ -59,7 +59,7 @@ export function PatientHeader({
                   : undefined
             }
           >
-            {age.short} · {SEX_LABEL[patient.sex] ?? "—"}
+            {age.short} · {SEX_LABEL[patient.sex] ?? "-"}
           </span>
         </div>
         <div className="mt-1 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[13px] text-clinic-150">

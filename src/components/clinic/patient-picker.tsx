@@ -253,7 +253,7 @@ export function PatientPicker({
                     )}
                   >
                     <span className="w-[78px] shrink-0 font-mono text-[12px] text-clinic-700">
-                      {p.patientNo != null ? formatPatientNo(p.patientNo) : "—"}
+                      {p.patientNo != null ? formatPatientNo(p.patientNo) : "-"}
                     </span>
                     <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-sage-900">
                       {p.name}

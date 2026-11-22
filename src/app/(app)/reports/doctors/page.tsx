@@ -47,7 +47,7 @@ export default async function DoctorPayoutsPage({
               {rows.map((r) => (
                 <TR key={r.doctorId}>
                   <TD className="font-medium text-sage-900">{r.name}</TD>
-                  <TD className="text-sage-500">{r.basisSummary || "—"}</TD>
+                  <TD className="text-sage-500">{r.basisSummary || "-"}</TD>
                   <TD className="text-right tnum">{r.consultations}</TD>
                   <TD className="text-right tnum">{r.otherServices}</TD>
                   <TD className="text-right tnum">{formatPaisa(r.billedPaisa)}</TD>

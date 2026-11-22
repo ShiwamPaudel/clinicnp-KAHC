@@ -134,7 +134,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           ok: false,
-          userMessage: "Couldn't add the file — try again.",
+          userMessage: "Couldn't add the file. Try again.",
         },
         { status: 500 },
       );

@@ -80,9 +80,9 @@ export function PartnerPriceList({ partnerId, rows }: { partnerId: string; rows:
                     </Badge>
                   )}
                 </TD>
-                <TD className="text-[13px] text-sage-600">{r.departmentName || "—"}</TD>
+                <TD className="text-[13px] text-sage-600">{r.departmentName || "-"}</TD>
                 <TD numeric>{r.timesSent}</TD>
-                <TD className="text-[13px] text-sage-600">{r.lastSentAt ? stampAt(r.lastSentAt) : "—"}</TD>
+                <TD className="text-[13px] text-sage-600">{r.lastSentAt ? stampAt(r.lastSentAt) : "-"}</TD>
                 <TD numeric>
                   <div className="ml-auto w-32">
                   <Input

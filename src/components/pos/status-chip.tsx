@@ -47,7 +47,7 @@ export function StatusChip() {
     return (
       <span className="flex items-center gap-1.5 rounded-[999px] bg-info-100 px-3 py-1.5 text-[13px] text-info-600">
         <WifiOff className="h-4 w-4" />
-        {waiting > 0 ? `Offline — ${what()} waiting` : strings.offline}
+        {waiting > 0 ? `Offline: ${what()} waiting` : strings.offline}
       </span>
     );
   }

@@ -82,7 +82,7 @@ export default async function DoctorDayPage({
               <p className="text-[13px] text-sage-500">
                 {[doctor.specialty, doctor.qualification]
                   .filter(Boolean)
-                  .join(" · ") || "—"}
+                  .join(" · ") || "-"}
                 {doctor.nmcNo && ` · NMC ${doctor.nmcNo}`}
               </p>
             </div>

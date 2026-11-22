@@ -28,12 +28,12 @@ export default async function VatReportPage({
     >
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel
-          title="Sales (Annexure 5 — taxable sales)"
+          title="Sales (Annexure 5: taxable sales)"
           taxable={v.salesTaxablePaisa}
           vat={v.salesVatPaisa}
         />
         <Panel
-          title="Purchases (Annexure 10 — taxable purchases)"
+          title="Purchases (Annexure 10: taxable purchases)"
           taxable={v.purchaseTaxablePaisa}
           vat={v.purchaseVatPaisa}
         />

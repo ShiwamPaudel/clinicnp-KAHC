@@ -206,7 +206,7 @@ export function ChartManager({ accounts, canEdit, showBalances }: { accounts: Ro
                   <Select value={draft.grp} onChange={(e) => set("grp", e.target.value)}>
                     {GROUPS.map(([k, g]) => (
                       <option key={k} value={k}>
-                        {KIND_LABEL[g.kind]} — {g.label}
+                        {KIND_LABEL[g.kind]}: {g.label}
                       </option>
                     ))}
                   </Select>

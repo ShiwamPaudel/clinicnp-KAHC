@@ -335,14 +335,14 @@ SELECT CASE m.kind WHEN 'undo' THEN 'lab_sendout_undo' ELSE 'lab_sendout' END, m
        '/reports/lab-partners?partner=' || m.partner_id, m.date_ad,
        'sys:sendout_cost', NULL, NULL, 'lab',
        CASE WHEN m.amount > 0 THEN m.amount ELSE 0 END, CASE WHEN m.amount < 0 THEN -m.amount ELSE 0 END,
-       CASE m.kind WHEN 'undo' THEN m.name || ' — not sent after all' ELSE m.name || ' sent out' END, NULL, NULL
+       CASE m.kind WHEN 'undo' THEN m.name || ' not sent after all' ELSE m.name || ' sent out' END, NULL, NULL
   FROM (${SENDOUT_MOVES_SQL}) m WHERE ${IN_RANGE("m.date_ad")} AND m.amount <> 0
 UNION ALL
 SELECT CASE m.kind WHEN 'undo' THEN 'lab_sendout_undo' ELSE 'lab_sendout' END, m.id, 'Sent out',
        '/reports/lab-partners?partner=' || m.partner_id, m.date_ad,
        'sys:pay_labs', 'lab_partner', m.partner_id, NULL,
        CASE WHEN m.amount < 0 THEN -m.amount ELSE 0 END, CASE WHEN m.amount > 0 THEN m.amount ELSE 0 END,
-       CASE m.kind WHEN 'undo' THEN m.name || ' — not sent after all' ELSE m.name || ' sent out' END, NULL, NULL
+       CASE m.kind WHEN 'undo' THEN m.name || ' not sent after all' ELSE m.name || ' sent out' END, NULL, NULL
   FROM (${SENDOUT_MOVES_SQL}) m WHERE ${IN_RANGE("m.date_ad")} AND m.amount <> 0
 UNION ALL
 SELECT 'stock_out', a.id, CASE WHEN a.adjustment_no IS NULL THEN 'Stock out' ELSE 'SO-' || printf('%06d', a.adjustment_no) END,

@@ -418,7 +418,7 @@ export async function saveSampleTypeAction(input: unknown): Promise<LabActionRes
 
 const dataUrl = z
   .string()
-  .max(300_000, "That image is too large — try a smaller one")
+  .max(300_000, "That image is too large. Try a smaller one")
   .refine((s) => s === "" || /^data:image\/(png|jpeg|webp);base64,/.test(s), "Use a PNG, JPG or WEBP image");
 
 const labSettingsSchema = z.object({

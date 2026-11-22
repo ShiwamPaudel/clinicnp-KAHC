@@ -75,14 +75,14 @@ export function AttachmentGrid({
 
       if (!res.ok || !json?.ok) {
         toast.error(
-          json?.userMessage ?? "Couldn't add the file — try again.",
+          json?.userMessage ?? "Couldn't add the file. Try again.",
         );
         return;
       }
       toast.success(list.length === 1 ? "File added" : "Files added");
       router.refresh();
     } catch {
-      toast.error("Couldn't add the file — try again.");
+      toast.error("Couldn't add the file. Try again.");
     } finally {
       setBusy(false);
       if (fileRef.current) fileRef.current.value = "";

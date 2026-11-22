@@ -26,7 +26,7 @@ export default async function AgingPage({
 
   return (
     <Statement
-      title={`${title} — by age`}
+      title={`${title} by age`}
       period={asOf.label}
       actions={<ExportLink report="aging" extra={{ side }} />}
       controls={

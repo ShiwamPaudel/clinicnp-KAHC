@@ -84,9 +84,9 @@ export function BillDuesPanel({
                 <TD>
                   {isMoneyMethod(p.method) ? MONEY_METHOD_LABEL[p.method] : p.method === "advance" ? "From the advance" : p.method}
                 </TD>
-                <TD>{p.userName || "—"}</TD>
+                <TD>{p.userName || "-"}</TD>
                 <TD>
-                  {p.voided ? <Badge tone="neutral">Undone</Badge> : p.note || "—"}
+                  {p.voided ? <Badge tone="neutral">Undone</Badge> : p.note || "-"}
                 </TD>
               </TR>
             ))}

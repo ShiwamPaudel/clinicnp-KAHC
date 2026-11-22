@@ -109,7 +109,7 @@ export async function deleteRole(id: string): Promise<void> {
     args: [id],
   });
   if (Number(res.rows[0]!.n) > 0) {
-    throw new RoleProblem("Move everybody off this role before removing it — including people who are switched off.");
+    throw new RoleProblem("Move everybody off this role before removing it, including people who are switched off.");
   }
   await db().execute({ sql: "DELETE FROM roles WHERE id = ? AND is_system = 0", args: [id] });
 }

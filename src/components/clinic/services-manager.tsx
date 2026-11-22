@@ -265,14 +265,14 @@ export function ServicesManager({
                     <TR key={s.id}>
                       <TD className="font-medium text-sage-900">{s.name}</TD>
                       <TD className="font-mono text-[13px] text-sage-500">
-                        {s.code || "—"}
+                        {s.code || "-"}
                       </TD>
                       <TD className="text-right font-mono tnum">
                         {formatPaisa(s.ratePaisa)}
                         {s.sampleRate && (
                           <span
                             className="ml-1.5 inline-flex items-center gap-1 text-[11px] text-warn-600"
-                            title="This is a sample price from the starter list — set your own"
+                            title="This is a sample price from the starter list. Set your own"
                           >
                             <AlertTriangle className="h-3 w-3" />
                             sample
@@ -294,7 +294,7 @@ export function ServicesManager({
                               {s.sampleType}
                             </Badge>
                           )}
-                          {!s.doctorRequired && !s.outsourced && !s.sampleType && "—"}
+                          {!s.doctorRequired && !s.outsourced && !s.sampleType && "-"}
                         </span>
                       </TD>
                       <TD className="text-sage-500">
@@ -304,7 +304,7 @@ export function ServicesManager({
                                 ? "free"
                                 : formatPaisa(s.followupRatePaisa)
                             }`
-                          : "—"}
+                          : "-"}
                       </TD>
                       <TD>
                         <Badge tone={s.active ? "ok" : "neutral"}>
@@ -340,7 +340,7 @@ export function ServicesManager({
               value={form.name}
               autoFocus
               onChange={(e) => set("name", e.target.value)}
-              placeholder="USG — Abdomen and Pelvis"
+              placeholder="USG Abdomen and Pelvis"
             />
           </Field>
 

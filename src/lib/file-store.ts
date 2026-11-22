@@ -169,7 +169,7 @@ export async function storageDescription(): Promise<string> {
   // The cloud store is reachable but would publish every file it holds, so it
   // is refused and files stay here. Saying so is the point: this machine is
   // the only copy, and whoever reads it should be backing the machine up.
-  if (hasBlobCredentials()) return "this computer only — secure storage is not set up yet";
+  if (hasBlobCredentials()) return "this computer only (secure storage is not set up yet)";
   return "this computer only";
 }
 

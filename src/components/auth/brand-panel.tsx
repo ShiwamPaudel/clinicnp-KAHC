@@ -70,7 +70,7 @@ export function featuresFor(modules: ModuleFlags): Feature[] {
     list.push({
       icon: FlaskConical,
       title: "Samples followed to the report",
-      body: "Collected, sent, come back, handed over — nothing is lost between two of them.",
+      body: "Collected, sent, come back, handed over: nothing is lost between two of them.",
     });
   }
 

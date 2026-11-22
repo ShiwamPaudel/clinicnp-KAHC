@@ -49,7 +49,7 @@ export function InvoicePhotoButton({
       const read = parseInvoiceText(text);
       if (read.lines.length === 0) {
         toast.error(
-          "No item rows could be read off that photo, even turned round. Take it again from straight above, with the whole bill in the frame and no shadow across it — or enter this bill by hand.",
+          "No item rows could be read off that photo, even turned round. Take it again from straight above, with the whole bill in the frame and no shadow across it, or enter this bill by hand.",
         );
         return;
       }

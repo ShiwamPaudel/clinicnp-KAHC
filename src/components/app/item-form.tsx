@@ -257,7 +257,7 @@ export function ItemForm({
                 value={f.preferredSupplierId}
                 onChange={(e) => set("preferredSupplierId", e.target.value)}
               >
-                <option value="">— None —</option>
+                <option value="">None</option>
                 {suppliers.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
@@ -303,7 +303,7 @@ export function ItemForm({
         </div>
         <p className="mb-4 text-[13px] text-sage-500">
           The smallest unit is the base. Add bigger units and say how many of the
-          smaller unit each one holds — e.g. 1 Strip = 10 Tablet, 1 Box = 6 Strip.
+          smaller unit each one holds, e.g. 1 Strip = 10 Tablet, 1 Box = 6 Strip.
         </p>
 
         <div className="flex flex-col gap-3">

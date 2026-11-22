@@ -163,7 +163,7 @@ export default async function DashboardPage() {
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
           <div className="rounded-[10px] border border-line bg-cream-50 p-5">
             <h2 className="mb-3 flex flex-wrap items-baseline gap-3 text-[15px] font-semibold text-sage-900">
-              <span>Sales — last 30 days</span>
+              <span>Sales, last 30 days</span>
               {bothModules && (
                 <span className="flex items-center gap-3 text-[12px] font-normal text-sage-500">
                   <span className="flex items-center gap-1.5">

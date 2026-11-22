@@ -158,7 +158,7 @@ export const PaymentPane = forwardRef<
           placeholder={
             duesNeedsName
               ? "Who owes this bill"
-              : "Optional — printed on the bill"
+              : "Optional, printed on the bill"
           }
           className={cn(
             "h-10 w-full rounded-[8px] border bg-sage-950/40 px-3 text-[14px] text-cream-50 placeholder:text-cream-50/40 focus:outline-none",
@@ -366,7 +366,7 @@ export const PaymentPane = forwardRef<
             config.clinicOn &&
             !patient && (
               <p className="text-[12px] text-cream-50/70">
-                Attach the patient who owes this — press{" "}
+                Attach the patient who owes this: press{" "}
                 <kbd className="rounded-[4px] bg-sage-700 px-1 text-[11px]">F4</kbd>.
               </p>
             )

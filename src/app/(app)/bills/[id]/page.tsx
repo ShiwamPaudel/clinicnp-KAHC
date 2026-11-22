@@ -215,7 +215,7 @@ export default async function BillDetailPage({
                         </div>
                       )}
                     </TD>
-                    <TD className="text-sage-500">{l.doctorName || "—"}</TD>
+                    <TD className="text-sage-500">{l.doctorName || "-"}</TD>
                     <TD numeric>{l.qty}</TD>
                     <TD numeric>
                       {formatPaisa(l.ratePaisa, false)}

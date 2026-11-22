@@ -129,7 +129,7 @@ export function SampleQueue({ rows }: { rows: SampleView[] }) {
               <TR key={s.id}>
                 <TD>
                   <div className="font-mono text-[13px] font-semibold text-sage-900">{s.code}</div>
-                  <div className="text-[12px] text-sage-500">{s.sampleTypeName || "—"}</div>
+                  <div className="text-[12px] text-sage-500">{s.sampleTypeName || "-"}</div>
                   {s.urgent && <Badge tone="danger" className="mt-1">Urgent</Badge>}
                 </TD>
                 <TD>

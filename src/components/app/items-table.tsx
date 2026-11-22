@@ -161,7 +161,7 @@ export function ItemsTable({
                     </TD>
                     <TD>
                       {!defaultUnit ? (
-                        "—"
+                        "-"
                       ) : hasNoPrice(item.units) ? (
                         <span className="text-[13px] font-medium text-warn-600">
                           No price yet
@@ -173,7 +173,7 @@ export function ItemsTable({
                     <TD>
                       {item.units.length > 0
                         ? toMixedDisplay(sellable, item.units)
-                        : "—"}
+                        : "-"}
                     </TD>
                     <TD>
                       <div className="flex flex-wrap gap-1">

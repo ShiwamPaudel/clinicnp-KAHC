@@ -129,10 +129,10 @@ export function LabPartnersManager({ initial }: { initial: LabPartnerRow[] }) {
                       {p.name}
                     </Link>
                   </TD>
-                  <TD className="text-sage-500">{p.contactPerson || "—"}</TD>
-                  <TD className="font-mono text-[13px]">{p.phone || "—"}</TD>
-                  <TD className="font-mono text-[13px]">{p.panNo || "—"}</TD>
-                  <TD className="text-sage-500">{p.terms || "—"}</TD>
+                  <TD className="text-sage-500">{p.contactPerson || "-"}</TD>
+                  <TD className="font-mono text-[13px]">{p.phone || "-"}</TD>
+                  <TD className="font-mono text-[13px]">{p.panNo || "-"}</TD>
+                  <TD className="text-sage-500">{p.terms || "-"}</TD>
                   <TD>
                     <Link href={`/settings/lab-partners/${p.id}`} className="text-[13px] text-clinic-700 hover:underline">
                       Price list
@@ -144,7 +144,7 @@ export function LabPartnersManager({ initial }: { initial: LabPartnerRow[] }) {
                     )}
                   </TD>
                   <TD className="text-right font-mono tnum">
-                    {p.balancePaisa === 0 ? "—" : formatPaisa(p.balancePaisa)}
+                    {p.balancePaisa === 0 ? "-" : formatPaisa(p.balancePaisa)}
                   </TD>
                   <TD>
                     <Badge tone={p.active ? "ok" : "neutral"}>

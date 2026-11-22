@@ -118,7 +118,7 @@ export function StuckQueue({ isAdmin }: { isAdmin: boolean }) {
         title="These have not been sent"
       >
         <p className="mb-4 text-[14px] text-sage-700">
-          These have not gone through. Nothing has been lost — they are still on this machine.
+          These have not gone through. Nothing has been lost. They are still on this machine.
         </p>
 
         <ul className="flex flex-col gap-3">
@@ -150,7 +150,7 @@ export function StuckQueue({ isAdmin }: { isAdmin: boolean }) {
 
         {!isAdmin && (
           <p className="mt-4 text-[13px] text-sage-500">
-            Show this to the owner — only they can take something out of the
+            Show this to the owner. Only they can take something out of the
             queue.
           </p>
         )}

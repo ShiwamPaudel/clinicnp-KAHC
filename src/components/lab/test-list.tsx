@@ -114,8 +114,8 @@ export function TestList({ tests, departments }: { tests: TestRow[]; departments
                   </Link>
                   {t.shortCode && <div className="text-[12px] text-sage-500">{t.shortCode}</div>}
                 </TD>
-                <TD className="text-[13px] text-sage-700">{t.departmentName || "—"}</TD>
-                <TD className="text-[13px] text-sage-700">{t.sampleTypeName || "—"}</TD>
+                <TD className="text-[13px] text-sage-700">{t.departmentName || "-"}</TD>
+                <TD className="text-[13px] text-sage-700">{t.sampleTypeName || "-"}</TD>
                 <TD className="text-[13px] text-sage-700">{t.result}</TD>
                 <TD numeric>
                   {t.ratePaisa > 0 ? formatPaisa(t.ratePaisa) : <span className="text-[13px] text-warn-600">Not set</span>}

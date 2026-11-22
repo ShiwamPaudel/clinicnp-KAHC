@@ -75,7 +75,7 @@ function validate(input: PatientFormInput): string | null {
   if (input.dobAd == null) {
     if (input.ageValue == null || !input.ageUnit) return "Enter the patient's age.";
     if (!isSaneAge(input.ageValue, input.ageUnit)) {
-      return "Check the age — that doesn't look right.";
+      return "Check the age. That doesn't look right.";
     }
     if (!input.ageAsOfAd) return "Enter the patient's age.";
   }

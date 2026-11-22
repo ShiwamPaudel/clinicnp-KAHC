@@ -77,7 +77,7 @@ function partsOf(tokens: string[]): Parts | string {
   if (named.length > 1) return "Type one month only, e.g. Nov 29";
   if (named.length === 1) {
     const month = monthFromName(named[0]!);
-    if (month === null) return "Not a month — try Nov 29";
+    if (month === null) return "Not a month. Try Nov 29";
     const at = tokens.indexOf(named[0]!);
 
     if (nums.length === 1) {
@@ -156,7 +156,7 @@ export function parseTypedDate(text: string, monthOnly: MonthOnly): TypedDate {
   // The calendar covers AD dates up to about March 2034, so a year in the
   // eighties is a Nepali year typed by habit, not a far-off expiry.
   if (year >= 2035 && year <= 2100) {
-    return fail(`${year} is a Nepali year — type the English date`);
+    return fail(`${year} is a Nepali year. Type the English date`);
   }
   if (month < 1 || month > 12) return fail("The month must be 1 to 12");
   const last = daysInMonth(year, month);

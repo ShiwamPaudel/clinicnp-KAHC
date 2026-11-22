@@ -38,7 +38,7 @@ const openingSchema = z.object({
         batchNo: z.string().min(1, "Every line needs a batch number"),
         mfgDateBs: z.string(),
         expiryDateBs: z.string().min(1, "Every line needs an expiry date"),
-        qty: z.number().int().positive("Enter how many"),
+        qty: z.number().int().positive("Enter the quantity"),
         costPaisaPerUnit: z.number().int().min(0),
       }),
     )

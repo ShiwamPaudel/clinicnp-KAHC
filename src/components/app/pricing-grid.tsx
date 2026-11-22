@@ -238,7 +238,7 @@ export function PricingGrid({ items }: { items: PricingItem[] }) {
                           placeholder={
                             u.sellingRatePaisa > 0
                               ? String(paisaToRupees(u.sellingRatePaisa))
-                              : "—"
+                              : "-"
                           }
                           value={typed}
                           onChange={(e) =>

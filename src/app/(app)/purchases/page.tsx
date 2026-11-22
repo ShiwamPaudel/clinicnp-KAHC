@@ -62,9 +62,9 @@ export default async function PurchasesPage() {
           <tbody>
             {purchases.map((p) => (
               <TR key={p.id}>
-                <TD className="font-mono">{p.purchaseNo ?? "—"}</TD>
+                <TD className="font-mono">{p.purchaseNo ?? "-"}</TD>
                 <TD className="font-medium text-sage-900">{p.supplierName}</TD>
-                <TD>{p.supplierInvoiceNo || "—"}</TD>
+                <TD>{p.supplierInvoiceNo || "-"}</TD>
                 <TD>{p.dateBs}</TD>
                 <TD numeric>{formatPaisa(p.totalPaisa)}</TD>
                 <TD numeric>

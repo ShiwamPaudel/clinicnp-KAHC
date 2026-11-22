@@ -118,7 +118,7 @@ export async function createSaleReturn(input: SaleReturnInput): Promise<{
       throw new ClosedFiscalYearError();
     }
     fyId = open.id;
-    intoOpenYearNote = `Original invoice ${billRow.invoice_no ?? "—"} of ${billRow.bs_label ?? "an earlier year"}`;
+    intoOpenYearNote = `Original invoice ${billRow.invoice_no ?? "-"} of ${billRow.bs_label ?? "an earlier year"}`;
   }
 
   const returnId = ulid();

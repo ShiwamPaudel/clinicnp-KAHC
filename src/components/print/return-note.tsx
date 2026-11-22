@@ -27,7 +27,7 @@ export function ReturnNote({ data }: { data: ReturnNoteData }) {
       <div style={{ textAlign: "center" }}>
         <div className="shop-name">{c.name || "Pharmacy"}</div>
         {c.address && <div>{c.address}</div>}
-        <div style={{ fontWeight: 600 }}>PAN: {c.panNo || "—"}</div>
+        <div style={{ fontWeight: 600 }}>PAN: {c.panNo || "-"}</div>
       </div>
       <div className="dashed" />
       <div style={{ fontWeight: 700, textAlign: "center" }}>REFUND</div>

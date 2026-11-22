@@ -244,13 +244,13 @@ export const SearchBox = forwardRef<SearchBoxHandle, Props>(
 
     const placeholder = !bothKinds
       ? services.length > 0 && items.length === 0
-        ? "Search service — type a name, then Enter"
-        : "Search medicine — type a name, then Enter"
+        ? "Search service: type a name, then Enter"
+        : "Search medicine: type a name, then Enter"
       : effectiveScope === "medicine"
-        ? "Search medicines — F3 to widen"
+        ? "Search medicines (F3 to widen)"
         : effectiveScope === "service"
-          ? "Search services — F3 to widen"
-          : "Search medicine or service — type a name, then Enter";
+          ? "Search services (F3 to widen)"
+          : "Search medicine or service: type a name, then Enter";
 
     return (
       <div className="relative">

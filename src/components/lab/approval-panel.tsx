@@ -41,10 +41,10 @@ export function ResultValues({ result }: { result: OrderResult }) {
           <tr key={v.id} className="border-t border-line">
             <td className="px-4 py-1.5">{v.label}</td>
             <td className={cn("px-2 py-1.5 font-medium", v.flag !== "normal" && "text-danger-600")}>
-              {v.valueText || "—"} {flagSymbol(v.flag)}
+              {v.valueText || "-"} {flagSymbol(v.flag)}
             </td>
             <td className="px-2 py-1.5 text-sage-600">{v.unit}</td>
-            <td className="px-2 py-1.5 text-sage-600">{v.refText || "—"}</td>
+            <td className="px-2 py-1.5 text-sage-600">{v.refText || "-"}</td>
             <td className="px-4 py-1.5 text-sage-600">{v.remarks}</td>
           </tr>
         ))}
@@ -87,7 +87,7 @@ export function ApprovalPanel({
     start(async () => {
       const res = await approveOrderAction({ orderId, signatoryIds: chosen, interpretations: notes });
       if (!res.ok) return toast.error(res.userMessage ?? strings.somethingWentWrong);
-      toast.success(res.stillPending ? `Approved — ${res.stillPending} test(s) still to come` : "Approved — the report is ready");
+      toast.success(res.stillPending ? `Approved. ${res.stillPending} test(s) still to come` : "Approved. The report is ready");
       router.push("/lab/approval");
       router.refresh();
     });

@@ -100,16 +100,16 @@ export function FiscalYearsPanel({
                 </TD>
                 <TD>
                   {y.status === "open" ? (
-                    <Badge tone="ok">Open — current year</Badge>
+                    <Badge tone="ok">Open (current year)</Badge>
                   ) : (
                     <Badge tone="info">Closed</Badge>
                   )}
                 </TD>
                 <TD className="font-mono">
-                  {y.status === "open" ? y.nextInvoiceNo : "—"}
+                  {y.status === "open" ? y.nextInvoiceNo : "-"}
                 </TD>
                 <TD className="text-sage-500">
-                  {y.closedAt ? y.closedAt.slice(0, 10) : "—"}
+                  {y.closedAt ? y.closedAt.slice(0, 10) : "-"}
                 </TD>
               </TR>
             ))}
@@ -128,7 +128,7 @@ export function FiscalYearsPanel({
         <div className="text-[14px] leading-[1.5] text-sage-900">
           <p>Here&apos;s what happens, in order:</p>
           <ol className="mt-2 list-decimal space-y-1 pl-5 text-sage-500">
-            <li>Any bill still waiting to be sent stops this — nothing is lost.</li>
+            <li>Any bill still waiting to be sent stops this. Nothing is lost.</li>
             {backupsKept ? (
               <li>
                 A backup is saved first, and kept in Settings → Backup. If it
@@ -198,7 +198,7 @@ export function FiscalYearsPanel({
             {done?.opened} is now the current year.
           </p>
           <p className="text-sage-500">
-            {done?.closed} is closed — you can still read and print it.
+            {done?.closed} is closed. You can still read and print it.
             Invoice numbers start again at 1.
           </p>
           {done?.backup ? (

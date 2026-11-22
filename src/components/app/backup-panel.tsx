@@ -72,7 +72,7 @@ export function BackupPanel({
         | undefined;
       if (f && f.expected > 0 && f.found < f.expected) {
         toast.error(
-          `Restored. ${f.found} of ${f.expected} patient files were found — ${f.missing} could not be.`,
+          `Restored. ${f.found} of ${f.expected} patient files were found. ${f.missing} could not be.`,
         );
       } else if (f && f.expected > 0) {
         toast.success(

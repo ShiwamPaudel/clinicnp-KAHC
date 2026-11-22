@@ -126,7 +126,7 @@ export function parseItemRow(row: {
     error: { rowNumber: row.rowNumber, label, message },
   });
 
-  if (!brandName) return fail("brand_name is empty — every item needs a name.");
+  if (!brandName) return fail("brand_name is empty. Every item needs a name.");
 
   const rawCategory = row.get("category").trim();
   const category = CATEGORIES.find(
@@ -134,7 +134,7 @@ export function parseItemRow(row: {
   );
   if (!category) {
     return fail(
-      `category is "${rawCategory}" — it must be Medicine, Consumable or Other.`,
+      `category is "${rawCategory}". It must be Medicine, Consumable or Other.`,
     );
   }
 
@@ -147,7 +147,7 @@ export function parseItemRow(row: {
 
   const controlled = readYesNo(row.get("controlled"));
   if (controlled === null) {
-    return fail(`controlled is "${row.get("controlled")}" — write Yes or No.`);
+    return fail(`controlled is "${row.get("controlled")}". Write Yes or No.`);
   }
 
   const minStock = readInt(row.get("reorder_level_base"), 0);
@@ -158,7 +158,7 @@ export function parseItemRow(row: {
   // --- units -------------------------------------------------------------
   const u1Name = row.get("unit1_name").trim();
   if (!u1Name) {
-    return fail("unit1_name is empty — every item needs its smallest unit.");
+    return fail("unit1_name is empty. Every item needs its smallest unit.");
   }
   const u1Rate = readRupees(row.get("unit1_rate"));
   if (u1Rate === null) return fail("unit1_rate is not a plain number of rupees.");
@@ -197,13 +197,13 @@ export function parseItemRow(row: {
   if (u3Name) {
     if (!u2Name) {
       return fail(
-        `unit3_name is "${u3Name}" but unit2_name is empty — a box has to be a box of something.`,
+        `unit3_name is "${u3Name}" but unit2_name is empty. A box has to be a box of something.`,
       );
     }
     const per = readInt(row.get("unit3_per_unit2"), null);
     if (per === null || per < 2) {
       return fail(
-        `unit3_per_unit2 must say how many ${u2Name.toLowerCase()}s make one ${u3Name.toLowerCase()} (2 or more) — not how many ${u1Name.toLowerCase()}s.`,
+        `unit3_per_unit2 must say how many ${u2Name.toLowerCase()}s make one ${u3Name.toLowerCase()} (2 or more), not how many ${u1Name.toLowerCase()}s.`,
       );
     }
     const rate = readRupees(row.get("unit3_rate"));

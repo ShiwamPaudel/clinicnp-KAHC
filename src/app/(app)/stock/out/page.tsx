@@ -126,7 +126,7 @@ export default async function StockOutRegisterPage({
                       >
                         {r.adjustmentNo != null
                           ? `SO-${r.fiscalLabel}-${String(r.adjustmentNo).padStart(6, "0")}`
-                          : "—"}
+                          : "-"}
                       </Link>
                     </TD>
                     <TD>{r.dateBs}</TD>
@@ -136,7 +136,7 @@ export default async function StockOutRegisterPage({
                         {r.direction === "in" ? " · added back" : ""}
                       </Badge>
                     </TD>
-                    <TD>{r.supplierName ?? "—"}</TD>
+                    <TD>{r.supplierName ?? "-"}</TD>
                     <TD numeric>{r.lineCount}</TD>
                     <TD numeric>{formatPaisa(r.totalCostPaisa)}</TD>
                     <TD className="text-sage-500">{r.userName}</TD>

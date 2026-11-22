@@ -98,7 +98,7 @@ export class DoubleBookedError extends Error {
   constructor(clashWith: string) {
     super("double booked");
     this.name = "DoubleBookedError";
-    this.userMessage = `That time is already taken — ${clashWith} is booked in then. Pick another time.`;
+    this.userMessage = `That time is already taken. ${clashWith} is booked in then. Pick another time.`;
   }
 }
 

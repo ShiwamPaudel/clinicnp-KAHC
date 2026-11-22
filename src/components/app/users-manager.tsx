@@ -84,7 +84,7 @@ export function UsersManager({
   async function toggleActive(u: User) {
     const res = await updateUserAction({ id: u.id, active: !u.active });
     if (res.ok) {
-      toast.success(u.active ? "Switched off — they can no longer sign in" : "Switched on");
+      toast.success(u.active ? "Switched off. They can no longer sign in" : "Switched on");
       router.refresh();
     } else {
       toast.error(res.userMessage ?? strings.somethingWentWrong);
@@ -236,7 +236,7 @@ function UserFields({
             onChange={(e) => set("password", e.target.value)}
           />
         </Field>
-        <Field label={strings.role} hint="What they can see and do — see Roles">
+        <Field label={strings.role} hint="What they can see and do (see Roles)">
           <Select value={form.roleId} onChange={(e) => set("roleId", e.target.value)}>
             {roles.map((r) => (
               <option key={r.id} value={r.id}>

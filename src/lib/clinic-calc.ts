@@ -86,8 +86,8 @@ export function resolveFollowup(
     daysSince,
     note:
       rate === 0
-        ? `Follow-up within ${service.followupDays} days — no charge.`
-        : `Follow-up within ${service.followupDays} days — reduced rate.`,
+        ? `Follow-up within ${service.followupDays} days: no charge.`
+        : `Follow-up within ${service.followupDays} days: reduced rate.`,
   };
 }
 

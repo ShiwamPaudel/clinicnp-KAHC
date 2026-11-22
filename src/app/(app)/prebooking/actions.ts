@@ -4,13 +4,16 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertPermission, NotAuthorizedError } from "@/lib/session";
 import { requireAnyModule, ModuleDisabledError } from "@/lib/modules";
-import { db } from "@/lib/db";
 import { adToIso, toAD, bsFromDbText, bsToDbText, today } from "@/lib/bs";
 import { recordAudit } from "@/lib/repos/audit";
+import { createPatient, getPatient, type Patient } from "@/lib/repos/patients";
+import { isSaneAge } from "@/lib/age";
+import type { DraftPatient } from "@/components/clinic/patient-picker";
 import { ClosedFiscalYearError } from "@/lib/repos/fiscal";
 import {
   PrebookingProblem,
   bookingForAppointment,
+  checkTestBooking,
   closePrebooking,
   createTestBooking,
   receiveAdvance,
@@ -49,8 +52,8 @@ const DATE = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date");
 
 const bookingSchema = z.object({
   id: z.string().optional(),
-  name: z.string().trim().min(2, "Enter the patient's name").max(120),
-  phone: z.string().trim().max(30),
+  /** a registered patient's id, or "new" with the details alongside */
+  patientId: z.string().min(1, "Find the patient, or register them"),
   dateBs: DATE,
   timeHhmm: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Choose the time they will come"),
   note: z.string().trim().max(300),
@@ -58,29 +61,47 @@ const bookingSchema = z.object({
 });
 
 /**
- * A registered patient with this phone and name, if there is exactly one —
- * so a returning patient's booking is already theirs at the counter.
+ * Every booking is for a registered patient, so "Issue bill" opens the counter
+ * with them already on it. The front desk searches first; someone who has
+ * never been here is registered from the booking dialog itself.
  */
-async function matchPatient(name: string, phone: string): Promise<string | null> {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length < 7) return null;
-  const res = await db().execute({
-    sql: "SELECT id FROM patients WHERE phone = ? AND LOWER(TRIM(name)) = LOWER(TRIM(?)) LIMIT 2",
-    args: [phone.trim(), name],
-  });
-  return res.rows.length === 1 ? (res.rows[0]!.id as string) : null;
-}
-
-export async function saveTestBookingAction(input: unknown): Promise<PrebookingActionResult> {
+export async function saveTestBookingAction(input: unknown, newPatient?: DraftPatient): Promise<PrebookingActionResult> {
   try {
     const user = await guard();
     const parsed = bookingSchema.safeParse(input);
     if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Please check the details.");
     const d = parsed.data;
+
+    let patient: Patient;
+    if (d.patientId === "new") {
+      if (!newPatient || newPatient.name.trim().length < 2) return fail("Enter the patient's name.");
+      if (newPatient.ageValue != null && newPatient.ageUnit != null && !isSaneAge(newPatient.ageValue, newPatient.ageUnit)) {
+        return fail("Check the age.");
+      }
+      // the booking must be sure to save before anyone is registered for it
+      await checkTestBooking(d);
+      const todayAd = adToIso(new Date());
+      patient = await createPatient({
+        name: newPatient.name.trim(),
+        sex: newPatient.sex,
+        ageValue: newPatient.ageValue,
+        ageUnit: newPatient.ageUnit,
+        ageAsOfAd: newPatient.ageValue != null ? todayAd : null,
+        dobAd: null,
+        phone: newPatient.phone.trim(),
+        address: newPatient.address.trim(),
+        userId: user.id,
+      });
+    } else {
+      const found = await getPatient(d.patientId);
+      if (!found) return fail("That patient record is no longer there. Search again.");
+      patient = found;
+    }
+
     const data = {
-      name: d.name,
-      phone: d.phone,
-      patientId: await matchPatient(d.name, d.phone),
+      name: patient.name,
+      phone: patient.phone,
+      patientId: patient.id,
       dateAd: toIso(d.dateBs),
       dateBs: d.dateBs,
       timeHhmm: d.timeHhmm,
@@ -91,10 +112,10 @@ export async function saveTestBookingAction(input: unknown): Promise<PrebookingA
     let id = d.id;
     if (id) {
       await updateTestBooking(id, data);
-      await recordAudit(user.id, "prebooking.updated", { entity: "prebooking", entityId: id, detail: d.name });
+      await recordAudit(user.id, "prebooking.updated", { entity: "prebooking", entityId: id, detail: patient.name });
     } else {
       id = await createTestBooking(data);
-      await recordAudit(user.id, "prebooking.created", { entity: "prebooking", entityId: id, detail: d.name });
+      await recordAudit(user.id, "prebooking.created", { entity: "prebooking", entityId: id, detail: patient.name });
     }
     revalidatePath("/prebooking");
     return { ok: true, id };

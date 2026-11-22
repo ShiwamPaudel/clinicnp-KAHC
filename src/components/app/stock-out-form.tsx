@@ -307,7 +307,7 @@ export function StockOutForm({
 
                     <label className="flex min-w-[240px] flex-1 flex-col gap-1">
                       <span className="text-[12px] text-sage-500">
-                        Batch — nearest expiry first
+                        Batch (nearest expiry first)
                       </span>
                       <select
                         value={line.batchId}

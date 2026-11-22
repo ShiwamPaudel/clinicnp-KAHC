@@ -342,7 +342,7 @@ export function TestEditor({
           <div className="sm:col-span-2">
             <Field label="Department">
               <Select value={form.departmentId} onChange={(e) => set({ departmentId: e.target.value })}>
-                <option value="">—</option>
+                <option value="">-</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
@@ -437,7 +437,7 @@ export function TestEditor({
                     {p.resultType === "select" ? (
                       <ChoicesInput value={p.options} onChange={(options) => setP(p.key, { options })} />
                     ) : (
-                      <span className="hidden h-10 items-center text-[13px] text-sage-300 sm:flex">—</span>
+                      <span className="hidden h-10 items-center text-[13px] text-sage-300 sm:flex">-</span>
                     )}
                     <div className="flex justify-end gap-0.5">
                       <Button variant="ghost" aria-label="Move up" disabled={i === 0} onClick={() => moveP(i, -1)}>

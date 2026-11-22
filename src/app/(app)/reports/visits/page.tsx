@@ -59,7 +59,7 @@ export default async function VisitRegisterPage({
                   <TD className="font-mono text-[13px] text-clinic-700">
                     {r.visitNo != null
                       ? `V-${r.fiscalLabel}-${String(r.visitNo).padStart(6, "0")}`
-                      : "—"}
+                      : "-"}
                   </TD>
                   <TD>
                     <Link href={`/visits/${r.visitId}`} className="hover:underline">
@@ -72,8 +72,8 @@ export default async function VisitRegisterPage({
                     </Link>
                   </TD>
                   <TD>{VISIT_TYPE_LABEL[r.type as VisitType] ?? r.type}</TD>
-                  <TD className="text-sage-500">{r.department || "—"}</TD>
-                  <TD className="text-sage-500">{r.doctorName || "—"}</TD>
+                  <TD className="text-sage-500">{r.department || "-"}</TD>
+                  <TD className="text-sage-500">{r.doctorName || "-"}</TD>
                   <TD>
                     <Badge tone={r.status === "cancelled" ? "danger" : "neutral"}>
                       {VISIT_STATUS_LABEL[r.status as VisitStatus] ?? r.status}

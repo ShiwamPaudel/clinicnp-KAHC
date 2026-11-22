@@ -52,7 +52,7 @@ export default async function ItemDetailPage({
   const keptAt =
     rack && location.row !== null && location.col !== null
       ? cellLabel(rack.name, location.row, location.col)
-      : location.note || "—";
+      : location.note || "-";
 
   return (
     <PageShell
@@ -69,7 +69,7 @@ export default async function ItemDetailPage({
       <div className="flex flex-col gap-6">
         <section className="rounded-[10px] border border-line bg-cream-50 p-6">
           <div className="grid gap-3 sm:grid-cols-2">
-            <Detail label="Generic" value={item.genericName || "—"} />
+            <Detail label="Generic" value={item.genericName || "-"} />
             <Detail label="Category" value={item.category} />
             <Detail label="Kept at" value={keptAt} />
           </div>

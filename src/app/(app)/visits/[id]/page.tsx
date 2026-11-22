@@ -13,7 +13,7 @@ import { PrintButton } from "@/components/app/print-button";
 import { VisitDetail } from "@/components/clinic/visit-detail";
 import { OpdSlip } from "@/components/print/opd-slip";
 
-const SEX_SHORT: Record<string, string> = { f: "F", m: "M", o: "—" };
+const SEX_SHORT: Record<string, string> = { f: "F", m: "M", o: "-" };
 
 export default async function VisitDetailPage({
   params,
@@ -75,7 +75,7 @@ export default async function VisitDetailPage({
               {visit.patientName}
             </Link>
             <span className="text-[14px] text-clinic-150">
-              {age.short} · {SEX_SHORT[visit.patientSex] ?? "—"}
+              {age.short} · {SEX_SHORT[visit.patientSex] ?? "-"}
             </span>
             <span className="ml-auto font-mono text-[13px] text-clinic-150">
               {visit.dateBs}
@@ -119,7 +119,7 @@ export default async function VisitDetailPage({
             },
             patientLabel: label,
             patientName: visit.patientName,
-            ageSex: `${age.short} / ${SEX_SHORT[visit.patientSex] ?? "—"}`,
+            ageSex: `${age.short} / ${SEX_SHORT[visit.patientSex] ?? "-"}`,
             visitLabel,
             dateBsLong: formatBS(bsFromDbText(visit.dateBs), {
               form: "long",

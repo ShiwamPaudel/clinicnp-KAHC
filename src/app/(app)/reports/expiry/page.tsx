@@ -143,7 +143,7 @@ export default async function ExpiryReportPage({
                   <TD className="text-sage-600">
                     {shelfByItem.get(b.itemId)?.label ??
                       shelfNoteByItem.get(b.itemId) ??
-                      "—"}
+                      "-"}
                   </TD>
                 )}
                 <TD className="font-mono">{b.batchNo}</TD>

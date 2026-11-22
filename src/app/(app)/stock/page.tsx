@@ -101,7 +101,7 @@ export default async function CurrentStockPage() {
                             form: "long",
                             monthScript: "en",
                           })
-                        : "—"}
+                        : "-"}
                     </TD>
                     <TD numeric>{formatPaisa(s?.costValuePaisa ?? 0)}</TD>
                   </TR>

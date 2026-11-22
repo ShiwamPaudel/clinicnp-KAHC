@@ -22,6 +22,7 @@ import { formatPaisa, toPaisa } from "@/lib/money";
 import { formatTime, APPOINTMENT_STATUS_LABEL, type AppointmentStatus } from "@/lib/appointment-types";
 import { PREBOOKING_STATUS_LABEL, type PrebookingStatus } from "@/lib/prebooking-format";
 import { strings } from "@/lib/strings";
+import { PatientPicker, type FoundPatient, type DraftPatient } from "@/components/clinic/patient-picker";
 import { cn } from "@/lib/cn";
 
 interface ReceiptRow {
@@ -37,6 +38,8 @@ export interface TestRow {
   name: string;
   phone: string;
   patientNo: number | null;
+  /** the registered patient; null only on bookings made before every booking needed one */
+  patient: FoundPatient | null;
   note: string;
   status: PrebookingStatus;
   billId: string | null;
@@ -115,12 +118,12 @@ export function PrebookingBoard({
 }) {
   const router = useRouter();
   const toast = useToast();
-  const [booking, setBooking] = useState<null | { id?: string; name: string; phone: string; dateBs: string; timeHhmm: string; note: string; serviceIds: string[] }>(null);
+  const [booking, setBooking] = useState<null | BookingForm>(null);
   const [advanceFor, setAdvanceFor] = useState<Target | null>(null);
   const [closeFor, setCloseFor] = useState<Target | null>(null);
   const [opening, setOpening] = useState<string | null>(null);
 
-  const newBooking = () => setBooking({ name: "", phone: "", dateBs, timeHhmm: "08:00", note: "", serviceIds: [] });
+  const newBooking = () => setBooking({ name: "", phone: "", patient: null, dateBs, timeHhmm: "08:00", note: "", serviceIds: [] });
 
   async function issueConsultation(c: ConsultationRow) {
     setOpening(c.appointmentId);
@@ -209,7 +212,7 @@ export function PrebookingBoard({
                                 className="h-9 px-2"
                                 aria-label="Change"
                                 onClick={() =>
-                                  setBooking({ id: t.id, name: t.name, phone: t.phone, dateBs: t.dateBs, timeHhmm: t.timeHhmm, note: t.note, serviceIds: t.items.map((i) => i.serviceId) })
+                                  setBooking({ id: t.id, name: t.name, phone: t.phone, patient: t.patient, dateBs: t.dateBs, timeHhmm: t.timeHhmm, note: t.note, serviceIds: t.items.map((i) => i.serviceId) })
                                 }
                               >
                                 <Pencil className="h-4 w-4" />
@@ -331,7 +334,7 @@ export function PrebookingBoard({
 }
 
 function Advance({ inHand, receipts }: { inHand: number; receipts: ReceiptRow[] }) {
-  if (receipts.length === 0) return <span className="text-sage-300">—</span>;
+  if (receipts.length === 0) return <span className="text-sage-300">-</span>;
   return (
     <div className="flex flex-col items-end gap-0.5">
       <span className="font-semibold tnum text-sage-900">{formatPaisa(inHand)}</span>
@@ -345,19 +348,33 @@ function Advance({ inHand, receipts }: { inHand: number; receipts: ReceiptRow[] 
   );
 }
 
+interface BookingForm {
+  id?: string;
+  /** as the booking was saved: shown when changing an old booking that has no patient yet */
+  name: string;
+  phone: string;
+  patient: FoundPatient | null;
+  dateBs: string;
+  timeHhmm: string;
+  note: string;
+  serviceIds: string[];
+}
+
 function BookingDialog({
   initial,
   services,
   onClose,
   onSaved,
 }: {
-  initial: { id?: string; name: string; phone: string; dateBs: string; timeHhmm: string; note: string; serviceIds: string[] };
+  initial: BookingForm;
   services: ServiceOption[];
   onClose: () => void;
   onSaved: () => void;
 }) {
   const toast = useToast();
   const [f, setF] = useState(initial);
+  const [chosen, setChosen] = useState<FoundPatient | null>(initial.patient);
+  const [draft, setDraft] = useState<DraftPatient | null>(null);
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const byId = useMemo(() => new Map(services.map((s) => [s.id, s])), [services]);
@@ -370,7 +387,17 @@ function BookingDialog({
 
   async function save() {
     setBusy(true);
-    const res = await saveTestBookingAction(f);
+    const res = await saveTestBookingAction(
+      {
+        id: f.id,
+        patientId: chosen ? chosen.id : draft ? "new" : "",
+        dateBs: f.dateBs,
+        timeHhmm: f.timeHhmm,
+        note: f.note,
+        serviceIds: f.serviceIds,
+      },
+      chosen ? undefined : (draft ?? undefined),
+    );
     setBusy(false);
     if (!res.ok) {
       toast.error(res.userMessage ?? strings.somethingWentWrong);
@@ -384,27 +411,39 @@ function BookingDialog({
     <Dialog
       open
       onClose={onClose}
-      title={f.id ? `Change booking — ${initial.name}` : "Book tests"}
+      title={f.id ? `Change booking: ${initial.name}` : "Book tests"}
       className="max-w-2xl"
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
             {strings.cancel}
           </Button>
-          <Button onClick={save} disabled={busy}>
+          <Button onClick={save} disabled={busy || (!chosen && !draft?.name.trim())}>
             {busy ? "Saving…" : "Save booking"}
           </Button>
         </>
       }
     >
-      <div className="flex flex-col gap-4">
+      <div className="-mr-2 flex max-h-[68vh] flex-col gap-4 overflow-y-auto pr-2">
+        {f.id && !initial.patient && !chosen && !draft && (
+          <p className="rounded-[8px] bg-cream-200 px-3 py-2 text-[13px] text-sage-700">
+            Booked as <span className="font-semibold">{initial.name}</span>
+            {initial.phone ? ` · ${initial.phone}` : ""}. Find them or register them.
+          </p>
+        )}
+        <PatientPicker
+          chosen={chosen}
+          draft={draft}
+          onChoose={(p) => {
+            setChosen(p);
+            if (p) setDraft(null);
+          }}
+          onDraftChange={(d) => {
+            setDraft(d);
+            if (d) setChosen(null);
+          }}
+        />
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Patient name">
-            <Input autoFocus value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-          </Field>
-          <Field label="Phone">
-            <Input inputMode="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
-          </Field>
           <Field label="Date">
             <DatePickerBS value={f.dateBs} onChange={(v) => setF({ ...f, dateBs: v })} />
           </Field>
@@ -427,7 +466,7 @@ function BookingDialog({
               }}
             />
             {matches.length > 0 && (
-              <ul className="absolute z-40 mt-1 w-full overflow-hidden rounded-[8px] border border-line bg-cream-50 shadow-[0_4px_12px_rgb(22_36_27_/_8%)]">
+              <ul className="mt-1 w-full overflow-hidden rounded-[8px] border border-line bg-cream-50">
                 {matches.map((m) => (
                   <li key={m.id}>
                     <button
@@ -453,7 +492,7 @@ function BookingDialog({
           <div className="flex flex-wrap items-center gap-1.5">
             {f.serviceIds.map((id) => (
               <span key={id} className="flex items-center gap-1 rounded-[999px] bg-sage-150 py-1 pl-3 pr-1 text-[13px] text-sage-900">
-                {byId.get(id)?.name ?? "—"}
+                {byId.get(id)?.name ?? "-"}
                 <button
                   type="button"
                   aria-label="Remove"
@@ -519,7 +558,7 @@ function AdvanceDialog({ target, onClose, onSaved }: { target: Target; onClose: 
     <Dialog
       open
       onClose={onClose}
-      title={`Advance — ${target.name}`}
+      title={`Advance: ${target.name}`}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
@@ -565,7 +604,7 @@ function CloseDialog({ target, onClose, onSaved }: { target: Target; onClose: ()
     <Dialog
       open
       onClose={onClose}
-      title={`Close booking — ${target.name}`}
+      title={`Close booking: ${target.name}`}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>

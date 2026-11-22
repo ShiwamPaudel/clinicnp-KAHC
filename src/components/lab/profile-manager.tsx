@@ -155,7 +155,7 @@ export function ProfileManager({ profiles, tests, departments }: { profiles: Lab
               </Field>
               <Field label="Section">
                 <Select value={form.departmentId} onChange={(e) => set({ departmentId: e.target.value })}>
-                  <option value="">—</option>
+                  <option value="">-</option>
                   {departments.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.name}

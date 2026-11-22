@@ -16,6 +16,7 @@ import { ulid } from "ulid";
 import type { Transaction } from "@libsql/client";
 import { db } from "@/lib/db";
 import type { Row, InStatement } from "@/lib/db";
+import type { AgeEntry } from "@/lib/age";
 import { ClosedFiscalYearError } from "@/lib/repos/fiscal";
 import {
   advanceAgainst,
@@ -58,6 +59,8 @@ export interface Prebooking {
   appointmentId: string | null;
   patientId: string | null;
   patientNo: number | null;
+  /** the registered patient as they are now (the booking keeps its own copy of name and phone) */
+  patient: { id: string; patientNo: number | null; name: string; sex: "f" | "m" | "o"; phone: string; age: AgeEntry } | null;
   name: string;
   phone: string;
   dateAd: string;
@@ -79,7 +82,9 @@ export interface Prebooking {
 }
 
 const BASE = `
-  SELECT p.*, pt.patient_no, b.invoice_no AS bill_no, d.name AS doctor_name
+  SELECT p.*, pt.patient_no, pt.name AS pt_name, pt.sex AS pt_sex, pt.phone AS pt_phone,
+         pt.age_value AS pt_age_value, pt.age_unit AS pt_age_unit, pt.age_as_of_ad AS pt_age_as_of_ad, pt.dob_ad AS pt_dob_ad,
+         b.invoice_no AS bill_no, d.name AS doctor_name
     FROM prebookings p
     LEFT JOIN patients pt ON pt.id = p.patient_id
     LEFT JOIN bills b ON b.id = p.bill_id
@@ -162,6 +167,22 @@ async function hydrate(rows: Row[]): Promise<Prebooking[]> {
       appointmentId: (r.appointment_id as string | null) ?? null,
       patientId: (r.patient_id as string | null) ?? null,
       patientNo: r.patient_no != null ? Number(r.patient_no) : null,
+      patient:
+        r.patient_id != null && r.pt_name != null
+          ? {
+              id: r.patient_id as string,
+              patientNo: r.patient_no != null ? Number(r.patient_no) : null,
+              name: r.pt_name as string,
+              sex: (r.pt_sex as "f" | "m" | "o") ?? "o",
+              phone: (r.pt_phone as string) ?? "",
+              age: {
+                value: r.pt_age_value != null ? Number(r.pt_age_value) : null,
+                unit: (r.pt_age_unit as AgeEntry["unit"]) ?? null,
+                asOfAd: (r.pt_age_as_of_ad as string | null) ?? null,
+                dobAd: (r.pt_dob_ad as string | null) ?? null,
+              },
+            }
+          : null,
       name: r.name as string,
       phone: (r.phone as string) ?? "",
       dateAd: r.date_ad as string,
@@ -243,7 +264,7 @@ export interface TestBookingInput {
   userId: string;
 }
 
-async function itemStatements(prebookingId: string, serviceIds: string[]): Promise<InStatement[]> {
+async function bookableNames(serviceIds: string[]): Promise<Map<string, string>> {
   const ids = [...new Set(serviceIds)];
   if (ids.length === 0) throw new PrebookingProblem("Choose at least one test or service.");
   const res = await db().execute({
@@ -252,6 +273,22 @@ async function itemStatements(prebookingId: string, serviceIds: string[]): Promi
   });
   const names = new Map(res.rows.map((r) => [r.id as string, r.name as string]));
   if (names.size !== ids.length) throw new PrebookingProblem("One of those tests or services is no longer billed. Choose again.");
+  return names;
+}
+
+/**
+ * Everything a test booking is checked for, without saving it — so a patient
+ * registered from the booking dialog is only created once the booking itself
+ * is sure to go through.
+ */
+export async function checkTestBooking(input: { timeHhmm: string; serviceIds: string[] }): Promise<void> {
+  if (!HHMM.test(input.timeHhmm)) throw new PrebookingProblem("Choose the time they will come.");
+  await bookableNames(input.serviceIds);
+}
+
+async function itemStatements(prebookingId: string, serviceIds: string[]): Promise<InStatement[]> {
+  const ids = [...new Set(serviceIds)];
+  const names = await bookableNames(ids);
   return [
     { sql: "DELETE FROM prebooking_items WHERE prebooking_id = ?", args: [prebookingId] },
     ...ids.map((sid, i) => ({

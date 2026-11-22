@@ -46,7 +46,7 @@ export function DoctorCard({
         </div>
         <div className="truncate text-[13px] text-sage-500">
           {[doctor.specialty, doctor.qualification].filter(Boolean).join(" · ") ||
-            "—"}
+            "-"}
         </div>
         <div className="pt-2 text-[13px] text-sage-600">
           {booked === 0 ? (

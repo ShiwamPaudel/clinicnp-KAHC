@@ -31,7 +31,7 @@ export function BatchPicker({
     .sort((a, b) => (a.expiryDateAd < b.expiryDateAd ? -1 : 1));
 
   return (
-    <Dialog open={open} onClose={onClose} title={`Choose batch — ${item.brandName}`}>
+    <Dialog open={open} onClose={onClose} title={`Choose batch: ${item.brandName}`}>
       <div className="flex flex-col gap-2">
         <p className="text-[13px] text-sage-500">
           The nearest-expiry batch is picked automatically. 

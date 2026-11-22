@@ -126,7 +126,7 @@ export function CompanyForm({ initial }: { initial: Company }) {
           >
             <Select id="rackDisplay" {...register("rackDisplay")}>
               <option value="off">Do not show</option>
-              <option value="text">Write the shelf out — Rack 1 · R2C3</option>
+              <option value="text">Write the shelf out (Rack 1 · R2C3)</option>
               <option value="visual">Show the racks and light up the shelf</option>
             </Select>
           </Field>

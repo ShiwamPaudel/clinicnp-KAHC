@@ -64,7 +64,7 @@ export default async function SaleReturnPage({
     serviceLines.length > 0 && bill.lines.length === 0 ? "Refund" : "Return";
 
   return (
-    <PageShell title={`${heading} — ${invoiceLabel}`}>
+    <PageShell title={`${heading}: ${invoiceLabel}`}>
       <SaleReturnForm
         billId={id}
         invoiceLabel={invoiceLabel}

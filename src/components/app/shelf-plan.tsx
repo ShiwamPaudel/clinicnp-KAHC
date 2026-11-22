@@ -228,7 +228,7 @@ export function ShelfPlan({
                 ref={addRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Put something here — type a medicine name"
+                placeholder="Put something here: type a medicine name"
                 aria-label={`Put an item on ${rack.name} row ${selected.row} column ${selected.col}`}
                 className="border-0 px-0 focus-visible:ring-0"
               />

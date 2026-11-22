@@ -228,7 +228,7 @@ export function ResultEntry({
                                 onChange={(e) => setValue(r.id, key, { value: e.target.value })}
                                 className="w-44"
                               >
-                                <option value="">—</option>
+                                <option value="">-</option>
                                 {f.options.map((o) => (
                                   <option key={o} value={o}>
                                     {o}
@@ -252,7 +252,7 @@ export function ResultEntry({
                           </div>
                         </td>
                         <td className="px-2 py-2 text-sage-600">{f.unit}</td>
-                        <td className="px-2 py-2 text-sage-600">{f.refText || "—"}</td>
+                        <td className="px-2 py-2 text-sage-600">{f.refText || "-"}</td>
                         <td className="px-4 py-2">
                           <Input
                             onKeyDown={enterToNextResult}

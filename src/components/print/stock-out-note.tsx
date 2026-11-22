@@ -37,7 +37,7 @@ export function StockOutNote({ data }: { data: StockOutNoteData }) {
         <div className="shop-name">{c.name || "Pharmacy"}</div>
         {c.address && <div>{c.address}</div>}
         {c.phone && <div>Ph: {c.phone}</div>}
-        <div style={{ fontWeight: 600 }}>PAN: {c.panNo || "—"}</div>
+        <div style={{ fontWeight: 600 }}>PAN: {c.panNo || "-"}</div>
       </div>
 
       <div className="dashed" />

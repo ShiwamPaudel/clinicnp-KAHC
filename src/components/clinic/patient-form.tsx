@@ -291,7 +291,7 @@ export function PatientForm({
                   href={`/patients/${d.id}`}
                   className="font-mono text-clinic-700 hover:underline"
                 >
-                  {d.patientNo != null ? formatPatientNo(d.patientNo) : "—"}
+                  {d.patientNo != null ? formatPatientNo(d.patientNo) : "-"}
                 </Link>{" "}
                 <span className="font-medium">{d.name}</span>
                 <span className="text-sage-500">
@@ -305,7 +305,7 @@ export function PatientForm({
             ))}
           </ul>
           <p className="mt-2 text-[12px] text-sage-500">
-            If it&apos;s someone else, carry on — you can save anyway.
+            If it&apos;s someone else, carry on. You can save anyway.
           </p>
         </div>
       )}

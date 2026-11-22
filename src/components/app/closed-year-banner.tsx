@@ -11,7 +11,7 @@ export function ClosedYearBanner({ label }: { label: string }) {
       <Info className="mt-0.5 h-4 w-4 shrink-0" />
       <p>
         You&apos;re looking at <span className="font-semibold">{label}</span>.
-        This year is closed — you can read and print, but not change anything.
+        This year is closed. You can read and print, but not change anything.
       </p>
     </div>
   );

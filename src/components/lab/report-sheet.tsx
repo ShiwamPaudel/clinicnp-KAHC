@@ -85,7 +85,7 @@ function Line({ label, value, right }: { label: string; value: string; right?: b
   return (
     <div style={{ textAlign: right ? "right" : "left" }}>
       <span style={{ color: MUTED }}>{label}: </span>
-      <span style={{ fontWeight: 600 }}>{value || "—"}</span>
+      <span style={{ fontWeight: 600 }}>{value || "-"}</span>
     </div>
   );
 }
@@ -103,7 +103,7 @@ function ValueRow({ v, label, indent, showUnit, showRange }: { v: ResultValueVie
     <tr style={{ breakInside: "avoid" }}>
       <td style={{ padding: `1px 0 1px ${indent * 4}mm` }}>{label}</td>
       <td style={{ padding: "1px 0", fontWeight: flagged ? 700 : 500 }}>
-        {v.valueText || "—"}
+        {v.valueText || "-"}
         {flagged && <span style={{ marginLeft: 4 }}>{flagSymbol(v.flag)}</span>}
       </td>
       {showUnit && <td style={{ padding: "1px 0", color: MUTED }}>{v.unit}</td>}

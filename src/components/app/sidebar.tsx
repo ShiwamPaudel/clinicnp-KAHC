@@ -66,7 +66,7 @@ export function Sidebar({
       className={cn(
         "flex h-full shrink-0 flex-col bg-sage-900 py-4 text-cream-50 transition-[width] duration-200",
         // Wide enough for two columns of menu items (see Nav).
-        collapsed ? "w-[68px] px-2" : "w-[264px] px-3",
+        collapsed ? "w-[68px] px-2" : "w-[288px] px-3",
       )}
     >
       <div

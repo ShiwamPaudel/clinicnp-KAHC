@@ -153,7 +153,7 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
               {order.history.map((h2, i) => (
                 <li key={`h${i}`}>
                   {ACTION[h2.action] ?? h2.action}: {h2.testName} · {h2.userName}
-                  {h2.reason && <span className="text-sage-600"> — {h2.reason}</span>}{" "}
+                  {h2.reason && <span className="text-sage-600"> · {h2.reason}</span>}{" "}
                   <span className="text-sage-500">{stampAt(h2.at)}</span>
                 </li>
               ))}

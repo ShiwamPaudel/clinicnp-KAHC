@@ -46,9 +46,9 @@ export default async function PurchaseRegisterPage({
             <tbody>
               {rows.map((r, i) => (
                 <TR key={i}>
-                  <TD className="font-mono">{r.purchaseNo ?? "—"}</TD>
+                  <TD className="font-mono">{r.purchaseNo ?? "-"}</TD>
                   <TD>{r.supplierName}</TD>
-                  <TD>{r.supplierInvoiceNo || "—"}</TD>
+                  <TD>{r.supplierInvoiceNo || "-"}</TD>
                   <TD>{r.dateBs}</TD>
                   <TD numeric>{formatPaisa(r.subtotalPaisa, false)}</TD>
                   <TD numeric>{formatPaisa(r.vatPaisa, false)}</TD>

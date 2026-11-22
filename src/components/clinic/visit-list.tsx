@@ -8,7 +8,7 @@ import type { VisitWithPatient } from "@/lib/repos/visits";
 import { VISIT_TYPE_LABEL, VISIT_STATUS_LABEL } from "@/lib/visit-types";
 import type { BadgeTone } from "@/components/ui/badge";
 
-const SEX_SHORT: Record<string, string> = { f: "F", m: "M", o: "—" };
+const SEX_SHORT: Record<string, string> = { f: "F", m: "M", o: "-" };
 
 const STATUS_TONE: Record<string, BadgeTone> = {
   waiting: "warn",
@@ -70,11 +70,11 @@ export function VisitList({
                   </Link>
                 </TD>
                 <TD className="text-sage-500">
-                  {age.short} · {SEX_SHORT[v.patientSex] ?? "—"}
+                  {age.short} · {SEX_SHORT[v.patientSex] ?? "-"}
                 </TD>
                 {showDate && <TD className="font-mono">{v.dateBs}</TD>}
                 <TD>{VISIT_TYPE_LABEL[v.type]}</TD>
-                <TD className="text-sage-500">{v.department || "—"}</TD>
+                <TD className="text-sage-500">{v.department || "-"}</TD>
                 <TD>
                   <Badge tone={STATUS_TONE[v.status] ?? "neutral"}>
                     {VISIT_STATUS_LABEL[v.status]}

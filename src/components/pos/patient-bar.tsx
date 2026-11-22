@@ -217,7 +217,7 @@ export function PatientBar({
       setRegistering(false);
       setForm({ name: "", sex: "f", ageValue: "", ageUnit: "y", phone: "" });
       toast.success(
-        `${draft.name} registered as ${provisionalPatientLabel(id)} — the number comes when the connection is back.`,
+        `${draft.name} registered as ${provisionalPatientLabel(id)}. The number comes when the connection is back.`,
       );
     }
 
@@ -313,8 +313,8 @@ export function PatientBar({
               {!required
                 ? "No patient on this bill"
                 : requiredFor === "dues"
-                  ? "This bill is going on dues — say who owes it"
-                  : "This bill has a service on it — say who it is for"}
+                  ? "This bill is going on dues. Say who owes it"
+                  : "This bill has a service on it. Say who it is for"}
             </span>
             <button
               onClick={() => setOpen(true)}
@@ -434,7 +434,7 @@ export function PatientBar({
                       </span>
                       <span className="text-right">
                         <span className="block font-mono text-[12px] text-clinic-700">
-                          {f.patientNo != null ? formatPatientNo(f.patientNo) : "—"}
+                          {f.patientNo != null ? formatPatientNo(f.patientNo) : "-"}
                         </span>
                         <span className="block font-mono text-[12px] text-sage-500">
                           {f.phone || ""}

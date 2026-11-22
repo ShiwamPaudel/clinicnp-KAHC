@@ -68,7 +68,7 @@ export function InvoiceA4({ bill }: { bill: PrintBill }) {
           ) : (
             <div>
               <span className="a4-k">Patient</span>
-              {bill.patientName || "—"}
+              {bill.patientName || "-"}
             </div>
           )}
           <div>
@@ -115,7 +115,7 @@ export function InvoiceA4({ bill }: { bill: PrintBill }) {
                     <div className="a4-sub">{l.followupNote}</div>
                   )}
                 </td>
-                <td>{l.doctorName || "—"}</td>
+                <td>{l.doctorName || "-"}</td>
                 <td className="a4-r">{l.qty}</td>
                 <td className="a4-r">{formatPaisa(l.ratePaisa)}</td>
                 <td className="a4-r">{formatPaisa(l.amountPaisa)}</td>

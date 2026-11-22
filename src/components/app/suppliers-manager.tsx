@@ -127,8 +127,8 @@ export function SuppliersManager({ initial }: { initial: SupplierRow[] }) {
                     </Badge>
                   )}
                 </TD>
-                <TD>{s.phone || "—"}</TD>
-                <TD>{s.panNo || "—"}</TD>
+                <TD>{s.phone || "-"}</TD>
+                <TD>{s.panNo || "-"}</TD>
                 <TD numeric>
                   {s.balancePaisa > 0 ? (
                     <span className="text-warn-600">

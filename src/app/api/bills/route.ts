@@ -133,7 +133,7 @@ export async function POST(req: Request) {
           ok: false,
           code: "insufficient_stock",
           userMessage:
-            "Not enough stock for one or more items — stock may have changed. Please review the bill.",
+            "Not enough stock for one or more items. Stock may have changed. Please review the bill.",
         },
         { status: 409 },
       );

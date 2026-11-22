@@ -74,7 +74,7 @@ export default async function PartyStatementPage({
 
   return (
     <Statement
-      title={`${name || "No name"} — statement`}
+      title={`${name || "No name"}: statement`}
       period={range.label}
       controls={<RangeBar preset={range.preset} fromBs={range.fromBs} toBs={range.toBs} label={range.label} />}
       actions={

@@ -177,7 +177,7 @@ export function displayAge(entry: AgeEntry, todayAd: string): AgeDisplay {
     return { ...r, exact: false, asOfAd: entry.asOfAd, years };
   }
 
-  return { short: "—", long: "Not recorded", exact: false, asOfAd: null, years: 0 };
+  return { short: "-", long: "Not recorded", exact: false, asOfAd: null, years: 0 };
 }
 
 /** The age exactly as it was entered, for an edit form. */

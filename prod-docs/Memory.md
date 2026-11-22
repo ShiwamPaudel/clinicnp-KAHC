@@ -318,6 +318,7 @@
 | D-198 | **Delivery** is paid to a courier, separately: a payment voucher (Miscellaneous expenses) that names the purchase (`vouchers.purchase_id`), recorded from Purchases → Add delivery; cancelled like any voucher | Owner chose "to the courier, separately"; the purchase bill itself is entered when the goods arrive and is never changed. |
 | D-199 | **Pre-Booking** replaces the Doctors menu: the day's booked tests or services and doctors' consultations; Issue bill opens the counter with the booking; an advance can be taken on either kind, refunded on cancel / did not come, handed back as change when more than the bill (0031, Prebooking.md) | Owner, 2083-08-06, answers 1–4. |
 | D-200 | **The counter shows its saved catalogue at once** and refreshes it in the background; with nothing saved yet the search says "Loading the list…" and fills in by itself. **Enter in Result entry** goes to the next result box, skipping remarks | Owner: the search "doesn't work on the first go"; Enter as well as Tab. |
+| D-201 | **A test booking is always for a registered patient**: the Book tests dialog searches patients first (the same picker as a doctor's booking) and registers someone new from inside it; the booking keeps the patient's name and phone. Issue bill therefore opens the counter with the patient attached. A new patient is only registered once the booking is sure to save | Owner, 2083-08-06: "should search existing patient, if not then register from there … when issued a bill, the patient is already attached". |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---
@@ -1037,6 +1038,8 @@ listed plain numbers; searching 000001 found bill 1.
 Test packages (D-196); transfer charges on payments and delivery for purchases
 (D-197, D-198); Pre-Booking with advances (D-199, Prebooking.md); the counter's
 first-search fix and Enter in Result entry (D-200). 0029 – 0031 applied to KAHC.
+Test bookings are always for a registered patient, picked or registered in the
+booking dialog, so Issue bill attaches them at the counter (D-201).
 **Verified:** typecheck; the full suite, with `lab-packages`, `payment-charges`
 and `prebooking` integration tests new (advance used, handed back, bill
 cancelled and refunded, billed once, dues refuse to undo it, books and day close

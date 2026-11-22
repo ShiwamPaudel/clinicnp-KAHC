@@ -117,7 +117,7 @@ export default async function LabPartnersReportPage({
                 against it would change figures the owner has signed off. */}
             {year.isClosed ? (
               <span className="text-[13px] text-sage-500">
-                {year.label} is closed — this statement can be read and printed,
+                {year.label} is closed. This statement can be read and printed,
                 not added to.
               </span>
             ) : (
@@ -161,10 +161,10 @@ export default async function LabPartnersReportPage({
                       <TD className="font-mono text-[13px]">{e.dateBs}</TD>
                       <TD>{e.description}</TD>
                       <TD className="text-right tnum">
-                        {e.chargePaisa > 0 ? formatPaisa(e.chargePaisa) : "—"}
+                        {e.chargePaisa > 0 ? formatPaisa(e.chargePaisa) : "-"}
                       </TD>
                       <TD className="text-right tnum">
-                        {e.paymentPaisa > 0 ? formatPaisa(e.paymentPaisa) : "—"}
+                        {e.paymentPaisa > 0 ? formatPaisa(e.paymentPaisa) : "-"}
                       </TD>
                       <TD className="text-right tnum font-medium">
                         {formatPaisa(e.runningPaisa)}

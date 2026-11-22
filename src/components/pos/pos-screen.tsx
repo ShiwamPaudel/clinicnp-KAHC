@@ -226,7 +226,7 @@ export function PosScreen({ config }: { config: PosConfig }) {
 
     // A service belongs to somebody. A medicine-only bill may stay anonymous.
     if (s.serviceLines.length > 0 && !s.patient) {
-      toast.error("Say who this bill is for — it has a service on it.");
+      toast.error("Say who this bill is for. It has a service on it.");
       setPatientOpenSignal((n) => n + 1);
       return;
     }
@@ -253,7 +253,7 @@ export function PosScreen({ config }: { config: PosConfig }) {
     const onDues = s.paymentMethod === "credit";
     if (onDues) {
       if (config.clinicOn && !s.patient) {
-        toast.error("Say who owes this bill — attach the patient.");
+        toast.error("Say who owes this bill: attach the patient.");
         setPatientOpenSignal((n) => n + 1);
         return;
       }

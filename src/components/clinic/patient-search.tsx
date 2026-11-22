@@ -23,7 +23,7 @@ export interface PatientRow {
   note: string;
 }
 
-const SEX_SHORT: Record<string, string> = { f: "F", m: "M", o: "—" };
+const SEX_SHORT: Record<string, string> = { f: "F", m: "M", o: "-" };
 
 /**
  * Patient search. Filtering happens in the browser against the rows already
@@ -122,7 +122,7 @@ export function PatientSearch({
                     )}
                   >
                     <span className="w-[92px] shrink-0 font-mono text-[13px] text-clinic-700">
-                      {p.patientNo != null ? formatPatientNo(p.patientNo) : "—"}
+                      {p.patientNo != null ? formatPatientNo(p.patientNo) : "-"}
                     </span>
                     <span className="min-w-[180px] flex-1 text-[16px] font-semibold text-sage-900">
                       {p.name}

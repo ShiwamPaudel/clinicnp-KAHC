@@ -130,7 +130,7 @@ export function DuesList({
         />
         <Summary
           label="Oldest"
-          value={people.length > 0 ? `${oldest} ${oldest === 1 ? "day" : "days"}` : "—"}
+          value={people.length > 0 ? `${oldest} ${oldest === 1 ? "day" : "days"}` : "-"}
         />
       </div>
 
@@ -452,7 +452,7 @@ function ReceiptsTable({
                 {formatPaisa(r.amountPaisa)}
               </TD>
               <TD>{isMoneyMethod(r.method) ? MONEY_METHOD_LABEL[r.method] : r.method === "advance" ? "Advance" : r.method}</TD>
-              <TD className="hidden sm:table-cell">{r.userName || "—"}</TD>
+              <TD className="hidden sm:table-cell">{r.userName || "-"}</TD>
               <TD className="text-right">
                 {r.voided ? (
                   <Badge tone="neutral">Undone</Badge>
@@ -492,7 +492,7 @@ function ReceiptsTable({
         <p className="text-[14px] text-sage-700">
           {undoing ? formatPaisa(undoing.amountPaisa) : ""} goes back onto what{" "}
           {undoing?.name || "they"} owe. Only do this for a payment entered by
-          mistake — the payment stays listed here, marked as undone.
+          mistake. The payment stays listed here, marked as undone.
         </p>
       </Dialog>
     </>

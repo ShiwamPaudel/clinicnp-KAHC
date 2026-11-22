@@ -93,6 +93,6 @@ export function tooManyRequestsBody() {
   return {
     ok: false as const,
     code: "too_busy" as const,
-    userMessage: "That's a lot at once — give it a moment and try again.",
+    userMessage: "That's a lot at once. Give it a moment and try again.",
   };
 }

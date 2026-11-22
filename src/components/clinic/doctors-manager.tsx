@@ -217,16 +217,16 @@ export function DoctorsManager({
                         </span>
                       )}
                     </TD>
-                    <TD className="text-sage-500">{d.specialty || "—"}</TD>
-                    <TD className="font-mono text-[13px]">{d.nmcNo || "—"}</TD>
-                    <TD className="text-[13px] text-sage-500">{d.email || "—"}</TD>
+                    <TD className="text-sage-500">{d.specialty || "-"}</TD>
+                    <TD className="font-mono text-[13px]">{d.nmcNo || "-"}</TD>
+                    <TD className="text-[13px] text-sage-500">{d.email || "-"}</TD>
                     <TD className="text-[13px]">
                       {d.userId ? (
                         <span className="font-mono text-clinic-700">
                           {login?.username ?? "attached"}
                         </span>
                       ) : (
-                        <span className="text-sage-300">—</span>
+                        <span className="text-sage-300">-</span>
                       )}
                     </TD>
                     <TD>

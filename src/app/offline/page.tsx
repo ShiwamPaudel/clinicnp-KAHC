@@ -24,7 +24,7 @@ export default function OfflinePage() {
           No connection
         </h1>
         <p className="mt-2 text-[15px] leading-[1.5] text-sage-600">
-          No internet right now. Nothing has been lost — anything saved will be sent when the connection is back.
+          No internet right now. Nothing has been lost. Anything saved will be sent when the connection is back.
         </p>
         <p className="mt-4 text-[15px] leading-[1.5] text-sage-600">
           Billing keeps working without a connection.

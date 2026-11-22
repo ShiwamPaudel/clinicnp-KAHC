@@ -73,7 +73,7 @@ const STATUS_TONE: Record<AppointmentStatus, BadgeTone> = {
   missed: "warn",
 };
 
-const SEX_SHORT: Record<string, string> = { f: "F", m: "M", o: "—" };
+const SEX_SHORT: Record<string, string> = { f: "F", m: "M", o: "-" };
 
 /** The default length of a consultation, until somebody changes it. */
 const DEFAULT_MINUTES = 15;
@@ -309,10 +309,10 @@ export function ConsultationDay({
                         {r.patientName}
                       </Link>
                       <span className="font-mono text-[12px] text-clinic-700">
-                        {r.patientNo != null ? formatPatientNo(r.patientNo) : "—"}
+                        {r.patientNo != null ? formatPatientNo(r.patientNo) : "-"}
                       </span>
                       <span className="text-[13px] text-sage-500">
-                        {age.short} · {SEX_SHORT[r.patientSex] ?? "—"}
+                        {age.short} · {SEX_SHORT[r.patientSex] ?? "-"}
                       </span>
                       <Badge tone={STATUS_TONE[r.status]}>
                         {APPOINTMENT_STATUS_LABEL[r.status]}
@@ -429,7 +429,7 @@ export function ConsultationDay({
 
           <Field
             label={strings.reasonGiven}
-            hint="Optional — what they said on the phone"
+            hint="Optional: what they said on the phone"
           >
             <Input
               value={reason}
@@ -535,7 +535,7 @@ function alertLine(doctor: DayDoctor): string {
   if (doctor.notifyPush && doctor.hasLogin) ways.push("on their phone");
   if (doctor.notifyEmail && doctor.email) ways.push("by email");
   if (ways.length === 0) {
-    return `${doctor.name} will not be told automatically — there is no phone or email set up for them.`;
+    return `${doctor.name} will not be told automatically. There is no phone or email set up for them.`;
   }
   return `${doctor.name} will be told ${ways.join(" and ")} as soon as this is booked.`;
 }

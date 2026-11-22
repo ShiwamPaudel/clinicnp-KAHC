@@ -122,7 +122,7 @@ export default async function ShelfListPage() {
                             </Link>
                           </TD>
                           <TD className="text-sage-500">
-                            {i.genericName || "—"}
+                            {i.genericName || "-"}
                           </TD>
                           <TD>
                             {toMixedDisplay(
@@ -173,8 +173,8 @@ export default async function ShelfListPage() {
                       {i.brandName}
                     </Link>
                   </TD>
-                  <TD className="text-sage-500">{i.genericName || "—"}</TD>
-                  <TD className="text-sage-600">{i.shelfNote || "—"}</TD>
+                  <TD className="text-sage-500">{i.genericName || "-"}</TD>
+                  <TD className="text-sage-600">{i.shelfNote || "-"}</TD>
                   <TD>
                     {toMixedDisplay(
                       stock.get(i.itemId)?.sellableBaseQty ?? 0,

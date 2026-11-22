@@ -55,7 +55,7 @@ export const STOCK_OUT_REASONS: ReasonSpec[] = [
   },
   {
     key: "disposed",
-    label: "Expired — disposed",
+    label: "Expired (disposed)",
     consequence: "For stock past its expiry date that is being thrown away.",
     needsSupplier: false,
     clinicOnly: false,

@@ -134,7 +134,7 @@ export function BillRegister({
                       )}
                     </span>
                   ) : (
-                    "—"
+                    "-"
                   )}
                 </TD>
                 {showKind && (

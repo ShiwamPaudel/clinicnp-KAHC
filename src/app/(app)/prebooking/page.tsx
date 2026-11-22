@@ -5,6 +5,7 @@ import { appointmentsOn, countsByDoctorOn } from "@/lib/repos/appointments";
 import { listPrebookingsOn, prebookingsForAppointments } from "@/lib/repos/prebookings";
 import { listServices } from "@/lib/repos/services";
 import { adToIso, toAD, bsFromDbText, bsToDbText, today, formatBS } from "@/lib/bs";
+import { displayAge } from "@/lib/age";
 import { PageShell } from "@/components/app/page-shell";
 import { DayStepper } from "@/components/clinic/day-stepper";
 import { DoctorCard } from "@/components/clinic/doctor-card";
@@ -34,6 +35,7 @@ export default async function PrebookingPage({ searchParams }: { searchParams: P
     listServices(),
   ]);
   const byAppointment = await prebookingsForAppointments(appointments.map((a) => a.id));
+  const todayAd = adToIso(new Date());
 
   return (
     <PageShell title="Pre-Booking">
@@ -56,6 +58,16 @@ export default async function PrebookingPage({ searchParams }: { searchParams: P
               name: b.name,
               phone: b.phone,
               patientNo: b.patientNo,
+              patient: b.patient
+                ? {
+                    id: b.patient.id,
+                    patientNo: b.patient.patientNo,
+                    name: b.patient.name,
+                    sex: b.patient.sex,
+                    phone: b.patient.phone,
+                    ageShort: displayAge(b.patient.age, todayAd).short,
+                  }
+                : null,
               note: b.note,
               status: b.status,
               billId: b.billId,

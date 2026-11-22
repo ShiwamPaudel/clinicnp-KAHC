@@ -174,7 +174,7 @@ export function VoucherForm({
         <optgroup label="People">
           {partyChoices.map((p) => (
             <option key={`${p.partyType}:${p.partyId}`} value={`p:${p.partyType}:${p.partyId}`}>
-              {p.name} — {PARTY_TYPE_LABEL[p.partyType]}
+              {p.name} ({PARTY_TYPE_LABEL[p.partyType]})
             </option>
           ))}
         </optgroup>

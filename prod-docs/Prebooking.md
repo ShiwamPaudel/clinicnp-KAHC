@@ -10,7 +10,14 @@ Menu **Pre-Booking** (`/prebooking`, was Doctors; `/doctors` redirects). One day
 at a time:
 
 - **Tests and services booked** — `prebookings` with `kind = 'tests'`. Any
-  service can be booked: lab tests, profiles, packages, X-ray, USG.
+  service can be booked: lab tests, profiles, packages, X-ray, USG. Every
+  booking is for a registered patient (D-201): **Book tests** searches patients
+  by name, phone or number (`PatientPicker`, as on a doctor's day) and
+  **Register someone new** registers them from the dialog. The booking keeps
+  the patient's name and phone as they were when it was saved. A new patient is
+  registered only after `checkTestBooking` passes, so a booking that cannot be
+  saved leaves no stray patient behind. Bookings made before D-201 may have no
+  patient; changing one asks for the patient.
 - **Doctors' consultations** — the day's `appointments`, every doctor. A
   consultation gets a `prebookings` row (`kind = 'consultation'`,
   `appointment_id`) the first time an advance is taken on it or a bill issued.
@@ -46,8 +53,8 @@ Advance in hand = received − refunded − used (not voided).
 ## The counter
 
 `/billing?prebooking=<id>` puts the booking on the counter once the catalogue
-is loaded: its services, its patient if registered (otherwise the patient bar
-opens with the name typed), and a banner. The payment pane shows **Advance
+is loaded: its services, its patient already attached, and a banner. (An old
+booking with no patient opens the patient bar with the name typed.) The payment pane shows **Advance
 paid**, **To pay**, and **Hand back from advance** when the advance is more than
 the bill. The printed bill and its reprint show "Advance paid (AR-…)"; Balance
 due is what is left after the advance.

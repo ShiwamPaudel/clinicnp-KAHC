@@ -323,7 +323,7 @@ export function PurchaseForm({
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="Supplier">
             <Select value={supplierId} onChange={(e) => setSupplierId(e.target.value)}>
-              <option value="">— Choose —</option>
+              <option value="">Choose</option>
               {suppliers.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
@@ -350,7 +350,7 @@ export function PurchaseForm({
                 checked={showBonus}
                 onChange={(e) => setShowBonus(e.target.checked)}
               />
-              Bonus (free) qty
+              Bonus (free) quantity
             </label>
             {unmatched > 0 && (
               <button
@@ -407,7 +407,7 @@ export function PurchaseForm({
                           <>On the bill: {l.printedName}</>
                         ) : (
                           <>
-                            &ldquo;{l.printedName}&rdquo; is not in the list — choose it, or{" "}
+                            &ldquo;{l.printedName}&rdquo; is not in the list. Choose it, or{" "}
                             <Link
                               href="/items/new"
                               target="_blank"
@@ -472,7 +472,7 @@ export function PurchaseForm({
                       typeMonthAs="end"
                     />
                   </Field>
-                  <Field label="Qty">
+                  <Field label="Quantity">
                     <Input
                       numeric
                       inputMode="numeric"
@@ -604,7 +604,7 @@ export function PurchaseForm({
                 ? "At most 100%."
                 : `${clampPercent(Number(billDiscountPercent))}% of ${formatPaisa(
                     Math.max(0, totals.subtotal - totals.discount),
-                  )} — ${formatPaisa(totals.billDiscount)}`}
+                  )} = ${formatPaisa(totals.billDiscount)}`}
             </p>
           )}
           <div className="flex items-center gap-2">
@@ -649,7 +649,7 @@ export function PurchaseForm({
             ) : (
               <>
                 The bill says {formatPaisa(billNetTotalPaisa)}. A line is
-                missing or wrong — check it against the paper before saving.
+                missing or wrong. Check it against the paper before saving.
               </>
             )}
           </p>

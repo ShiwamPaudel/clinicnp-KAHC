@@ -81,7 +81,7 @@ export async function serviceRevenue(range: AdRange): Promise<ServiceRevenueRow[
     return {
       serviceId: r.service_id as string,
       name: r.name as string,
-      groupName: (r.group_name as string | null) ?? "—",
+      groupName: (r.group_name as string | null) ?? "-",
       count: Number(r.qty),
       grossPaisa: Number(r.gross),
       refundedPaisa: Number(r.refunded),
@@ -281,7 +281,7 @@ export async function partnerStatement(
       dateBs: r.date_bs as string,
       dateAd: r.date_ad as string,
       kind: "test" as const,
-      description: r.kind === "undo" ? `${r.name} — not sent after all` : (r.name as string),
+      description: r.kind === "undo" ? `${r.name} not sent after all` : (r.name as string),
       chargePaisa: Number(r.amount),
       paymentPaisa: 0,
     })),
@@ -290,7 +290,7 @@ export async function partnerStatement(
       dateAd: r.date_ad as string,
       kind: "payment" as const,
       description:
-        `Paid — ${r.method}${r.note ? ` · ${r.note}` : ""}` +
+        `Paid · ${r.method}${r.note ? ` · ${r.note}` : ""}` +
         (Number(r.transfer_charge_paisa ?? 0) > 0
           ? ` · transfer charge ${formatPaisa(Number(r.transfer_charge_paisa))} (not owed to the lab)`
           : ""),

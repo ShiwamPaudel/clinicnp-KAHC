@@ -142,7 +142,7 @@ export function OpeningStockForm({ items }: { items: Item[] }) {
         return;
       }
       if ((Number(l.qty) || 0) <= 0) {
-        toast.error(`${name}: enter how many.`);
+        toast.error(`${name}: enter the quantity.`);
         return;
       }
       // The same batch may take a second row in a different unit — the full
@@ -191,7 +191,7 @@ export function OpeningStockForm({ items }: { items: Item[] }) {
         batches === used.length
           ? `Opening stock recorded for ${used.length} item${used.length === 1 ? "" : "s"}.`
           : // Say so when rows were combined, so nobody looks for two batches.
-            `Opening stock recorded: ${used.length} rows as ${batches} batch${batches === 1 ? "" : "es"} — rows of the same batch were added together.`,
+            `Opening stock recorded: ${used.length} rows as ${batches} batch${batches === 1 ? "" : "es"}. Rows of the same batch were added together.`,
       );
       setLines([blankLine()]);
       router.refresh();
@@ -230,7 +230,7 @@ export function OpeningStockForm({ items }: { items: Item[] }) {
             2024. <span className="font-medium text-sage-900">Add another medicine</span>{" "}
             copies the row above, so change only what is different. Loose
             tablets of the same batch: keep the batch, change the unit and the
-            count — both rows are saved as one batch.
+            count. Both rows are saved as one batch.
           </p>
         </div>
         <div className="w-full shrink-0 md:w-[220px]">
@@ -310,7 +310,7 @@ export function OpeningStockForm({ items }: { items: Item[] }) {
                 />
               </Field>
 
-              <Field label="How many" htmlFor={`qty-${i}`}>
+              <Field label="Quantity" htmlFor={`qty-${i}`}>
                 <div className="flex gap-2 @min-[1038px]:gap-1.5">
                   {/* Sized by its wrapper: the box's own w-full would beat a
                       width class passed to it, and squeeze the unit out. */}
@@ -367,7 +367,7 @@ export function OpeningStockForm({ items }: { items: Item[] }) {
                     Line value (रू)
                   </span>
                   <span className="flex h-10 items-center whitespace-nowrap text-[15px] font-semibold text-sage-900 tnum @min-[1038px]:text-[14px]">
-                    {item ? formatPaisa(lineCostPaisa(l), false) : "—"}
+                    {item ? formatPaisa(lineCostPaisa(l), false) : "-"}
                   </span>
                 </div>
                 <button

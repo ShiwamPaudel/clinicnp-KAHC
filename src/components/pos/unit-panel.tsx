@@ -165,7 +165,7 @@ export function UnitPanel({
               )}
               {hiddenBeyond > 0 && (
                 <p className="px-1 text-[11px] text-sage-400">
-                  + {toMixedDisplay(hiddenBeyond, units)} more in stock — use the
+                  + {toMixedDisplay(hiddenBeyond, units)} more in stock. Use the
                   packs on the left or +.
                 </p>
               )}

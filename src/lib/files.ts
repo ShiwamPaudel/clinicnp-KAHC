@@ -38,7 +38,7 @@ export type AttachmentKind = "report" | "image" | "scan" | "other";
 export class FileTooLargeError extends Error {
   readonly code = "file_too_large" as const;
   readonly userMessage =
-    "That file is too big. Files can be up to 15 MB each — try a smaller photo or a lighter scan.";
+    "That file is too big. Files can be up to 15 MB each. Try a smaller photo or a lighter scan.";
   constructor() {
     super("file too large");
     this.name = "FileTooLargeError";

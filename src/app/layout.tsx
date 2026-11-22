@@ -50,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const appName = appNameFor(modules);
   return {
     title: {
-      default: `${appName} — ${appSubtitleFor(modules)}`,
+      default: `${appName} · ${appSubtitleFor(modules)}`,
       template: `%s · ${appName}`,
     },
     applicationName: appName,

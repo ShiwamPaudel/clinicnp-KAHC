@@ -55,13 +55,13 @@ export default async function ServiceRevenuePage({
                   <TD className="text-right tnum">{r.count}</TD>
                   <TD className="text-right tnum">{formatPaisa(r.grossPaisa)}</TD>
                   <TD className="text-right tnum text-danger-600">
-                    {r.refundedPaisa > 0 ? formatPaisa(r.refundedPaisa) : "—"}
+                    {r.refundedPaisa > 0 ? formatPaisa(r.refundedPaisa) : "-"}
                   </TD>
                   <TD className="text-right tnum font-medium">
                     {formatPaisa(r.netPaisa)}
                   </TD>
                   <TD className="text-right tnum text-sage-500">
-                    {r.partnerCostPaisa > 0 ? formatPaisa(r.partnerCostPaisa) : "—"}
+                    {r.partnerCostPaisa > 0 ? formatPaisa(r.partnerCostPaisa) : "-"}
                   </TD>
                   <TD className="text-right tnum">{formatPaisa(r.marginPaisa)}</TD>
                 </TR>

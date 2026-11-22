@@ -34,7 +34,7 @@ export interface ImageCopy {
 
 const BILL_HEADER: ImageCopy = {
   title: "Bill header image",
-  help: "Printed across the top of every bill, above the invoice details. Use your letterhead band — the whole strip, name and logo together. PNG or JPG, wide rather than tall.",
+  help: "Printed across the top of every bill, above the invoice details. Use your letterhead band: the whole strip, name and logo together. PNG or JPG, wide rather than tall.",
   choose: "Choose a header image",
   set: "Bill header set. Save your details to keep it.",
   savedWith: "It is resized here, and saved with your company details",

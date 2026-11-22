@@ -91,7 +91,7 @@ export function BillActions({
         {paidBackPaisa > 0 && (
           <p className="mt-3 rounded-[8px] bg-warn-100 px-3 py-2 text-[14px] text-warn-600">
             {formatPaisa(paidBackPaisa)} was paid back against this bill after
-            it was made. Cancelling it does not give that money back — hand it
+            it was made. Cancelling it does not give that money back. Hand it
             back to them yourself.
           </p>
         )}

@@ -144,7 +144,7 @@ function ServiceLineRow({
 
         {!line.followupApplied && line.rateOverridden && service?.followupDays ? (
           <div className="mt-0.5 flex items-center gap-2 text-[12px] text-magenta-700">
-            <span>Follow-up rule overridden — charged in full.</span>
+            <span>Follow-up rule overridden: charged in full.</span>
             <button
               onClick={() =>
                 applyFollowup(line.lineId, {
@@ -152,8 +152,8 @@ function ServiceLineRow({
                   applied: true,
                   note:
                     service.followupRatePaisa === 0
-                      ? `Follow-up within ${service.followupDays} days — no charge.`
-                      : `Follow-up within ${service.followupDays} days — reduced rate.`,
+                      ? `Follow-up within ${service.followupDays} days: no charge.`
+                      : `Follow-up within ${service.followupDays} days: reduced rate.`,
                 })
               }
               className="inline-flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[11px] underline hover:bg-magenta-100"

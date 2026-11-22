@@ -32,7 +32,7 @@ function Row({
       )}
     >
       <span className="w-[86px] shrink-0 font-mono text-clinic-700">
-        {p.patientNo != null ? formatPatientNo(p.patientNo) : "—"}
+        {p.patientNo != null ? formatPatientNo(p.patientNo) : "-"}
       </span>
       <span className="flex-1 font-medium text-sage-900">{p.name}</span>
       <span className="font-mono text-sage-500">{p.phone}</span>

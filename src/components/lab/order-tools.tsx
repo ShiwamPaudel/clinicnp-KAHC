@@ -88,7 +88,7 @@ export function ReopenButton({ orderId, results }: { orderId: string; results: {
                 start(async () => {
                   const res = await reopenAction({ orderId, resultIds: ids, reason });
                   if (res.ok) {
-                    toast.success("Reopened — the patient's link waits until they are approved again");
+                    toast.success("Reopened. The patient's link waits until they are approved again");
                     setOpen(false);
                     router.refresh();
                   } else toast.error(res.userMessage ?? strings.somethingWentWrong);

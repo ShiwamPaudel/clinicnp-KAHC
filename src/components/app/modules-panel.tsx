@@ -20,21 +20,21 @@ const COPY: Record<
     title: "Pharmacy",
     on: "Medicines, batches and expiry, purchases, suppliers, stock and the medicine lines at the counter.",
     offConfirm:
-      "Turning off the pharmacy hides medicines, purchases, suppliers and stock. Nothing is deleted — turn it back on any time.",
+      "Turning off the pharmacy hides medicines, purchases, suppliers and stock. Nothing is deleted. Turn it back on any time.",
     icon: Pill,
   },
   clinic: {
     title: "Clinic",
     on: "Patients and their visits, services and doctors, report files, and the service lines at the counter.",
     offConfirm:
-      "Turning off the clinic hides patients, visits and services. Nothing is deleted — turn it back on any time.",
+      "Turning off the clinic hides patients, visits and services. Nothing is deleted. Turn it back on any time.",
     icon: Stethoscope,
   },
   lab: {
     title: "Laboratory",
     on: "Tests run in your own laboratory: samples and labels, result entry, approval, signed reports, and the report QR code on the bill.",
     offConfirm:
-      "Turning off the laboratory hides samples, results and reports. Nothing is deleted — turn it back on any time.",
+      "Turning off the laboratory hides samples, results and reports. Nothing is deleted. Turn it back on any time.",
     icon: FlaskConical,
   },
 };

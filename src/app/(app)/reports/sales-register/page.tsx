@@ -50,10 +50,10 @@ export default async function SalesRegisterPage({
               {rows.map((r, i) => (
                 <TR key={i}>
                   <TD className="font-mono">
-                    {r.invoiceNo != null ? formatDocNo("SI", r.fiscalLabel, r.invoiceNo) : "—"}
+                    {r.invoiceNo != null ? formatDocNo("SI", r.fiscalLabel, r.invoiceNo) : "-"}
                   </TD>
                   <TD>{r.dateBs}</TD>
-                  <TD>{r.patientName || "—"}</TD>
+                  <TD>{r.patientName || "-"}</TD>
                   <TD numeric>{formatPaisa(r.subtotalPaisa, false)}</TD>
                   <TD numeric>{formatPaisa(r.discountPaisa, false)}</TD>
                   <TD numeric>{formatPaisa(r.vatPaisa, false)}</TD>

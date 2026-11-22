@@ -57,7 +57,7 @@ const STATUS_TONE: Record<AppointmentStatus, BadgeTone> = {
   missed: "warn",
 };
 
-const SEX_SHORT: Record<string, string> = { f: "F", m: "M", o: "—" };
+const SEX_SHORT: Record<string, string> = { f: "F", m: "M", o: "-" };
 
 /**
  * A doctor's own list, on a phone.
@@ -191,10 +191,10 @@ export function DoctorSchedule({
 
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-0.5 text-[13px] text-sage-500">
                   <span>
-                    {age.short} · {SEX_SHORT[r.patientSex] ?? "—"}
+                    {age.short} · {SEX_SHORT[r.patientSex] ?? "-"}
                   </span>
                   <span className="font-mono text-clinic-700">
-                    {r.patientNo != null ? formatPatientNo(r.patientNo) : "—"}
+                    {r.patientNo != null ? formatPatientNo(r.patientNo) : "-"}
                   </span>
                   <span>{describeDuration(r.durationMin)}</span>
                 </div>

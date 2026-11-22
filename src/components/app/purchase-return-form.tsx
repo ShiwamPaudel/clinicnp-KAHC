@@ -95,7 +95,7 @@ export function PurchaseReturnForm({
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="Supplier">
             <Select value={supplierId} onChange={(e) => setSupplierId(e.target.value)}>
-              <option value="">— Choose —</option>
+              <option value="">Choose</option>
               {suppliers.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}

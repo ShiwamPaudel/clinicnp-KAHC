@@ -52,8 +52,8 @@ export default async function ItemsPage() {
           <div className="text-[13px] text-sage-900">
             <strong className="font-semibold">
               {unpriced} medicine{unpriced === 1 ? " has" : "s have"} no price yet
-            </strong>{" "}
-            — price them here, or let the first sale set the price.
+            </strong>.{" "}
+            Price them here, or let the first sale set the price.
           </div>
           <span className="shrink-0 text-[13px] font-semibold text-sage-900">
             Set prices →

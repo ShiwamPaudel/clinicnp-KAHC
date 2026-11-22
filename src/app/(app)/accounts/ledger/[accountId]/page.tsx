@@ -41,7 +41,7 @@ export default async function AccountLedgerPage({
   });
   const dr = lines.reduce((s, l) => s + l.drPaisa, 0);
   const cr = lines.reduce((s, l) => s + l.crPaisa, 0);
-  const title = account.grp === "cash_bank" ? `${account.name} — cash and bank book` : `${account.name} — ledger`;
+  const title = account.grp === "cash_bank" ? `${account.name}: cash and bank book` : `${account.name}: ledger`;
 
   return (
     <Statement

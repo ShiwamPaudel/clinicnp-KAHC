@@ -161,7 +161,7 @@ export function ReceiveDuesDialog({
                         t > 0 ? "font-semibold text-ok-600" : "text-sage-500",
                       )}
                     >
-                      {t > 0 ? `− ${formatPaisa(t, false)}` : "—"}
+                      {t > 0 ? `− ${formatPaisa(t, false)}` : "-"}
                     </span>
                   </li>
                 );
@@ -215,7 +215,7 @@ export function ReceiveDuesDialog({
           </Field>
         </div>
 
-        <Field label="Note" htmlFor="dues-note" hint="Optional — who brought it, or a cheque number.">
+        <Field label="Note" htmlFor="dues-note" hint="Optional: who brought it, or a cheque number.">
           <Input
             id="dues-note"
             value={note}

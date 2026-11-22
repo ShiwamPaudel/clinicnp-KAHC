@@ -183,7 +183,7 @@ export function SaleReturnForm({
                 return (
                   <TR key={l.billServiceLineId}>
                     <TD className="font-medium text-sage-900">{l.name}</TD>
-                    <TD className="text-sage-500">{l.doctorName || "—"}</TD>
+                    <TD className="text-sage-500">{l.doctorName || "-"}</TD>
                     <TD numeric>{l.soldQty}</TD>
                     <TD numeric>{max}</TD>
                     <TD numeric>
@@ -271,7 +271,7 @@ export function SaleReturnForm({
               const split = splitReturn(total, owedPaisa);
               return split.handBackPaisa > 0
                 ? ` ${formatPaisa(split.againstDuePaisa)} of this comes off what they owe, and ${formatPaisa(split.handBackPaisa)} is handed back.`
-                : ` This comes off what they owe — nothing is handed back.`;
+                : ` This comes off what they owe. Nothing is handed back.`;
             })()}
         </div>
       )}

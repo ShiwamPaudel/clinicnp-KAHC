@@ -263,7 +263,7 @@ async function tellTheDoctor(
     if (phone?.status === "sent") reached.push("their phone");
     if (email?.status === "sent") reached.push("their email");
     if (reached.length > 0) return `${doctor.name} was told on ${reached.join(" and ")}.`;
-    return `${doctor.name} could not be told just now — the consultation is still booked.`;
+    return `${doctor.name} could not be told just now. The consultation is still booked.`;
   } catch (err) {
     console.error("[consultation alert]", err);
     return "";
