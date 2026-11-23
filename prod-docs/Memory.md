@@ -26,7 +26,8 @@
 **Product:** **ClinicNP** — three modules: Pharmacy, Clinic and **Laboratory** (in-house lab, built 2083-08-03, prod-docs/Lab.md). The product is named ClinicNP whatever is switched on. Sign-in is username + password only; what each person can do comes from an editable role (D-165).
 **This install:** **Koshi Aarogya Healthcare Pvt. Ltd.** (KAHC), Milan Chowk, Itahari. One database for all three modules.
 **Origin:** forked 2083-08-03 from the first ClinicNP install's tree (all five phases complete, C-001 … C-027 below). That install stays live on its own; **nothing in this repo points at it, and nothing here may write to it.**
-**Repo:** `D:\IBN\Installations\clinicnp-kahc`, branch `main`, fresh history (no commits yet), **no remote yet** — the owner will connect one.
+**Repo:** `D:\IBN\Installations\clinicnp-kahc`, branch `main`, remote `origin` = GitHub `clinicnp-KAHC`. The owner commits some work themselves and **always pushes themselves**: commit only when asked, never push.
+🔴 **LIVE PRODUCTION since 2083-08-07 (C-036).** The owner's test data was cleared that day; everything now in the KAHC database may be a real patient, bill or purchase. **Ask the owner before changing or deleting any row**, take a backup first, delete by row id only (never empty a table), and do it in one transaction. How that clearing was done, and where its backup is, is in C-036.
 **Database:** hosted Turso `kahc-clinicnp-kahc.aws-ap-south-1.turso.io` (in `.env.local`). Hosted at https://clinicnp-kahc.infobytesnepal.com (separate Vercel project; DNS for it was not resolving on 2083-08-05). Its private Blob store is connected in `.env.local` (`BLOB_STORE_ID`, `BLOB_READ_WRITE_TOKEN`); the same two must be set on the Vercel project.
 
 ### What is in the database (read back 2083-08-03, C-028)
@@ -64,6 +65,7 @@
 - 2083-08-05 C-033: data and housekeeping only (no app code changed).
 - 2083-08-05 C-034: typecheck clean, **54 files / 599 tests** green.
 - 2083-08-06 C-035: typecheck clean, **57 files / 616 tests** green, `pnpm build` passes (`/billing` 150 kB).
+- 2083-08-07 C-036: typecheck clean, **59 files / 624 tests** green.
 
 ### Working practices that were earned the hard way
 
@@ -77,6 +79,9 @@
 3. Before go-live, the owner fills in: rates for the 52 lab tests and 3 profiles Aster's list did not price, and the 91 Clinic services (Lab → Tests has a "No price yet" filter; `import-templates/aster-price-match.csv` says what each rate came from); reference ranges (lab in-charge); each outside laboratory under Settings → Outside labs, and its price list as tests are sent.
 3a. Lab follow-ups, not built yet: a screen to print only some tests of a report (the print route already takes `?only=`); filling in a reference range on results entered before the range existed.
 4. Lab-only install: patients and service billing follow Clinic **or** Lab, but the counter and patient screens have only been walked with all three modules on.
+5. Owner said "fix later" (2083-08-07): the lab report preview that repeats pages, and `/stock` drawing every item (both under Known issues).
+6. Vercel: set `PUBLIC_APP_URL`, `AUTH_SECRET`, `CRON_SECRET`, the `VAPID_*` pair and the Blob pair on the Vercel project, then check the live site and its nightly backup (Deploy.md).
+7. The user manual (`ClinicNP User Manual.pdf`, root, gitignored) is general ClinicNP, no KAHC name or logo. Its screenshots predate D-201 wording and D-204; the owner said leave it as it is for now. It is rebuilt from scratchpad scripts that are not in the repo.
 
 ### Known issues / risks
 
@@ -322,6 +327,7 @@
 | D-200 | **The counter shows its saved catalogue at once** and refreshes it in the background; with nothing saved yet the search says "Loading the list…" and fills in by itself. **Enter in Result entry** goes to the next result box, skipping remarks | Owner: the search "doesn't work on the first go"; Enter as well as Tab. |
 | D-201 | **A test booking is always for a registered patient**: the Book tests dialog searches patients first (the same picker as a doctor's booking) and registers someone new from inside it; the booking keeps the patient's name and phone. Issue bill therefore opens the counter with the patient attached. A new patient is only registered once the booking is sure to save | Owner, 2083-08-06: "should search existing patient, if not then register from there … when issued a bill, the patient is already attached". |
 | D-202 | **The printed lab report**: a low/high value and its H/L are heavy (800) and normal values regular (400), so they stand out in black and white. A test's *Note on the report* prints after the last test of its group, named; for tests billed in a package (`OrderResult.packageName`) all notes print together under **Notes** after the results, just before End of report and the signatures. Lines at 1.3 and tighter padding fit more tests per page at the same font size; the header-row underline is darker (25%) | Owner, 2083-08-06. |
+| D-204 | **On-screen wording: no em dashes anywhere in the app, and plain professional labels.** An empty value shows "-"; a title takes a colon; a joined sentence is split with a full stop; an aside goes in brackets. Opening stock and purchases say **Quantity** (not "How many" or "Qty"); Pre-Booking says **Total** for today's price of the chosen tests (not "About"). The side menu is 288 px wide so "Pre-Booking" is not cut off. Kept on purpose: em dashes inside the invoice reader's regexes (`lib/invoice-read/parse.ts`, they match suppliers' printed text) and in code comments | Owner, 2083-08-07: "Remove every em dashes from the Software … 'How Many' … doesn't sound actual and professional"; "Why the 'About'? does it look professional?". New text must follow it too. |
 | D-203 | **A purchase line is one line**, like Opening stock: Medicine, Batch number, Mfg date, Expiry date, Quantity + unit, (Free), Cost each, Price each, remove; sized by the form's own width (container queries), one line from 976 px (1,038 px with Free), folding onto two lines below that. Opening stock's one-line width came down to 1,008 px so it still fits a 1,366 px screen with the wider menu and a scrollbar. The bill-photo notes (printed name, amount check) print as a full-width line above the boxes | Owner, 2083-08-07: "one line = 1 item entry, not split across two lines". |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
@@ -1053,3 +1059,29 @@ banner, advance and To pay, printed bill, Billed with its bill, consultation
 advance and close with refund, day close, Enter skips remarks, package, supplier
 payment with transfer charge for a bill, delivery voucher, voucher transfer
 charge).
+
+### C-036  ·  2083-08-07  ·  Wording, the report layout, one-line purchases, and live production
+
+Em dashes removed from every screen, Quantity on stock forms, a wider menu,
+Total on Pre-Booking (D-204). The printed report: heavy low/high values, notes
+after the group or at the end for a package, tighter lines (D-202). A purchase
+line on one line like Opening stock (D-203). A general ClinicNP user manual
+(24 pages, root, gitignored; no KAHC name or logo).
+**Live clearing (owner's answers, one by one):** 161 test rows deleted from
+KAHC by row id in one transaction: the owner's 2 test patients with their
+3 bills, dues, lab orders, visits, appointments, pre-bookings and advance;
+test purchases TST1, TST10 and sdf1 with their stock, 2 supplier payments and
+the delivery voucher; 13 audit entries about them. Kept (counts read back
+equal): items, units, lab tests, profiles, packages, services and rates,
+doctors, logins, supplier Tara Medicine Distributors (real), report settings,
+signatures, accounts, the 9 setup audit entries, nightly backups, push devices.
+Onabet-SD Lotion 30ml back to Not priced; every number restarts at 1. A full
+copy of all 72 tables was taken first: `.backups/kahc-before-clearing-test-data-2026-11-23T07-07-41-291Z.json.gz`
+(gitignored, patient data). Method (one-off script, not kept in the repo):
+list the test records by hand, follow every foreign key from them to collect
+child rows, stop if any count differs from what was checked, save the list in
+a dry run, re-check it at apply, delete child-first in one `db.batch(..., "write")`.
+From here the database is live (Current state).
+**Verified:** typecheck; the full suite, 624 tests, with `report-notes` and
+`prebooking-patient` new; after the clearing, no rows left in the cleared
+tables and the setup counts unchanged.

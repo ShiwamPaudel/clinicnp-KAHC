@@ -30,3 +30,6 @@ public/ort/
 ClinicNP-User-Manual.pdf
 KAHC - ClinicNP User Manual.pdf
 
+
+# local database backups (patient data): never committed
+/.backups/
