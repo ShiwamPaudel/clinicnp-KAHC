@@ -78,6 +78,17 @@ function priceOf(item: Item | undefined, level: number): string {
 }
 
 /** "Margin 20.0%" under the selling price, or why there is none. */
+/**
+ * A purchase line on one line, when the form has the room: the fixed columns
+ * hold their longest real value (a date box takes "32 Baishakh 2088" whole)
+ * and the medicine takes what is left. 976 px fits a 1366 px screen with the
+ * menu open and a scrollbar; with Free showing it needs 1038 px.
+ */
+const ONE_LINE =
+  "@min-[976px]:grid-cols-[minmax(140px,1fr)_92px_158px_158px_152px_92px_92px_32px] @min-[976px]:gap-x-1.5 @min-[976px]:px-2";
+const ONE_LINE_WITH_FREE =
+  "@min-[1038px]:grid-cols-[minmax(140px,1fr)_92px_158px_158px_152px_56px_92px_92px_32px] @min-[1038px]:gap-x-1.5 @min-[1038px]:px-2";
+
 function MarginNote({ line }: { line: LineState }) {
   const sell = toPaisa(Number(line.sellRupees) || 0);
   const cost = effectiveUnitCostPaisa(
@@ -340,7 +351,7 @@ export function PurchaseForm({
         </div>
       </section>
 
-      <section className="rounded-[10px] border border-line bg-cream-50 p-4">
+      <section className="rounded-[10px] border border-line bg-cream-50 p-3">
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-[15px] font-semibold text-sage-900">Items</h2>
           <div className="flex items-center gap-4">
@@ -369,23 +380,58 @@ export function PurchaseForm({
           </div>
         </div>
 
-        <div className="flex flex-col gap-3">
+        {/* Like Opening stock: one line per medicine wherever it fits, sized
+            by the room the form has (not the screen), folding onto two lines
+            when the room runs out. Every box is a label over a control with
+            nothing under it in the flow, so the boxes on a line sit level; the
+            bottom padding leaves room for the notes a date box and the price
+            float beneath themselves. */}
+        <div className="@container flex flex-col gap-3">
           {lines.map((l, i) => {
             const item = itemsById.get(l.itemId);
+            const units = [...(item?.units ?? [])].sort((a, b) => b.level - a.level);
             return (
               <div
                 key={l.key}
-                className="rounded-[8px] border border-line bg-cream-100 p-3"
+                className={
+                  "grid grid-cols-1 items-end gap-x-3 gap-y-5 rounded-[8px] border border-line bg-cream-100 p-3 pb-6 " +
+                  "@min-[560px]:grid-cols-2 " +
+                  "@min-[760px]:grid-cols-[minmax(0,2fr)_repeat(3,minmax(150px,1fr))] " +
+                  (showBonus ? ONE_LINE_WITH_FREE : ONE_LINE)
+                }
               >
                 {l.amountDisagrees && (
-                  <p className="mb-2 flex items-center gap-1.5 text-[12px] text-danger-600">
+                  <p className="col-span-full -mb-3 flex items-center gap-1.5 text-[12px] text-danger-600">
                     <TriangleAlert className="h-3.5 w-3.5 shrink-0" />
                     Quantity times rate did not come to the amount printed on
                     this row. Check all three against the paper.
                   </p>
                 )}
-                <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr]">
-                  <Field label="Item" htmlFor={`item-${i}`}>
+                {/* What the paper actually said, so the person can check the
+                    guess, or find the medicine themselves when there was none. */}
+                {l.printedName && (
+                  <p
+                    className={
+                      "col-span-full -mb-3 text-[12px] " +
+                      (l.itemId ? "text-sage-500" : "font-medium text-danger-600")
+                    }
+                  >
+                    {l.itemId ? (
+                      <>On the bill: {l.printedName}</>
+                    ) : (
+                      <>
+                        &ldquo;{l.printedName}&rdquo; is not in the list. Choose it, or{" "}
+                        <Link href="/items/new" target="_blank" className="underline underline-offset-2">
+                          add it
+                        </Link>{" "}
+                        and reload the list.
+                      </>
+                    )}
+                  </p>
+                )}
+
+                <div className="@min-[560px]:col-span-2 @min-[760px]:col-span-1">
+                  <Field label={`Medicine ${i + 1}`} htmlFor={`item-${i}`}>
                     <ItemPicker
                       id={`item-${i}`}
                       items={items}
@@ -393,142 +439,123 @@ export function PurchaseForm({
                       onChange={(id) => onItemChange(i, id)}
                       placeholder="Type a name, or pick from the list"
                     />
-                    {/* What the paper actually said, so the person can check
-                        the guess — or find the medicine themselves when there
-                        was no guess to make. */}
-                    {l.printedName && (
-                      <p
-                        className={
-                          "mt-1 text-[12px] " +
-                          (l.itemId ? "text-sage-500" : "font-medium text-danger-600")
-                        }
-                      >
-                        {l.itemId ? (
-                          <>On the bill: {l.printedName}</>
-                        ) : (
-                          <>
-                            &ldquo;{l.printedName}&rdquo; is not in the list. Choose it, or{" "}
-                            <Link
-                              href="/items/new"
-                              target="_blank"
-                              className="underline underline-offset-2"
-                            >
-                              add it
-                            </Link>{" "}
-                            and reload the list.
-                          </>
-                        )}
-                      </p>
-                    )}
                   </Field>
-                  <Field label="Unit">
+                </div>
+
+                <Field label="Batch number" htmlFor={`batch-${i}`}>
+                  <Input
+                    id={`batch-${i}`}
+                    value={l.batchNo}
+                    onChange={(e) => setLine(i, { batchNo: e.target.value })}
+                    placeholder="e.g. B-22"
+                  />
+                </Field>
+
+                <Field label="Mfg date (optional)" htmlFor={`mfg-${i}`}>
+                  <DatePickerBS
+                    id={`mfg-${i}`}
+                    value={l.mfgDateBs}
+                    onChange={(v) => setLine(i, { mfgDateBs: v })}
+                    placeholder="e.g. Nov 24"
+                    typeMonthAs="start"
+                    clearable
+                  />
+                </Field>
+
+                <Field label="Expiry date" htmlFor={`exp-${i}`}>
+                  <DatePickerBS
+                    id={`exp-${i}`}
+                    value={l.expiryDateBs}
+                    onChange={(v) => setLine(i, { expiryDateBs: v })}
+                    placeholder="e.g. Nov 29"
+                    typeMonthAs="end"
+                  />
+                </Field>
+
+                <Field label="Quantity" htmlFor={`qty-${i}`}>
+                  <div className="flex gap-2 @min-[976px]:gap-1.5">
+                    {/* Sized by its wrapper: the box's own w-full would beat a
+                        width class passed to it, and squeeze the unit out. */}
+                    <div className="w-24 shrink-0 @min-[976px]:w-[54px]">
+                      <Input
+                        id={`qty-${i}`}
+                        numeric
+                        inputMode="numeric"
+                        value={l.qty}
+                        onChange={(e) => setLine(i, { qty: e.target.value.replace(/\D/g, "") })}
+                      />
+                    </div>
                     <Select
                       value={String(l.unitLevel)}
                       onChange={(e) => {
                         const level = Number(e.target.value);
                         setLine(i, { unitLevel: level, sellRupees: priceOf(item, level) });
                       }}
+                      disabled={!item}
+                      aria-label={`Unit for medicine ${i + 1}`}
+                      className="min-w-0 disabled:text-sage-300"
                     >
-                      {(item?.units ?? [])
-                        .sort((a, b) => b.level - a.level)
-                        .map((u) => (
+                      {item ? (
+                        units.map((u) => (
                           <option key={u.level} value={u.level}>
                             {u.name}
                           </option>
-                        ))}
+                        ))
+                      ) : (
+                        <option value={l.unitLevel}>Unit</option>
+                      )}
                     </Select>
-                  </Field>
-                  <Field label="Batch no. *">
+                  </div>
+                </Field>
+
+                {showBonus && (
+                  <Field label="Free" htmlFor={`free-${i}`}>
                     <Input
-                      value={l.batchNo}
-                      onChange={(e) => setLine(i, { batchNo: e.target.value })}
-                    />
-                  </Field>
-                </div>
-                <div
-                  className={
-                    "mt-3 grid gap-3 pb-5 sm:items-end " +
-                    (showBonus
-                      ? "sm:grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto]"
-                      : "sm:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto]")
-                  }
-                >
-                  <Field label="Mfg date (optional)" htmlFor={`mfg-${i}`}>
-                    <DatePickerBS
-                      id={`mfg-${i}`}
-                      value={l.mfgDateBs}
-                      onChange={(v) => setLine(i, { mfgDateBs: v })}
-                      placeholder="e.g. Nov 24"
-                      typeMonthAs="start"
-                      clearable
-                    />
-                  </Field>
-                  <Field label="Expiry date *" htmlFor={`exp-${i}`}>
-                    <DatePickerBS
-                      id={`exp-${i}`}
-                      value={l.expiryDateBs}
-                      onChange={(v) => setLine(i, { expiryDateBs: v })}
-                      placeholder="e.g. Nov 29"
-                      typeMonthAs="end"
-                    />
-                  </Field>
-                  <Field label="Quantity">
-                    <Input
+                      id={`free-${i}`}
                       numeric
                       inputMode="numeric"
-                      value={l.qty}
-                      onChange={(e) =>
-                        setLine(i, { qty: e.target.value.replace(/\D/g, "") })
-                      }
+                      value={l.freeQty}
+                      onChange={(e) => setLine(i, { freeQty: e.target.value.replace(/\D/g, "") })}
                     />
                   </Field>
-                  {showBonus && (
-                    <Field label="Free">
-                      <Input
-                        numeric
-                        inputMode="numeric"
-                        value={l.freeQty}
-                        onChange={(e) =>
-                          setLine(i, { freeQty: e.target.value.replace(/\D/g, "") })
-                        }
-                      />
-                    </Field>
-                  )}
-                  <Field label="Cost/unit (रू)">
+                )}
+
+                <Field label="Cost each (रू)" htmlFor={`cost-${i}`}>
+                  <Input
+                    id={`cost-${i}`}
+                    numeric
+                    inputMode="decimal"
+                    value={l.costRupees}
+                    onChange={(e) => setLine(i, { costRupees: e.target.value })}
+                  />
+                </Field>
+
+                <Field label="Price each (रू)" htmlFor={`sell-${i}`}>
+                  <div className="relative">
                     <Input
+                      id={`sell-${i}`}
                       numeric
                       inputMode="decimal"
-                      value={l.costRupees}
-                      onChange={(e) => setLine(i, { costRupees: e.target.value })}
+                      placeholder="Not priced"
+                      aria-label="Selling price per unit"
+                      value={l.sellRupees}
+                      onChange={(e) => setLine(i, { sellRupees: e.target.value })}
                     />
-                  </Field>
-                  <Field label="Selling price/unit (रू)">
-                    <div className="relative">
-                      <Input
-                        numeric
-                        inputMode="decimal"
-                        placeholder="Not priced"
-                        aria-label="Selling price per unit"
-                        value={l.sellRupees}
-                        onChange={(e) => setLine(i, { sellRupees: e.target.value })}
-                      />
-                      <MarginNote line={l} />
-                    </div>
-                  </Field>
-                  <div className="flex h-10 items-center">
-                    {lines.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setLines((ls) => ls.filter((_, idx) => idx !== i))
-                        }
-                        aria-label="Remove line"
-                        className="rounded-[8px] p-2 text-danger-600 hover:bg-danger-100"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
+                    <MarginNote line={l} />
                   </div>
+                </Field>
+
+                <div className="flex h-10 items-center justify-end @min-[976px]:justify-center">
+                  {lines.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setLines((ls) => ls.filter((_, idx) => idx !== i))}
+                      aria-label={`Remove medicine ${i + 1}`}
+                      className="flex h-10 w-10 items-center justify-center rounded-[8px] text-danger-600 hover:bg-danger-100 @min-[976px]:w-8"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             );

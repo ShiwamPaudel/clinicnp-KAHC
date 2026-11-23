@@ -263,8 +263,8 @@ export function OpeningStockForm({ items }: { items: Item[] }) {
                 "grid grid-cols-1 items-end gap-x-3 gap-y-5 rounded-[10px] border border-line bg-cream-50 p-4 " +
                 "@min-[560px]:grid-cols-2 " +
                 "@min-[760px]:grid-cols-[minmax(0,2fr)_repeat(3,minmax(162px,1fr))] " +
-                "@min-[1038px]:grid-cols-[minmax(150px,1fr)_108px_162px_162px_164px_92px_96px_36px] " +
-                "@min-[1038px]:gap-x-1.5 @min-[1038px]:px-3 @min-[1038px]:pt-3 @min-[1038px]:pb-6"
+                "@min-[1008px]:grid-cols-[minmax(140px,1fr)_108px_158px_158px_156px_88px_96px_36px] " +
+                "@min-[1008px]:gap-x-1.5 @min-[1008px]:px-3 @min-[1008px]:pt-3 @min-[1008px]:pb-6"
               }
             >
               <div className="@min-[560px]:col-span-2 @min-[760px]:col-span-1">
@@ -311,10 +311,10 @@ export function OpeningStockForm({ items }: { items: Item[] }) {
               </Field>
 
               <Field label="Quantity" htmlFor={`qty-${i}`}>
-                <div className="flex gap-2 @min-[1038px]:gap-1.5">
+                <div className="flex gap-2 @min-[1008px]:gap-1.5">
                   {/* Sized by its wrapper: the box's own w-full would beat a
                       width class passed to it, and squeeze the unit out. */}
-                  <div className="w-24 shrink-0 @min-[1038px]:w-[60px]">
+                  <div className="w-24 shrink-0 @min-[1008px]:w-[60px]">
                     <Input
                       id={`qty-${i}`}
                       numeric
@@ -359,14 +359,14 @@ export function OpeningStockForm({ items }: { items: Item[] }) {
 
               {/* On one line this wrapper steps aside (display: contents), so
                   the value and the remove button take a column each. */}
-              <div className="flex items-end justify-between gap-3 @min-[760px]:col-span-2 @min-[760px]:justify-end @min-[1038px]:contents">
+              <div className="flex items-end justify-between gap-3 @min-[760px]:col-span-2 @min-[760px]:justify-end @min-[1008px]:contents">
                 <div className="flex flex-col gap-1.5 @min-[760px]:items-end">
                   {/* रू lives in the label, so a value in the lakhs still fits
                       its column on one line without running into the cost. */}
                   <span className="whitespace-nowrap text-[13px] font-medium text-sage-900">
                     Line value (रू)
                   </span>
-                  <span className="flex h-10 items-center whitespace-nowrap text-[15px] font-semibold text-sage-900 tnum @min-[1038px]:text-[14px]">
+                  <span className="flex h-10 items-center whitespace-nowrap text-[15px] font-semibold text-sage-900 tnum @min-[1008px]:text-[14px]">
                     {item ? formatPaisa(lineCostPaisa(l), false) : "-"}
                   </span>
                 </div>
@@ -374,7 +374,7 @@ export function OpeningStockForm({ items }: { items: Item[] }) {
                   type="button"
                   onClick={() => removeLine(i)}
                   aria-label={`Remove medicine ${i + 1}`}
-                  className="flex h-10 w-10 items-center justify-center self-end rounded-[8px] text-danger-600 hover:bg-danger-100 @min-[1038px]:w-9"
+                  className="flex h-10 w-10 items-center justify-center self-end rounded-[8px] text-danger-600 hover:bg-danger-100 @min-[1008px]:w-9"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
