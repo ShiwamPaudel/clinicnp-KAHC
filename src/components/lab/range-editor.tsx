@@ -95,7 +95,7 @@ export function rangeSummary(d: RangeDraft): string {
   else if (lo) main = `${lo} and above`;
   else if (hi) main = `Up to ${hi}`;
   if (d.refText.trim()) main = d.refText.trim();
-  const extra = d.overrides.length ? ` · ${d.overrides.length} by sex or age` : "";
+  const extra = d.overrides.length ? ` · ${d.overrides.length} by gender or age` : "";
   return main ? main + extra : extra.replace(/^ · /, "");
 }
 
@@ -199,7 +199,7 @@ export function RangeEditor({ value, onChange, numeric }: { value: RangeDraft; o
         onClick={() => set({ overrides: [...value.overrides, { sex: "", minAge: "", maxAge: "", low: "", high: "", text: "" }] })}
       >
         <Plus className="h-3.5 w-3.5" />
-        Different range by sex or age
+        Different range by gender or age
       </button>
     </div>
   );

@@ -11,7 +11,8 @@ import { db } from "@/lib/db";
 import type { Row } from "@/lib/db";
 import { allocate, type FefoBatch } from "@/lib/fefo";
 import { vatOf, roundToRupee } from "@/lib/money";
-import { fiscalYearOf, bsFromDbText } from "@/lib/bs";
+import { fiscalYearOf, bsFromDbText, adToIso } from "@/lib/bs";
+import { displayAge } from "@/lib/age";
 import {
   ensureFiscalYear,
   getOpenFiscalYear,
@@ -21,7 +22,7 @@ import {
 } from "@/lib/repos/fiscal";
 import { getCompany } from "@/lib/repos/company";
 import { createPatient } from "@/lib/repos/patients";
-import { getServiceForBilling, lastConsultationAd } from "@/lib/repos/services";
+import { getServiceForBilling, lastConsultationAd, packageIncludesByService } from "@/lib/repos/services";
 import { getDoctor } from "@/lib/repos/doctors";
 import { resolveFollowup, doctorSharePaisa } from "@/lib/clinic-calc";
 import { splitAtSale, type MoneyMethod } from "@/lib/dues";
@@ -924,6 +925,8 @@ export interface BillDetailServiceLine {
   dispatchedAt: string | null;
   /** how much of this line has already been refunded */
   refundedQty: number;
+  /** a lab package: the profiles and single tests opened for it, listed under the line */
+  includes: string[];
 }
 
 export interface BillDetail extends BillListRow {
@@ -939,12 +942,18 @@ export interface BillDetail extends BillListRow {
   serviceLines: BillDetailServiceLine[];
   patientId: string | null;
   visitId: string | null;
+  /** when the counter made the bill: the time printed on a reprint */
+  createdAt: string;
+  /** the registered patient's age on the bill's date, and sex: "Age / Gender" on the print */
+  patientAgeShort: string;
+  patientSex: "m" | "f" | "o" | null;
 }
 
 export async function getBillDetail(id: string): Promise<BillDetail | null> {
   const head = await db().execute({
     sql: `SELECT b.*, f.bs_label, f.status AS fy_status, u.name AS user_name,
-                 p.patient_no, p.name AS registered_name,
+                 p.patient_no, p.name AS registered_name, p.sex AS patient_sex,
+                 p.age_value, p.age_unit, p.age_as_of_ad, p.dob_ad,
                  ${DUE_FACTS_SQL}
           FROM bills b
           LEFT JOIN fiscal_years f ON f.id = b.fiscal_year_id
@@ -1009,6 +1018,27 @@ export async function getBillDetail(id: string): Promise<BillDetail | null> {
     args: [id],
   });
 
+  // A package line lists what its lab order opened for it: each profile once,
+  // then each single test, in order. Before the order exists (or with the lab
+  // module off), what the package holds now.
+  const orderTests = await db().execute({
+    sql: `SELECT ot.bill_service_line_id AS line_id,
+                 CASE WHEN ot.group_name <> '' THEN ot.group_name ELSE ot.test_name END AS label
+            FROM lab_order_tests ot
+            JOIN bill_service_lines sl ON sl.id = ot.bill_service_line_id
+            JOIN lab_test_groups g ON g.service_id = sl.service_id AND g.kind = 'package'
+           WHERE sl.bill_id = ?
+           ORDER BY ot.sort_order`,
+    args: [id],
+  });
+  const includesByLine = new Map<string, string[]>();
+  for (const r of orderTests.rows) {
+    const list = includesByLine.get(r.line_id as string) ?? [];
+    if (!list.includes(r.label as string)) list.push(r.label as string);
+    includesByLine.set(r.line_id as string, list);
+  }
+  const packageNow = includesByLine.size < svcRes.rows.length ? await packageIncludesByService() : new Map<string, string[]>();
+
   const serviceLines: BillDetailServiceLine[] = svcRes.rows.map((l) => ({
     id: l.id as string,
     serviceId: l.service_id as string,
@@ -1026,6 +1056,7 @@ export async function getBillDetail(id: string): Promise<BillDetail | null> {
     followupNote: (l.followup_note as string) ?? "",
     dispatchedAt: (l.dispatched_at as string | null) ?? null,
     refundedQty: Number(l.refunded_qty),
+    includes: includesByLine.get(l.id as string) ?? packageNow.get(l.service_id as string) ?? [],
   }));
 
   return {
@@ -1043,6 +1074,20 @@ export async function getBillDetail(id: string): Promise<BillDetail | null> {
     creditSettledAt: (h.credit_settled_at as string | null) ?? null,
     userName: (h.user_name as string) ?? "",
     lines,
+    createdAt: (h.client_created_at as string | null) ?? (h.created_at as string | null) ?? "",
+    patientAgeShort:
+      h.patient_id && (h.dob_ad != null || h.age_value != null)
+        ? displayAge(
+            {
+              value: h.age_value == null ? null : Number(h.age_value),
+              unit: (h.age_unit as "y" | "m" | "d" | null) ?? null,
+              asOfAd: (h.age_as_of_ad as string | null) ?? null,
+              dobAd: (h.dob_ad as string | null) ?? null,
+            },
+            (h.date_ad as string | null) ?? adToIso(new Date()),
+          ).short
+        : "",
+    patientSex: (h.patient_sex as "m" | "f" | "o" | null) ?? null,
   };
 }
 

@@ -98,7 +98,7 @@
   }
   .invoice-a4 .a4-k {
     display: inline-block;
-    min-width: 62px;
+    min-width: 80px;
     color: #444;
   }
 
@@ -160,6 +160,32 @@
     border-bottom: 2px solid #000;
     font-size: 13px;
     font-weight: 700;
+  }
+  /* the amount in words, right under Net Payable */
+  .invoice-a4 .a4-words {
+    max-width: 90mm;
+    padding-top: 3px;
+    font-style: italic;
+    text-align: right;
+  }
+  /* a package's profiles and tests, one per line under the package */
+  .invoice-a4 .a4-includes {
+    margin-top: 1px;
+    padding-left: 3mm;
+    font-size: 9.5px;
+    color: #333;
+    line-height: 1.35;
+  }
+  .invoice-a4 .a4-issuer {
+    margin-top: 8px;
+    font-size: 11px;
+  }
+  .invoice-a4 .a4-issuer .a4-k {
+    min-width: 0;
+    margin-right: 6px;
+  }
+  .invoice-a4 .a4-issuer .a4-k::after {
+    content: ":";
   }
 
   /* The lab-report QR, on a bill with a lab test only. */

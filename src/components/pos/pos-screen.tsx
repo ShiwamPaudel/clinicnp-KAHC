@@ -42,6 +42,7 @@ import {
 } from "@/offline/catalog-cache";
 import { enqueueBill, flushOutbox, sendBillNow, startOutboxLoop } from "@/offline/outbox";
 import { formatDocNo } from "@/lib/invoice-number";
+import { bsTextNumeric, time12 } from "@/lib/print-format";
 import { advanceAgainst } from "@/lib/prebooking-format";
 import { formatPaisa } from "@/lib/money";
 import { mintReportToken, reportUrl } from "@/lib/lab-token";
@@ -60,6 +61,8 @@ import { StuckQueue } from "@/components/pos/stuck-queue";
 import { InvoiceA4 } from "@/components/print/invoice-a4";
 import { useToast } from "@/components/ui/toast";
 import { strings, npLabels } from "@/lib/strings";
+
+const GENDER_LABEL: Record<string, string> = { m: "Male", f: "Female", o: "Other" };
 
 export function PosScreen({ config }: { config: PosConfig }) {
   const toast = useToast();
@@ -463,17 +466,13 @@ export function PosScreen({ config }: { config: PosConfig }) {
         ? formatDocNo("SI", sent.fiscalLabel ?? "", sent.invoiceNo!)
         : `Slip ${id.slice(-6).toUpperCase()}`,
       provisional: !numbered,
-      dateBsLong: config.todayBsLong,
-      timeStr: new Date().toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      dateTime: `${bsTextNumeric(config.todayBsText)} / ${time12(new Date())}`,
       patientName: s.patientName,
       patient: s.patient
         ? {
             patientNo: s.patient.patientNo,
             name: s.patient.name,
-            ageSex: `${s.patient.ageShort} · ${s.patient.sex.toUpperCase()}`,
+            ageSex: [s.patient.ageShort, GENDER_LABEL[s.patient.sex] ?? ""].filter(Boolean).join(" / "),
           }
         : null,
       serviceLines: s.serviceLines.map((l) => ({
@@ -486,6 +485,7 @@ export function PosScreen({ config }: { config: PosConfig }) {
         amountPaisa: serviceLineAmountPaisa(l),
         rateOverridden: l.rateOverridden,
         followupNote: l.followupNote,
+        includes: services.find((x) => x.id === l.serviceId)?.includes,
       })),
       lines: printLines,
       subtotalPaisa: totals.subtotalPaisa,

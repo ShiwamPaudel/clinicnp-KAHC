@@ -190,7 +190,7 @@ export function PatientForm({
           </Field>
         </div>
 
-        <Field label="Sex" required htmlFor="sex">
+        <Field label="Gender" required htmlFor="sex">
           <select
             id="sex"
             value={v.sex}

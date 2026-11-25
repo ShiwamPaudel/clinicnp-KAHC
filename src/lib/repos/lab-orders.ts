@@ -719,6 +719,8 @@ export interface OrderDetail {
   reportToken: string;
   signatoryIds: string[];
   releasedAt: string | null;
+  /** the first time a result was saved in Result entry (0032): "Sample Received on" */
+  receivedAt: string | null;
   viewCount: number;
   lastViewedAt: string | null;
   balancePaisa: number;
@@ -909,6 +911,7 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
     reportToken: o.report_token as string,
     signatoryIds: parseStrList(o.signatory_ids),
     releasedAt: (o.released_at as string | null) ?? null,
+    receivedAt: (o.received_at as string | null) ?? null,
     viewCount: Number(o.view_count),
     lastViewedAt: (o.last_viewed_at as string | null) ?? null,
     balancePaisa: balanceOfRow({ ...o, status: o.bill_status ?? null }),
@@ -990,6 +993,7 @@ export async function saveResults(
   const at = nowIso();
   let submitted = 0;
   let drafted = 0;
+  let typedSomething = false;
   const stmts: InStatement[] = [];
 
   for (const e of entries) {
@@ -1021,6 +1025,7 @@ export async function saveResults(
       });
     });
 
+    if (anyValue) typedSomething = true;
     const submitThis = mode === "submit" && anyValue;
     const version = submitThis ? result.version + 1 : result.version;
     stmts.push({ sql: "DELETE FROM lab_result_values WHERE result_id = ?", args: [result.id] }, ...valueStmts, {
@@ -1045,6 +1050,10 @@ export async function saveResults(
     }
   }
   if (stmts.length === 0) throw new LabProblem("Nothing here can be changed any more.");
+  // "Sample Received on" on the report: the first save with a value in it, kept from then on (0032)
+  if (typedSomething) {
+    stmts.push({ sql: "UPDATE lab_orders SET received_at = COALESCE(received_at, ?) WHERE id = ?", args: [at, orderId] });
+  }
   await db().batch(stmts, "write");
   await refreshOrderStatus(orderId);
   return { submitted, drafted };
@@ -1059,8 +1068,14 @@ export async function approveOrder(
   input: { signatoryIds: string[]; interpretations: Record<string, string> },
   user: { id: string; name: string },
 ): Promise<{ approved: number; stillPending: number }> {
-  const wanted = [...new Set(input.signatoryIds.filter(Boolean))];
-  if (wanted.length === 0) throw new LabProblem("Choose at least one signature for the report.");
+  // No choosing at approval (owner, 2083-08-08): the active signatures sign
+  // every report, in their set order. A list passed in still wins.
+  let wanted = [...new Set(input.signatoryIds.filter(Boolean))];
+  if (wanted.length === 0) {
+    const active = await db().execute("SELECT id FROM lab_signatories WHERE active = 1 ORDER BY sort_order, name");
+    wanted = active.rows.map((r) => r.id as string).slice(0, MAX_SIGNATORIES);
+  }
+  if (wanted.length === 0) throw new LabProblem("No signatures are set up yet. Add them under Settings → Lab report.");
   if (wanted.length > MAX_SIGNATORIES) throw new LabProblem(`A report carries at most ${MAX_SIGNATORIES} signatures.`);
   const valid = await db().execute({
     sql: `SELECT id FROM lab_signatories WHERE active = 1 AND id IN (${wanted.map(() => "?").join(",")})`,

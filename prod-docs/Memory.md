@@ -66,6 +66,8 @@
 - 2083-08-05 C-034: typecheck clean, **54 files / 599 tests** green.
 - 2083-08-06 C-035: typecheck clean, **57 files / 616 tests** green, `pnpm build` passes (`/billing` 150 kB).
 - 2083-08-07 C-036: typecheck clean, **59 files / 624 tests** green.
+- 2083-08-08 C-037: typecheck clean, **60 files / 633 tests** green, `pnpm build` passes on a scratch DB.
+- 2083-08-09: **0032 applied to KAHC** (owner allowed it; 32 migrations). Deploy this code only with 0032 in place: saving results writes `lab_orders.received_at`.
 
 ### Working practices that were earned the hard way
 
@@ -329,6 +331,11 @@
 | D-202 | **The printed lab report**: a low/high value and its H/L are heavy (800) and normal values regular (400), so they stand out in black and white. A test's *Note on the report* prints after the last test of its group, named; for tests billed in a package (`OrderResult.packageName`) all notes print together under **Notes** after the results, just before End of report and the signatures. Lines at 1.3 and tighter padding fit more tests per page at the same font size; the header-row underline is darker (25%) | Owner, 2083-08-06. |
 | D-204 | **On-screen wording: no em dashes anywhere in the app, and plain professional labels.** An empty value shows "-"; a title takes a colon; a joined sentence is split with a full stop; an aside goes in brackets. Opening stock and purchases say **Quantity** (not "How many" or "Qty"); Pre-Booking says **Total** for today's price of the chosen tests (not "About"). The side menu is 288 px wide so "Pre-Booking" is not cut off. Kept on purpose: em dashes inside the invoice reader's regexes (`lib/invoice-read/parse.ts`, they match suppliers' printed text) and in code comments | Owner, 2083-08-07: "Remove every em dashes from the Software … 'How Many' … doesn't sound actual and professional"; "Why the 'About'? does it look professional?". New text must follow it too. |
 | D-203 | **A purchase line is one line**, like Opening stock: Medicine, Batch number, Mfg date, Expiry date, Quantity + unit, (Free), Cost each, Price each, remove; sized by the form's own width (container queries), one line from 976 px (1,038 px with Free), folding onto two lines below that. Opening stock's one-line width came down to 1,008 px so it still fits a 1,366 px screen with the wider menu and a scrollbar. The bill-photo notes (printed name, amount check) print as a full-width line above the boxes | Owner, 2083-08-07: "one line = 1 item entry, not split across two lines". |
+| D-205 | **The printed bill** (A4, counter and reprint): **Name** (not Patient), **Age / Gender**, one **Date / Time** row as `08-08-2083 / 4:00 PM` (BS day-month-year, 12-hour **Nepal time** whatever the server clock, `lib/print-format.ts`); totals **Sub Total, Discount** (always shown, "-" when none)**, Net Payable**, with the **amount in words** under it ("Rupees Four Thousand Only", lakh/crore); **Invoice Issued by** (the bill's user); a **package line lists its profiles, then its single tests**, one per line (a test also in one of its profiles is not listed again). The counter takes the list from `PosService.includes` (`packageIncludesByService`); the reprint from the lab order tests opened for that line, else the package as it is now. The bill screen shows the same labels and list | Owner, 2083-08-08. The reprint also gained the time and Age / Gender it never printed. |
+| D-206 | **"Sex" is "Gender" on every screen and print** (patient forms, the counter, visit list, range editor, export header, validation message). The column, the values (m/f/o) and the code names stay `sex` | Owner, 2083-08-08: "Change Sex to Gender overall in the System". |
+| D-207 | **The lab report header**: left **Lab ID No., Name, Gender, Referred by**, then Age, Patient No., Address (owner chose to keep those three); right **Invoice No., Sample Collected on** (first collected sample), **Sample Received on** (`lab_orders.received_at`, 0032: stamped by the first save in Result entry that has a value, draft or submit, never moved), **Report Released on** (latest approval). "Billed" and "Reported" are gone. All dates `08-08-2083 / 4:00 PM` | Owner, 2083-08-08. Orders from before 0032 read the first submit. |
+| D-208 | **The lab report boxes each profile**: under the department bar, every profile is its own bordered table with its name as the heading row and the column headings inside; the department's single tests share one box. Note placement (D-202) is unchanged. **Signature images are 66 px tall** (was 44, owner asked for about 50% bigger) | Owner, 2083-08-08: "to separate Profiles / Departments, add the outer border to the table". |
+| D-209 | **No choosing signatures at approval.** Approve is enabled at once; `approveOrder` with no list signs with every active signature in its set order (up to 3); with none set up it refuses and the page says where to add them | Owner, 2083-08-08: "the two signatures are selected by default". |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---
@@ -1085,3 +1092,28 @@ From here the database is live (Current state).
 **Verified:** typecheck; the full suite, 624 tests, with `report-notes` and
 `prebooking-patient` new; after the clearing, no rows left in the cleared
 tables and the setup counts unchanged.
+
+### C-037  ·  2083-08-08  ·  The bill and report wording, boxed profiles, approval without choosing
+
+The bill (D-205), Gender everywhere (D-206), the report header with the
+sample and release dates (D-207, 0032 `lab_orders.received_at`), a box per
+profile and bigger signatures (D-208), approval without choosing signatures
+(D-209). New `lib/print-format.ts` (Nepal-time dates, amount in words).
+**Live clearing (owner's answers):** everything entered on 2083-08-08 was
+dummy except the setup. 274 rows deleted by row id in one write batch: the 4
+patients (Rijan Paudel, Shiwam Paudel, Roshan Mangal Joshi, Debendra Bdr
+Ghimire) with their 4 bills, visits, lab orders (92 tests, 10 samples, values,
+approvals, report views), the pre-booking and its item, a dues payment; the
+login debendra.ghimire and its 2 failed-sign-in rows; Rack 1; 12 audit entries
+about them. Bill, visit, patient, lab order and sample numbers back to 1.
+Kept (owner): Dr. Sudhakar Jha, the Ultrasound (A+P) service, the WHOLE BODY
+CHECK UP package, the Ultrasound and Electrocardiogram tests, and their audit
+entries. Backup first: `.backups/kahc-before-clearing-2083-08-08-2026-11-24T12-06-54-098Z.json.gz`
+(72 tables, 23,686 rows, counts read back). Method as C-036 (dry run saved,
+re-checked at apply, every row created that day, child-first).
+0032 was applied to KAHC the next day, 2083-08-09, once the owner allowed it
+(the agent's first run had been refused by the permission check).
+**Verified:** typecheck; full suite with `bill-report-format` new and the
+package, lab and print tests extended; `pnpm build` on a scratch DB with 0032;
+the bill and report rendered and checked in Chromium; after the clearing, the
+cleared tables empty, `PRAGMA foreign_key_check` clean, kept counts unchanged.

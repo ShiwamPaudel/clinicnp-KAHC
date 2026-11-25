@@ -1,4 +1,5 @@
 import { formatPaisa } from "@/lib/money";
+import { amountInWords } from "@/lib/print-format";
 import type { PrintBill } from "@/lib/print-types";
 
 const METHOD_LABEL: Record<string, string> = {
@@ -54,20 +55,20 @@ export function InvoiceA4({ bill }: { bill: PrintBill }) {
           {bill.patient ? (
             <>
               <div>
-                <span className="a4-k">Patient</span>
+                <span className="a4-k">Name</span>
                 {bill.patient.patientNo != null
                   ? `P-${String(bill.patient.patientNo).padStart(6, "0")} · `
                   : ""}
                 {bill.patient.name}
               </div>
               <div>
-                <span className="a4-k">Age / Sex</span>
-                {bill.patient.ageSex}
+                <span className="a4-k">Age / Gender</span>
+                {bill.patient.ageSex || "-"}
               </div>
             </>
           ) : (
             <div>
-              <span className="a4-k">Patient</span>
+              <span className="a4-k">Name</span>
               {bill.patientName || "-"}
             </div>
           )}
@@ -82,12 +83,8 @@ export function InvoiceA4({ bill }: { bill: PrintBill }) {
             <b>{bill.invoiceLabel}</b>
           </div>
           <div>
-            <span className="a4-k">Date</span>
-            {bill.dateBsLong}
-          </div>
-          <div>
-            <span className="a4-k">Time</span>
-            {bill.timeStr}
+            <span className="a4-k">Date / Time</span>
+            {bill.dateTime}
           </div>
         </div>
       </div>
@@ -113,6 +110,14 @@ export function InvoiceA4({ bill }: { bill: PrintBill }) {
                   {l.name}
                   {l.followupNote && (
                     <div className="a4-sub">{l.followupNote}</div>
+                  )}
+                  {/* a package: what it holds, one per line (owner, 2083-08-08) */}
+                  {l.includes && l.includes.length > 0 && (
+                    <div className="a4-includes">
+                      {l.includes.map((t, j) => (
+                        <div key={j}>{t}</div>
+                      ))}
+                    </div>
                   )}
                 </td>
                 <td>{l.doctorName || "-"}</td>
@@ -177,15 +182,14 @@ export function InvoiceA4({ bill }: { bill: PrintBill }) {
         <table>
           <tbody>
             <tr>
-              <td>Subtotal</td>
+              <td>Sub Total</td>
               <td className="a4-r">{formatPaisa(bill.subtotalPaisa)}</td>
             </tr>
-            {bill.billDiscountPaisa > 0 && (
-              <tr>
-                <td>Discount</td>
-                <td className="a4-r">− {formatPaisa(bill.billDiscountPaisa)}</td>
-              </tr>
-            )}
+            {/* always shown; "-" when the bill has no discount (owner, 2083-08-08) */}
+            <tr>
+              <td>Discount</td>
+              <td className="a4-r">{bill.billDiscountPaisa > 0 ? `− ${formatPaisa(bill.billDiscountPaisa)}` : "-"}</td>
+            </tr>
             {c.vatRegistered && bill.vatPaisa > 0 && (
               <tr>
                 <td>VAT 13%</td>
@@ -193,8 +197,11 @@ export function InvoiceA4({ bill }: { bill: PrintBill }) {
               </tr>
             )}
             <tr className="a4-grand">
-              <td>Total</td>
+              <td>Net Payable</td>
               <td className="a4-r">{formatPaisa(bill.totalPaisa)}</td>
+            </tr>
+            <tr>
+              <td colSpan={2} className="a4-words">{amountInWords(bill.totalPaisa)}</td>
             </tr>
             {bill.advance && bill.advance.usedPaisa > 0 && (
               <>
@@ -252,9 +259,15 @@ export function InvoiceA4({ bill }: { bill: PrintBill }) {
         </table>
       </div>
 
-      {/* The one line after the total. No signature blocks: nobody signs a
-          pharmacy counter bill, and two ruled lines at the bottom of every
-          sheet is a form asking to be filled in that never is. */}
+      {/* No signature blocks: nobody signs a counter bill. Who issued it is
+          printed instead (owner, 2083-08-08). */}
+      {bill.userName && (
+        <div className="a4-issuer">
+          <span className="a4-k">Invoice Issued by</span>
+          {bill.userName}
+        </div>
+      )}
+
       {/* Lab tests on the bill: where the patient opens the report (Lab.md).
           Only on a bill that carries one. */}
       {bill.labReport && (

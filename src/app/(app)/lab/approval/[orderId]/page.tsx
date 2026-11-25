@@ -21,7 +21,6 @@ export default async function ApprovalPage({ params }: { params: Promise<{ order
         orderId={order.id}
         results={order.results}
         signatories={signatories.map((s) => ({ id: s.id, name: s.name, description: s.description }))}
-        defaultSignatoryIds={order.signatoryIds}
       />
     </main>
   );

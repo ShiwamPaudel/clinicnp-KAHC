@@ -217,6 +217,16 @@ describe("a bill with lab tests", () => {
     expect(saved.status).toBe("submitted");
     expect(saved.values[0]!.flag).toBe("low");
     expect(saved.hasAbnormal).toBe(true);
+    // "Sample Received on": stamped by the first save with a value, and kept (0032)
+    expect(order.receivedAt).not.toBeNull();
+    const first = order.receivedAt;
+    await saveResults(
+      orderId,
+      [{ resultId: tlc.id, technicianRemarks: "", values: [{ parameterId: null, value: "", remarks: "" }] }],
+      "draft",
+      TECH,
+    );
+    expect((await getOrder(orderId))!.receivedAt).toBe(first);
   });
 
   it("keeps the patient's link closed until something is approved", async () => {
@@ -225,10 +235,10 @@ describe("a bill with lab tests", () => {
     expect((await resolvePublicReport("nope")).status).toBe("invalid");
   });
 
-  it("approves with a signature and opens the link for what is done, the rest to follow", async () => {
+  it("approves signed by the active signatures and opens the link for what is done, the rest to follow", async () => {
     const { approveOrder, resolvePublicReport, getOrder } = await import("@/lib/repos/lab-orders");
-    await expect(approveOrder(orderId, { signatoryIds: [], interpretations: {} }, PATH)).rejects.toThrow(/signature/);
-    const out = await approveOrder(orderId, { signatoryIds: [signatoryId], interpretations: {} }, PATH);
+    // nothing chosen at approval (owner, 2083-08-08): the active signatures sign
+    const out = await approveOrder(orderId, { signatoryIds: [], interpretations: {} }, PATH);
     expect(out.approved).toBe(1);
     const state = await resolvePublicReport("AbCdEfGh23");
     expect(state.status).toBe("ready");

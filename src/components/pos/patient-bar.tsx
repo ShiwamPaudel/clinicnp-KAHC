@@ -344,7 +344,7 @@ export function PatientBar({
               />
             </Field>
             <div className="grid grid-cols-3 gap-3">
-              <Field label="Sex" htmlFor="counter-patient-sex">
+              <Field label="Gender" htmlFor="counter-patient-sex">
                 <Select
                   id="counter-patient-sex"
                   value={form.sex}

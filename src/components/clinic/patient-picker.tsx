@@ -150,7 +150,7 @@ export function PatientPicker({
         </Field>
 
         <div className="grid grid-cols-[1fr_1fr_1.2fr] gap-3">
-          <Field label="Sex">
+          <Field label="Gender">
             <Select
               value={draft.sex}
               onChange={(e) =>

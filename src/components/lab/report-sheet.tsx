@@ -15,8 +15,9 @@ export interface ReportViewData {
   headerImage: string;
   footerImage: string;
   margins: { topMm: number; bottomMm: number; xMm: number };
-  patient: { name: string; patientNo: string; ageSex: string; phone: string; address: string };
-  order: { orderNo: string; invoiceLabel: string; referredBy: string; billedOn: string; reportedOn: string };
+  patient: { name: string; patientNo: string; age: string; gender: string; phone: string; address: string };
+  /** dates as printed, "08-08-2083 / 4:00 PM"; empty prints "-" */
+  order: { orderNo: string; invoiceLabel: string; referredBy: string; collectedOn: string; receivedOn: string; releasedOn: string };
   sections: { departmentName: string; showUnit: boolean; showRange: boolean; results: OrderResult[] }[];
   signatories: { id: string; name: string; description: string; image: string }[];
   qrDataUrl: string;
@@ -67,9 +68,9 @@ export function ReportSignatures({ d }: { d: ReportViewData }) {
         <div key={s.id} style={{ textAlign: "center", fontSize: 12 }}>
           {s.image ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={s.image} alt="" style={{ height: 44, margin: "0 auto 2px", objectFit: "contain" }} />
+            <img src={s.image} alt="" style={{ height: 66, margin: "0 auto 2px", objectFit: "contain" }} />
           ) : (
-            <div style={{ height: 44 }} />
+            <div style={{ height: 66 }} />
           )}
           <div style={{ borderTop: `1px solid ${INK}`, padding: "2px 18px 0" }}>
             <div style={{ fontWeight: 600 }}>{s.name}</div>
@@ -101,14 +102,14 @@ function ValueRow({ v, label, indent, showUnit, showRange }: { v: ResultValueVie
   const flagged = v.flag !== "normal";
   return (
     <tr style={{ breakInside: "avoid" }}>
-      <td style={{ padding: `1px 0 1px ${indent * 4}mm` }}>{label}</td>
+      <td style={{ padding: `1px 6px 1px calc(${indent * 4}mm + 6px)` }}>{label}</td>
       {/* weight, not colour, marks a low or high value: the report is often printed in black and white */}
       <td style={{ padding: "1px 0", fontWeight: flagged ? 800 : 400 }}>
         {v.valueText || "-"}
         {flagged && <span style={{ marginLeft: 4, fontWeight: 800 }}>{flagSymbol(v.flag)}</span>}
       </td>
       {showUnit && <td style={{ padding: "1px 0", color: MUTED }}>{v.unit}</td>}
-      {showRange && <td style={{ padding: "1px 0", color: MUTED }}>{v.refText}</td>}
+      {showRange && <td style={{ padding: "1px 6px 1px 0", color: MUTED }}>{v.refText}</td>}
     </tr>
   );
 }
@@ -149,109 +150,124 @@ export function ReportBody({ d }: { d: ReportViewData }) {
           fontSize: 13,
         }}
       >
+        {/* owner, 2083-08-08: these four first on the left, then age, number and address */}
         <div>
-          <Line label="Patient" value={d.patient.name} />
-          <Line label="Patient no." value={d.patient.patientNo} />
-          <Line label="Age / Sex" value={d.patient.ageSex} />
+          <Line label="Lab ID No." value={d.order.orderNo} />
+          <Line label="Name" value={d.patient.name} />
+          <Line label="Gender" value={d.patient.gender} />
+          <Line label="Referred by" value={d.order.referredBy} />
+          <Line label="Age" value={d.patient.age} />
+          <Line label="Patient No." value={d.patient.patientNo} />
           <Line label="Address" value={d.patient.address} />
         </div>
         <div>
-          <Line label="Lab no." value={d.order.orderNo} right />
-          <Line label="Bill" value={d.order.invoiceLabel} right />
-          <Line label="Referred by" value={d.order.referredBy} right />
-          <Line label="Billed" value={d.order.billedOn} right />
-          <Line label="Reported" value={d.order.reportedOn} right />
+          <Line label="Invoice No." value={d.order.invoiceLabel} right />
+          <Line label="Sample Collected on" value={d.order.collectedOn} right />
+          <Line label="Sample Received on" value={d.order.receivedOn} right />
+          <Line label="Report Released on" value={d.order.releasedOn} right />
         </div>
       </div>
 
       {d.sections.map((s) => {
         const w = widths(s.showUnit, s.showRange);
         const cols = 2 + (s.showUnit ? 1 : 0) + (s.showRange ? 1 : 0);
-        const groups: { key: string; name: string; items: OrderResult[] }[] = [];
+        // One bordered box per profile, its name as the heading (owner,
+        // 2083-08-08). The department's tests billed on their own share one
+        // box, where the first of them stands.
+        const boxes: { key: string; name: string; items: OrderResult[] }[] = [];
         for (const r of s.results) {
-          const key = r.groupName || `solo:${r.id}`;
-          let g = groups.find((x) => x.key === key);
-          if (!g) groups.push((g = { key, name: r.groupName, items: [] }));
-          g.items.push(r);
+          const key = r.groupName ? `group:${r.groupName}` : "solo";
+          let b = boxes.find((x) => x.key === key);
+          if (!b) boxes.push((b = { key, name: r.groupName, items: [] }));
+          b.items.push(r);
         }
         return (
           <div key={s.departmentName} style={{ marginTop: 8 }}>
             <div style={{ background: "#eef2ee", padding: "2px 6px", fontWeight: 800, fontSize: 13.5, textTransform: "uppercase", letterSpacing: 0.5, breakAfter: "avoid" }}>
               {s.departmentName}
             </div>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
-              <thead>
-                <tr style={{ textAlign: "left", color: MUTED, borderBottom: `1px solid ${INK}40` }}>
-                  <th style={{ width: w.name, padding: "2px 0", fontWeight: 600 }}>Investigation</th>
-                  <th style={{ width: w.result, padding: "2px 0", fontWeight: 600 }}>Result</th>
-                  {s.showUnit && <th style={{ width: w.unit, padding: "2px 0", fontWeight: 600 }}>Unit</th>}
-                  {s.showRange && <th style={{ width: w.ref, padding: "2px 0", fontWeight: 600 }}>Reference range</th>}
+            {boxes.map((b) => {
+              const inGroup = Boolean(b.name);
+              const noteRow = (r: OrderResult, first: boolean) => (
+                <tr key={`note-${r.id}`} style={{ breakInside: "avoid" }}>
+                  <td
+                    colSpan={cols}
+                    style={{ padding: `${first ? 3 : 1}px 6px 1px 6px`, fontSize: 10.5, fontStyle: "italic", color: MUTED }}
+                  >
+                    {inGroup && <span style={{ fontStyle: "normal", fontWeight: 600, color: INK }}>{r.testName}: </span>}
+                    {r.description}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {groups.map((g) => (
-                  <Fragment key={g.key}>
-                    {g.name && (
+              );
+              const groupNotes = inGroup ? b.items.filter((r) => !r.packageName && r.description.trim()) : [];
+              return (
+                <table
+                  key={b.key}
+                  style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5, marginTop: 4, border: `1px solid ${INK}` }}
+                >
+                  <thead>
+                    {b.name && (
                       <tr>
-                        <td colSpan={cols} style={{ paddingTop: 3, fontWeight: 700, fontSize: 13.5 }}>
-                          {g.name}
-                        </td>
+                        <th colSpan={cols} style={{ textAlign: "left", padding: "3px 6px", fontWeight: 700, fontSize: 13.5, borderBottom: `1px solid ${INK}40` }}>
+                          {b.name}
+                        </th>
                       </tr>
                     )}
-                    {g.items.map((r) => {
-                      const inGroup = Boolean(g.name);
+                    <tr style={{ textAlign: "left", color: MUTED, borderBottom: `1px solid ${INK}40` }}>
+                      <th style={{ width: w.name, padding: "2px 6px", fontWeight: 600 }}>Investigation</th>
+                      <th style={{ width: w.result, padding: "2px 0", fontWeight: 600 }}>Result</th>
+                      {s.showUnit && <th style={{ width: w.unit, padding: "2px 0", fontWeight: 600 }}>Unit</th>}
+                      {s.showRange && <th style={{ width: w.ref, padding: "2px 6px 2px 0", fontWeight: 600 }}>Reference range</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {b.items.map((r) => {
                       const only = r.values.length === 1 ? r.values[0]! : null;
                       const oneLine = only != null && (only.parameterId == null || only.label.trim().toLowerCase() === r.testName.trim().toLowerCase());
                       return (
                         <Fragment key={r.id}>
                           {oneLine ? (
-                            <ValueRow v={only!} label={r.testName} indent={inGroup ? 1 : 0} showUnit={s.showUnit} showRange={s.showRange} />
+                            <ValueRow v={only!} label={r.testName} indent={0} showUnit={s.showUnit} showRange={s.showRange} />
                           ) : (
                             <>
                               <tr>
-                                <td colSpan={cols} style={{ paddingTop: 2, paddingLeft: inGroup ? "4mm" : 0, fontWeight: 600, textDecoration: "underline" }}>
+                                <td colSpan={cols} style={{ padding: "2px 6px 0", fontWeight: 600, textDecoration: "underline" }}>
                                   {r.testName}
                                 </td>
                               </tr>
                               {r.values.map((v) => (
-                                <ValueRow key={v.id} v={v} label={v.label} indent={inGroup ? 2 : 1} showUnit={s.showUnit} showRange={s.showRange} />
+                                <ValueRow key={v.id} v={v} label={v.label} indent={1} showUnit={s.showUnit} showRange={s.showRange} />
                               ))}
                             </>
                           )}
                           {r.method && (
                             <tr>
-                              <td colSpan={cols} style={{ paddingLeft: inGroup ? "4mm" : 0, fontSize: 10.5, fontStyle: "italic", color: MUTED }}>
+                              <td colSpan={cols} style={{ padding: "0 6px", fontSize: 10.5, fontStyle: "italic", color: MUTED }}>
                                 Method: {r.method}
                               </td>
                             </tr>
                           )}
                           {r.technicianRemarks && (
                             <tr>
-                              <td colSpan={cols} style={{ paddingLeft: inGroup ? "4mm" : 0, fontSize: 10.5, fontStyle: "italic", color: MUTED }}>
+                              <td colSpan={cols} style={{ padding: "0 6px", fontSize: 10.5, fontStyle: "italic", color: MUTED }}>
                                 {r.technicianRemarks}
                               </td>
                             </tr>
                           )}
+                          {/* a test on its own: its note right under it */}
+                          {!inGroup && !r.packageName && r.description.trim() && noteRow(r, true)}
                         </Fragment>
                       );
                     })}
-                    {g.items
-                      .filter((r) => !r.packageName && r.description.trim())
-                      .map((r, i) => (
-                        <tr key={`note-${r.id}`} style={{ breakInside: "avoid" }}>
-                          <td
-                            colSpan={cols}
-                            style={{ padding: `${i === 0 ? 3 : 1}px 0 1px ${g.name ? "4mm" : 0}`, fontSize: 10.5, fontStyle: "italic", color: MUTED }}
-                          >
-                            {g.name && <span style={{ fontStyle: "normal", fontWeight: 600, color: INK }}>{r.testName}: </span>}
-                            {r.description}
-                          </td>
-                        </tr>
-                      ))}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
+                    {/* a profile's notes after its last test */}
+                    {groupNotes.map((r, i) => noteRow(r, i === 0))}
+                    <tr>
+                      <td colSpan={cols} style={{ padding: 0, height: 3 }} />
+                    </tr>
+                  </tbody>
+                </table>
+              );
+            })}
           </div>
         );
       })}

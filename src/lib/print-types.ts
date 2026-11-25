@@ -30,13 +30,15 @@ export interface PrintServiceLine {
   rateOverridden: boolean;
   /** "Follow-up within 7 days — no charge." Printed under the line when set. */
   followupNote: string;
+  /** a lab package: its profiles and single tests, one per line under it */
+  includes?: string[];
 }
 
 /** Who the bill is for, when it is for somebody. */
 export interface PrintPatient {
   patientNo: number | null;
   name: string;
-  /** already formatted, e.g. "34y · F" */
+  /** already formatted, e.g. "34Y / Female"; empty prints "-" */
   ageSex: string;
 }
 
@@ -57,8 +59,8 @@ export interface PrintBill {
   company: PrintCompany;
   invoiceLabel: string; // "000123", or "Slip …" when printed before the number came back
   provisional: boolean;
-  dateBsLong: string;
-  timeStr: string;
+  /** "08-08-2083 / 4:00 PM": BS date, Nepal time (owner, 2083-08-08) */
+  dateTime: string;
   patientName: string;
   /** the registered patient, on a clinic or mixed bill */
   patient?: PrintPatient | null;
@@ -76,6 +78,7 @@ export interface PrintBill {
   paidNowPaisa?: number;
   paidNowMethod?: "cash" | "qr";
   duePaisa?: number;
+  /** who issued the bill (the signed-in person at the counter): "Invoice Issued by" */
   userName: string;
   /** a bill with lab tests: where the patient opens the report, and its QR */
   labReport?: { url: string; qrDataUrl: string } | null;

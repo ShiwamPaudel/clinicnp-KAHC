@@ -6,7 +6,8 @@ import "server-only";
 import type { ReportData } from "@/lib/repos/lab-report";
 import type { ReportViewData } from "@/components/lab/report-sheet";
 import { qrDataUrl, barcodeDataUrl } from "@/lib/lab-codes";
-import { bsDateLabel, orderNoLabel, patientNoLabel, stampAtLong } from "@/lib/lab-format";
+import { orderNoLabel, patientNoLabel } from "@/lib/lab-format";
+import { stampNumeric } from "@/lib/print-format";
 import { reportUrl } from "@/lib/lab-token";
 
 const SEX: Record<string, string> = { m: "Male", f: "Female", o: "Other" };
@@ -15,6 +16,12 @@ export async function toReportView(data: ReportData, origin: string, pendingNote
   const o = data.order;
   const url = reportUrl(origin, o.reportToken);
   const patientNo = patientNoLabel(o.patient.patientNo);
+  // the first sample collected; a test that needs no sample has none
+  const collectedAt =
+    o.samples
+      .filter((s) => s.status === "collected" && s.collectedAt)
+      .map((s) => s.collectedAt!)
+      .sort()[0] ?? null;
   const [qr, barcode] = await Promise.all([qrDataUrl(url, 140), barcodeDataUrl(patientNo, { heightMm: 7, scale: 2 })]);
   return {
     company: { name: data.company.name, address: data.company.address, phone: data.company.phone },
@@ -24,7 +31,8 @@ export async function toReportView(data: ReportData, origin: string, pendingNote
     patient: {
       name: o.patient.name,
       patientNo,
-      ageSex: `${o.patient.ageShort} / ${SEX[o.patient.sex] ?? ""}`,
+      age: o.patient.ageShort,
+      gender: SEX[o.patient.sex] ?? "",
       phone: o.patient.phone,
       address: o.patient.address,
     },
@@ -32,8 +40,9 @@ export async function toReportView(data: ReportData, origin: string, pendingNote
       orderNo: orderNoLabel(o.orderNo),
       invoiceLabel: o.invoiceLabel,
       referredBy: o.referredBy,
-      billedOn: bsDateLabel(o.dateBs),
-      reportedOn: stampAtLong(data.approvedAt),
+      collectedOn: stampNumeric(collectedAt),
+      receivedOn: stampNumeric(o.receivedAt),
+      releasedOn: stampNumeric(data.approvedAt),
     },
     sections: data.sections,
     signatories: data.signatories,

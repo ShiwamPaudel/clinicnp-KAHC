@@ -273,6 +273,7 @@ const IS_LAB_TEST_SQL = `(CASE WHEN (SELECT module_lab FROM company WHERE id = 1
  * name it was billed under.
  */
 export async function listPosServices(): Promise<PosService[]> {
+  const includes = await packageIncludesByService();
   const res = await db().execute(
     `SELECT s.*, g.name AS group_name, g.is_consultation, ${IS_LAB_TEST_SQL} AS is_lab_test
        FROM services s
@@ -299,7 +300,51 @@ export async function listPosServices(): Promise<PosService[]> {
     vatApplicable: Number(r.vat_applicable) === 1,
     sampleRate: Number(r.sample_rate) === 1,
     isLabTest: Number(r.is_lab_test ?? 0) === 1,
+    ...(includes.has(r.id as string) ? { includes: includes.get(r.id as string) } : {}),
   }));
+}
+
+/**
+ * What each lab package holds, as the bill lists it under the package line
+ * (owner, 2083-08-08): its profiles by name, then its single tests, in the
+ * order the package was set up. A single test that is also in one of the
+ * package's profiles is done once, under the profile, so it is not listed again.
+ */
+export async function packageIncludesByService(): Promise<Map<string, string[]>> {
+  const [profiles, singles, inProfiles] = await Promise.all([
+    db().execute(
+      `SELECT pkg.service_id, pg.name FROM lab_test_groups pkg
+         JOIN lab_test_group_profiles gp ON gp.group_id = pkg.id
+         JOIN lab_test_groups pg ON pg.id = gp.profile_id
+        WHERE pkg.kind = 'package'
+        ORDER BY gp.sort_order, pg.name`,
+    ),
+    db().execute(
+      `SELECT pkg.service_id, t.id AS test_id, t.name FROM lab_test_groups pkg
+         JOIN lab_test_group_items i ON i.group_id = pkg.id
+         JOIN lab_tests t ON t.id = i.test_id
+        WHERE pkg.kind = 'package'
+        ORDER BY i.sort_order, t.name`,
+    ),
+    db().execute(
+      `SELECT DISTINCT pkg.service_id, i.test_id FROM lab_test_groups pkg
+         JOIN lab_test_group_profiles gp ON gp.group_id = pkg.id
+         JOIN lab_test_group_items i ON i.group_id = gp.profile_id
+        WHERE pkg.kind = 'package'`,
+    ),
+  ]);
+  const covered = new Set(inProfiles.rows.map((r) => `${r.service_id as string}|${r.test_id as string}`));
+  const out = new Map<string, string[]>();
+  const add = (serviceId: string, name: string) => {
+    const list = out.get(serviceId) ?? [];
+    list.push(name);
+    out.set(serviceId, list);
+  };
+  for (const r of profiles.rows) add(r.service_id as string, r.name as string);
+  for (const r of singles.rows) {
+    if (!covered.has(`${r.service_id as string}|${r.test_id as string}`)) add(r.service_id as string, r.name as string);
+  }
+  return out;
 }
 
 /**

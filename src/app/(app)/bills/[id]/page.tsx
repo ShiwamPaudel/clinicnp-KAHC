@@ -11,7 +11,8 @@ import { getBillDues } from "@/lib/repos/dues";
 import { getCompany } from "@/lib/repos/company";
 import { SALE_METHOD_LABEL, MONEY_METHOD_LABEL, type SaleMethod } from "@/lib/dues";
 import { formatPatientNo } from "@/lib/patient-no";
-import { adFromIso, toBS, formatBS, bsFromDbText } from "@/lib/bs";
+import { adFromIso, toBS, formatBS } from "@/lib/bs";
+import { amountInWords, bsTextNumeric, time12 } from "@/lib/print-format";
 import { formatPaisa } from "@/lib/money";
 import { formatDocNo } from "@/lib/invoice-number";
 import { PageShell } from "@/components/app/page-shell";
@@ -27,6 +28,8 @@ import { advanceOnBill } from "@/lib/repos/prebookings";
 function bsShort(iso: string): string {
   return formatBS(toBS(adFromIso(iso)));
 }
+
+const GENDER_LABEL: Record<string, string> = { m: "Male", f: "Female", o: "Other" };
 
 export default async function BillDetailPage({
   params,
@@ -68,17 +71,16 @@ export default async function BillDetailPage({
     },
     invoiceLabel,
     provisional: bill.invoiceNo == null,
-    dateBsLong: formatBS(bsFromDbText(bill.dateBs), {
-      form: "long",
-      monthScript: "en",
-    }),
-    timeStr: "",
+    // the bill's own date, and the time the counter made it (Nepal time)
+    dateTime: [bsTextNumeric(bill.dateBs), time12(bill.createdAt)].filter(Boolean).join(" / "),
     patientName: bill.patientName,
     patient: bill.patientNo != null || bill.registeredName
       ? {
           patientNo: bill.patientNo,
           name: bill.registeredName || bill.patientName,
-          ageSex: "",
+          ageSex: [bill.patientAgeShort, bill.patientSex ? GENDER_LABEL[bill.patientSex] ?? "" : ""]
+            .filter(Boolean)
+            .join(" / "),
         }
       : null,
     serviceLines: bill.serviceLines.map((l) => ({
@@ -90,6 +92,7 @@ export default async function BillDetailPage({
       amountPaisa: l.amountPaisa,
       rateOverridden: l.rateOverridden,
       followupNote: l.followupNote,
+      includes: l.includes,
     })),
     lines: bill.lines.map((l) => ({
       name: l.brandName,
@@ -202,6 +205,13 @@ export default async function BillDetailPage({
                           {l.followupNote}
                         </div>
                       )}
+                      {l.includes.length > 0 && (
+                        <div className="mt-0.5 text-[12px] font-normal text-sage-600">
+                          {l.includes.map((t, j) => (
+                            <div key={j}>{t}</div>
+                          ))}
+                        </div>
+                      )}
                       {l.partnerName && (
                         <div className="text-[12px] font-normal text-sage-500">
                           Sent to {l.partnerName}
@@ -282,16 +292,15 @@ export default async function BillDetailPage({
 
         <div className="flex justify-end">
           <div className="w-64 rounded-[10px] border border-line bg-cream-50 p-4">
-            <Row label="Subtotal" value={formatPaisa(bill.subtotalPaisa)} />
-            {bill.discountPaisa > 0 && (
-              <Row label="Discount" value={`− ${formatPaisa(bill.discountPaisa, false)}`} />
-            )}
+            <Row label="Sub Total" value={formatPaisa(bill.subtotalPaisa)} />
+            <Row label="Discount" value={bill.discountPaisa > 0 ? `− ${formatPaisa(bill.discountPaisa, false)}` : "-"} />
             {company.vatRegistered && bill.vatPaisa > 0 && (
               <Row label="VAT (13%)" value={formatPaisa(bill.vatPaisa)} />
             )}
             <div className="mt-2 border-t border-line pt-2 text-[16px] font-semibold">
-              <Row label="Total" value={formatPaisa(bill.totalPaisa)} />
+              <Row label="Net Payable" value={formatPaisa(bill.totalPaisa)} />
             </div>
+            <div className="mt-1 text-right text-[12px] italic text-sage-600">{amountInWords(bill.totalPaisa)}</div>
             {dues && (
               <div className="mt-2 border-t border-line pt-2">
                 <Row

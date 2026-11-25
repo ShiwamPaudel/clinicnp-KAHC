@@ -21,8 +21,6 @@ export interface SignatoryOption {
   description: string;
 }
 
-const MAX = 3;
-
 export function ResultValues({ result }: { result: OrderResult }) {
   if (result.values.length === 0) return <p className="px-4 py-2 text-[13px] text-sage-500">No values yet.</p>;
   return (
@@ -53,17 +51,19 @@ export function ResultValues({ result }: { result: OrderResult }) {
   );
 }
 
-/** Check, comment, sign. Approving releases the tests to the report. */
+/**
+ * Check, comment, approve. Approving releases the tests to the report, signed
+ * by the active signatures in their set order (owner, 2083-08-08: no choosing
+ * here). Signatures are set up under Settings → Lab report.
+ */
 export function ApprovalPanel({
   orderId,
   results,
   signatories,
-  defaultSignatoryIds,
 }: {
   orderId: string;
   results: OrderResult[];
   signatories: SignatoryOption[];
-  defaultSignatoryIds: string[];
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -72,20 +72,13 @@ export function ApprovalPanel({
   const [notes, setNotes] = useState<Record<string, string>>(() =>
     Object.fromEntries(submitted.map((r) => [r.id, r.interpretation])),
   );
-  const [chosen, setChosen] = useState<string[]>(() =>
-    defaultSignatoryIds.filter((id) => signatories.some((s) => s.id === id)).slice(0, MAX),
-  );
   const [backOpen, setBackOpen] = useState(false);
   const [backIds, setBackIds] = useState<string[]>([]);
   const [reason, setReason] = useState("");
 
-  function toggleSig(id: string) {
-    setChosen((c) => (c.includes(id) ? c.filter((x) => x !== id) : c.length >= MAX ? c : [...c, id]));
-  }
-
   function approve() {
     start(async () => {
-      const res = await approveOrderAction({ orderId, signatoryIds: chosen, interpretations: notes });
+      const res = await approveOrderAction({ orderId, signatoryIds: [], interpretations: notes });
       if (!res.ok) return toast.error(res.userMessage ?? strings.somethingWentWrong);
       toast.success(res.stillPending ? `Approved. ${res.stillPending} test(s) still to come` : "Approved. The report is ready");
       router.push("/lab/approval");
@@ -135,37 +128,12 @@ export function ApprovalPanel({
 
       {submitted.length > 0 && (
         <section className="rounded-[10px] border border-line bg-cream-50 p-4">
-          <h3 className="text-[15px] font-semibold text-sage-900">Signatures on the report</h3>
-          <p className="text-[13px] text-sage-500">Choose up to {MAX}, in the order they should print, left to right.</p>
-          {signatories.length === 0 ? (
-            <p className="mt-2 text-[13px] text-warn-600">
+          {signatories.length === 0 && (
+            <p className="text-[13px] text-warn-600">
               No signatures are set up yet. Add them under Settings → Lab report before approving.
             </p>
-          ) : (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {signatories.map((s) => {
-                const pos = chosen.indexOf(s.id);
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => toggleSig(s.id)}
-                    className={cn(
-                      "rounded-[8px] border px-3 py-2 text-left text-[13px]",
-                      pos >= 0 ? "border-sage-700 bg-sage-75" : "border-line bg-cream-50 hover:bg-cream-200",
-                    )}
-                  >
-                    <div className="font-medium text-sage-900">
-                      {pos >= 0 && <span className="mr-1 text-sage-600">{pos + 1}.</span>}
-                      {s.name}
-                    </div>
-                    <div className="text-sage-500">{s.description}</div>
-                  </button>
-                );
-              })}
-            </div>
           )}
-          <div className="mt-4 flex justify-end gap-2">
+          <div className={cn("flex justify-end gap-2", signatories.length === 0 && "mt-3")}>
             <Button
               variant="secondary"
               disabled={pending}
@@ -177,7 +145,7 @@ export function ApprovalPanel({
               <Undo2 className="h-4 w-4" />
               Send back
             </Button>
-            <Button disabled={pending || chosen.length === 0} onClick={approve}>
+            <Button disabled={pending || signatories.length === 0} onClick={approve}>
               <CheckCircle2 className="h-4 w-4" />
               Approve {submitted.length} test{submitted.length === 1 ? "" : "s"}
             </Button>

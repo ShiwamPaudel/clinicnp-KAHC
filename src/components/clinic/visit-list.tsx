@@ -36,7 +36,7 @@ export function VisitList({
         <THead>
           <TR>
             <TH>Patient</TH>
-            <TH>Age / Sex</TH>
+            <TH>Age / Gender</TH>
             {showDate && <TH>Date (BS)</TH>}
             <TH>Type</TH>
             <TH>Department</TH>

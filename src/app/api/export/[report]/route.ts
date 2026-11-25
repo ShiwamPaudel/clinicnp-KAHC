@@ -325,7 +325,7 @@ export async function GET(
       { header: "Visit", key: "visit", width: 22 },
       { header: "Patient no.", key: "pno", width: 14 },
       { header: "Patient", key: "patient", width: 26 },
-      { header: "Sex", key: "sex", width: 8 },
+      { header: "Gender", key: "sex", width: 8 },
       { header: "Type", key: "type", width: 14 },
       { header: "Department", key: "dept", width: 18 },
       { header: "Doctor", key: "doctor", width: 24 },

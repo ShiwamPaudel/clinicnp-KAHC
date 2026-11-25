@@ -147,6 +147,22 @@ describe("a test package", () => {
     expect([line.name_snapshot, Number(line.amount_paisa)]).toEqual(["Whole Body Test", 99900]);
   });
 
+  it("is listed on the bill as its profiles, then its single tests, each once (owner, 2083-08-08)", async () => {
+    // Haemoglobin is in CBC and on its own: done once under CBC, so not listed again
+    const { listPosServices } = await import("@/lib/repos/services");
+    const svc = (await listPosServices()).find((s) => s.id === ids.wholeService)!;
+    expect(svc.includes).toEqual(["CBC", "Diabetes", "TSH"]);
+    expect((await listPosServices()).find((s) => s.name === "TSH")!.includes).toBeUndefined();
+    // the reprint lists what the lab order opened for the line
+    const { listBills, getBillDetail } = await import("@/lib/repos/bills");
+    const [b] = await listBills(5);
+    const detail = (await getBillDetail(b!.id))!;
+    expect(detail.serviceLines[0]!.includes).toEqual(["CBC", "Diabetes", "TSH"]);
+    expect(detail.patientSex).toBe("m");
+    expect(detail.patientAgeShort).not.toBe("");
+    expect(detail.createdAt).not.toBe("");
+  });
+
   it("follows its profiles when they change", async () => {
     const { saveProfile, listProfiles } = await import("@/lib/repos/lab-catalog");
     const cbc = (await listProfiles("profile")).find((p) => p.name === "CBC")!;

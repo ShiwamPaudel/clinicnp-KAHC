@@ -69,7 +69,7 @@ export interface PatientFormInput {
 
 function validate(input: PatientFormInput): string | null {
   if (!input.name.trim()) return "Enter the patient's name.";
-  if (!["f", "m", "o"].includes(input.sex)) return "Choose the patient's sex.";
+  if (!["f", "m", "o"].includes(input.sex)) return "Choose the patient's gender.";
   if (!input.phone.trim()) return "Enter a phone number.";
   if (!input.address.trim()) return "Enter an address.";
   if (input.dobAd == null) {

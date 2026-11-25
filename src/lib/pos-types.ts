@@ -236,6 +236,8 @@ export interface PosService {
   sampleRate: boolean;
   /** an in-house lab test or profile (Laboratory module on): the bill gets a report QR */
   isLabTest?: boolean;
+  /** a lab package: its profiles, then its single tests, printed under the line on the bill */
+  includes?: string[];
 }
 
 /** A doctor, reduced to what the counter needs to show and to snapshot. */

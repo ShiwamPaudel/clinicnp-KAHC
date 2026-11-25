@@ -107,6 +107,15 @@ paged preview and for the patient's `/r/` page.
   approver's interpretation prints in the Comments box.
 - Line height 1.3 and tight padding, so more tests fit on a page; the font
   sizes are unchanged. The header row's underline is 25% ink.
+- **Header (D-207):** left Lab ID No., Name, Gender, Referred by, Age,
+  Patient No., Address; right Invoice No., Sample Collected on, Sample
+  Received on (`lab_orders.received_at`, 0032, the first save in Result
+  entry with a value), Report Released on (latest approval). Dates print as
+  `08-08-2083 / 4:00 PM`, Nepal time.
+- **Boxes (D-208):** each profile is its own bordered table headed by its
+  name; a department's single tests share one box. Signatures are 66 px tall.
+- **Approval (D-209):** no choosing; the active signatures (up to 3, in their
+  set order) sign every report.
 
 ## Pages and permissions
 
