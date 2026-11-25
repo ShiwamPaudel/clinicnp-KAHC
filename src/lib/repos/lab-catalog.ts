@@ -13,8 +13,10 @@ import { db } from "@/lib/db";
 import type { Row, InStatement } from "@/lib/db";
 import { parseOverrides, type RangeOverride } from "@/lib/lab-flags";
 
-export type LabResultType = "numeric" | "text" | "select" | "pos_neg" | "multi";
-export type LabParamType = Exclude<LabResultType, "multi">;
+// "none" (owner, 2083-08-09): billed like any test, but nothing to enter or
+// report: Ultrasound, ECG. It never opens on a lab order (openLabOrderForBill).
+export type LabResultType = "numeric" | "text" | "select" | "pos_neg" | "multi" | "none";
+export type LabParamType = Exclude<LabResultType, "multi" | "none">;
 
 export class LabCatalogProblem extends Error {
   readonly userMessage: string;

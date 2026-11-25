@@ -94,7 +94,7 @@ export async function openLabOrderForBill(tx: Transaction, ctx: OpenOrderContext
     tx.execute({
       sql: `SELECT t.id, t.service_id, t.name, t.department_id, t.sample_type_id, st.name AS sample_type_name
               FROM lab_tests t LEFT JOIN lab_sample_types st ON st.id = t.sample_type_id
-             WHERE t.service_id IN (${marks})`,
+             WHERE t.service_id IN (${marks}) AND t.result_type <> 'none'`,
       args: serviceIds,
     }),
     tx.execute({
@@ -104,7 +104,7 @@ export async function openLabOrderForBill(tx: Transaction, ctx: OpenOrderContext
               JOIN lab_test_group_items i ON i.group_id = g.id
               JOIN lab_tests t ON t.id = i.test_id
               LEFT JOIN lab_sample_types st ON st.id = t.sample_type_id
-             WHERE g.service_id IN (${marks})
+             WHERE g.service_id IN (${marks}) AND t.result_type <> 'none'
              ORDER BY i.sort_order`,
       args: serviceIds,
     }),
@@ -118,7 +118,7 @@ export async function openLabOrderForBill(tx: Transaction, ctx: OpenOrderContext
               JOIN lab_test_group_items i ON i.group_id = pg.id
               JOIN lab_tests t ON t.id = i.test_id
               LEFT JOIN lab_sample_types st ON st.id = t.sample_type_id
-             WHERE pkg.kind = 'package' AND pkg.service_id IN (${marks})
+             WHERE pkg.kind = 'package' AND pkg.service_id IN (${marks}) AND t.result_type <> 'none'
              ORDER BY gp.sort_order, i.sort_order`,
       args: serviceIds,
     }),
@@ -235,6 +235,47 @@ export async function openLabOrderForBill(tx: Transaction, ctx: OpenOrderContext
     await tx.execute({ sql: "UPDATE lab_orders SET status = 'result_pending' WHERE id = ?", args: [orderId] });
   }
   return token;
+}
+
+/**
+ * A test switched to result type "none" (billed only) leaves the lab orders
+ * where it is still open: its results not yet approved are cancelled, a
+ * sample that now serves nothing is cancelled, and each order's status is
+ * worked out again. Approved results stay on their reports. Returns how many
+ * results were taken off.
+ */
+export async function dropOpenResultsOfTest(testId: string): Promise<number> {
+  const open = await db().execute({
+    sql: `SELECT r.id, r.order_id, r.order_test_id, r.sample_id FROM lab_results r
+            JOIN lab_orders o ON o.id = r.order_id
+           WHERE r.test_id = ? AND o.status <> 'cancelled'
+             AND r.status IN ('pending','draft','submitted','correction_required')`,
+    args: [testId],
+  });
+  if (open.rows.length === 0) return 0;
+  const now = nowIso();
+  const stmts: InStatement[] = [];
+  for (const r of open.rows) {
+    stmts.push(
+      { sql: "UPDATE lab_results SET status = 'cancelled', updated_at = ? WHERE id = ?", args: [now, r.id as string] },
+      { sql: "UPDATE lab_order_tests SET status = 'cancelled', updated_at = ? WHERE id = ?", args: [now, r.order_test_id as string] },
+    );
+  }
+  const sampleIds = [...new Set(open.rows.map((r) => r.sample_id as string | null).filter((x): x is string => Boolean(x)))];
+  for (const s of sampleIds) {
+    stmts.push({
+      sql: `UPDATE lab_samples SET status = 'cancelled', updated_at = ?
+             WHERE id = ? AND status <> 'collected'
+               AND NOT EXISTS (SELECT 1 FROM lab_results x WHERE x.sample_id = lab_samples.id AND x.status <> 'cancelled')`,
+      args: [now, s],
+    });
+  }
+  await db().batch(stmts, "write");
+  for (const orderId of new Set(open.rows.map((r) => r.order_id as string))) {
+    await refreshOrderStatus(orderId);
+    await markReleasedIfFinal(orderId);
+  }
+  return open.rows.length;
 }
 
 /** Cancelling a bill cancels its lab order. Called inside cancelBill's transaction. */

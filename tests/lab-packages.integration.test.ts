@@ -163,6 +163,45 @@ describe("a test package", () => {
     expect(detail.createdAt).not.toBe("");
   });
 
+  it("with a billed-only test (result type none): off the lab order, still on the bill (owner, 2083-08-09)", async () => {
+    const { db } = await import("@/lib/db");
+    const { dropOpenResultsOfTest, listOrders, getOrder } = await import("@/lib/repos/lab-orders");
+    await db().execute({ sql: "UPDATE lab_tests SET result_type = 'none' WHERE id = ?", args: [ids.tsh!] });
+    // the bill already made: TSH leaves Result entry, the rest stay
+    expect(await dropOpenResultsOfTest(ids.tsh!)).toBe(1);
+    const [o] = await listOrders("all");
+    expect((await getOrder(o!.id))!.results.map((r) => r.testName)).toEqual(["Haemoglobin", "TLC", "Sugar fasting"]);
+    expect(await dropOpenResultsOfTest(ids.tsh!)).toBe(0);
+
+    // the reprint still lists it with the package
+    const { listBills, getBillDetail, ingestBill } = await import("@/lib/repos/bills");
+    const [old] = await listBills(5);
+    expect((await getBillDetail(old!.id))!.serviceLines[0]!.includes).toEqual(["CBC", "Diabetes", "TSH"]);
+
+    // a new bill never opens it
+    await ingestBill({
+      id: ulid(), dateBs: TODAY_BS, dateAd: TODAY_AD, patientName: "", paymentMethod: "cash", tenderedPaisa: 0,
+      paidNowPaisa: undefined, paidNowMethod: "cash", billDiscountPaisa: 0, lines: [],
+      serviceLines: [{
+        id: ulid(), serviceId: ids.wholeService!, qty: 1, ratePaisa: 99900, rateOverridden: false, discountPaisa: 0,
+        doctorId: null, labPartnerId: null, followupApplied: false,
+      }],
+      patientId, labReportToken: undefined, userId: "u1", clientCreatedAt: new Date().toISOString(),
+    });
+    const orders = await listOrders("all");
+    const newest = (await Promise.all(orders.map((x) => getOrder(x.id)))).find((x) => x!.id !== o!.id)!;
+    expect(newest.results.map((r) => r.testName)).not.toContain("TSH");
+    const [fresh] = await listBills(5);
+    expect((await getBillDetail(fresh!.id))!.serviceLines[0]!.includes).toEqual(["CBC", "Diabetes", "TSH"]);
+
+    // the counter: TSH alone gets no report QR, the package still does
+    const { listPosServices } = await import("@/lib/repos/services");
+    const svcs = await listPosServices();
+    expect(svcs.find((s) => s.name === "TSH")!.isLabTest).toBe(false);
+    expect(svcs.find((s) => s.id === ids.wholeService)!.isLabTest).toBe(true);
+    await db().execute({ sql: "UPDATE lab_tests SET result_type = 'numeric' WHERE id = ?", args: [ids.tsh!] });
+  });
+
   it("follows its profiles when they change", async () => {
     const { saveProfile, listProfiles } = await import("@/lib/repos/lab-catalog");
     const cbc = (await listProfiles("profile")).find((p) => p.name === "CBC")!;

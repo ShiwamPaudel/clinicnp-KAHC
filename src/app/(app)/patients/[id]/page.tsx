@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Pencil, Stethoscope, Receipt, GitMerge } from "lucide-react";
+import { Pencil, Stethoscope, Receipt, GitMerge, HeartPulse } from "lucide-react";
 import { can, requirePermission } from "@/lib/session";
 import { requireAnyModulePage, PATIENT_MODULES } from "@/lib/modules";
 import { getPatient } from "@/lib/repos/patients";
-import { visitsForPatient } from "@/lib/repos/visits";
+import { visitsForPatient, vitalsForPatient } from "@/lib/repos/visits";
+import { vitalsTable } from "@/lib/vitals";
+import { VitalsHistory } from "@/components/clinic/vitals-history";
 import { attachmentsForPatient } from "@/lib/repos/attachments";
 import { listBillsForPatient } from "@/lib/repos/bills";
 import { owedByPatient } from "@/lib/repos/dues";
@@ -32,11 +34,12 @@ export default async function PatientCardPage({
   const patient = await getPatient(id);
   if (!patient) notFound();
 
-  const [visits, attachments, bills, owed] = await Promise.all([
+  const [visits, attachments, bills, owed, vitals] = await Promise.all([
     visitsForPatient(patient.id),
     attachmentsForPatient(patient.id),
     listBillsForPatient(patient.id),
     owedByPatient(patient.id),
+    vitalsForPatient(patient.id),
   ]);
 
   const todayAd = adToIso(new Date());
@@ -92,6 +95,14 @@ export default async function PatientCardPage({
             <span className="text-[13px] font-medium">See dues →</span>
           </Link>
         )}
+
+        <section>
+          <h2 className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-sage-900">
+            <HeartPulse className="h-4 w-4 text-clinic-500" />
+            Vitals
+          </h2>
+          <VitalsHistory rows={vitalsTable(vitals)} />
+        </section>
 
         <section>
           <h2 className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-sage-900">

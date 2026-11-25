@@ -68,6 +68,7 @@
 - 2083-08-07 C-036: typecheck clean, **59 files / 624 tests** green.
 - 2083-08-08 C-037: typecheck clean, **60 files / 633 tests** green, `pnpm build` passes on a scratch DB.
 - 2083-08-09: **0032 applied to KAHC** (owner allowed it; 32 migrations). Deploy this code only with 0032 in place: saving results writes `lab_orders.received_at`.
+- 2083-08-09 C-038: typecheck clean, **63 files / 644 tests** green, `pnpm build` passes on a scratch DB. **0033 applied to KAHC** the same day (owner allowed it; backup `.backups/kahc-before-0033-2026-11-25T09-28-57-721Z.json.gz`). Deploy this code only with 0033 in place: every visit query reads the new columns.
 
 ### Working practices that were earned the hard way
 
@@ -336,6 +337,12 @@
 | D-207 | **The lab report header**: left **Lab ID No., Name, Gender, Referred by**, then Age, Patient No., Address (owner chose to keep those three); right **Invoice No., Sample Collected on** (first collected sample), **Sample Received on** (`lab_orders.received_at`, 0032: stamped by the first save in Result entry that has a value, draft or submit, never moved), **Report Released on** (latest approval). "Billed" and "Reported" are gone. All dates `08-08-2083 / 4:00 PM` | Owner, 2083-08-08. Orders from before 0032 read the first submit. |
 | D-208 | **The lab report boxes each profile**: under the department bar, every profile is its own bordered table with its name as the heading row and the column headings inside; the department's single tests share one box. Note placement (D-202) is unchanged. **Signature images are 66 px tall** (was 44, owner asked for about 50% bigger) | Owner, 2083-08-08: "to separate Profiles / Departments, add the outer border to the table". |
 | D-209 | **No choosing signatures at approval.** Approve is enabled at once; `approveOrder` with no list signs with every active signature in its set order (up to 3); with none set up it refuses and the page says where to add them | Owner, 2083-08-08: "the two signatures are selected by default". |
+| D-210 | **Vitals: Height and BMI** (0033 `visits.height_cm`). BMI = weight / height², one decimal, shown **only for a patient 18 or older on the visit's day** (a child's BMI needs growth charts, Rules §2.3) and **never labelled** (no "overweight", no colour, Rules §2.6). With no height typed that day an adult's last recorded height is used (shown greyed in the Height box). Server refuses typing slips only (`VITAL_BOUNDS` in `lib/vitals.ts`: pulse 1–300, temp 25–45 °C, weight 0.3–400 kg, height 20–260 cm, SpO₂ 1–100) | Owner, 2083-08-09: "Implement adding of Height, calculate the BMI". Sugar was not asked for in the end and is not built. |
+| D-211 | **Vitals are dated and listed on the patient's card.** `visits.vitals_at` (0033) is stamped when a vital value changes and cleared when all are emptied; the card's **Vitals** table (newest first, `vitalsTable`) shows each record's date and time and, under every value, its plain difference from the last time that value was recorded ("−2", "+10/+5" for BP) | Owner: "the vitals recorded today shall appear on /patients/…, and new vitals will show the improvement". A difference, not a verdict: Rules §2.6. |
+| D-212 | **A Vitals button on Clinic → Today** (each open visit, for `patients.manage`): a dialog with the same vitals row, saved through `updateVisitAction` | Owner left it to judgement; the nurse should not have to open the whole visit. |
+| D-213 | **Lab report header, five lines a side**: left Name, **Age / Gender** (one line, as on the bill), Referred by, Patient No., Address; right **Lab ID No.**, Invoice No., Sample Collected on, Sample Received on, Report Released on. Supersedes D-207's layout | Owner, 2083-08-09. |
+| D-214 | **A lab test can be "None" (billed only)**: `lab_tests.result_type = 'none'` (no schema change; the column has no CHECK). It never opens on a lab order (no sample, no Result entry, no report), still bills, and is listed under its package on the bill; a bill with only such tests gets no report QR (`IS_LAB_TEST_SQL`). Switching a test to None takes its unapproved results off open orders (`dropOpenResultsOfTest`: results and their order tests cancelled, an emptied sample cancelled, order status worked out again, audit `lab_test.results_dropped`); approved results stay on their reports | Owner, 2083-08-09: "Some can just be None … doesn't appear on Results Entry but does appear on the Bill" (Ultrasound, ECG in the Whole Body Check Up). |
+| D-215 | **Reports → Stock ledger** (`/reports/stock-ledger`, `reports.all`, Pharmacy): one medicine between two BS dates: opening stock on the first day, each kind of movement (opening stock entered, purchases, sale returns, cancelled bills, sales, purchase returns, stock out, count corrections), closing stock, then every movement with its reference and a running balance, in packs ("13 Strip + 5 Tablet"). Read from `stock_moves` alone; days are Nepal days | Owner, 2083-08-09: "on the initial date this much existed, then purchase of this much was added, now it shall be …". "Stock ledger" is the usual name for it in Nepal's accounting. |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---
@@ -1117,3 +1124,22 @@ re-checked at apply, every row created that day, child-first).
 package, lab and print tests extended; `pnpm build` on a scratch DB with 0032;
 the bill and report rendered and checked in Chromium; after the clearing, the
 cleared tables empty, `PRAGMA foreign_key_check` clean, kept counts unchanged.
+
+### C-038  ·  2083-08-09  ·  Height and BMI, vitals by date, Stock ledger, billed-only tests
+
+Height and BMI on the vitals row (D-210, 0033), vitals dated and listed on the
+patient's card with the change from last time (D-211), a Vitals button on
+Today (D-212), the report header five lines a side with Age / Gender together
+and Lab ID No. on the right (D-213), "None" (billed only) lab tests (D-214),
+Reports → Stock ledger (D-215). New `lib/vitals.ts`, `repos/stock-ledger.ts`.
+Read-only check of live: order 1 holds Ultrasound and ECG as drafts, order 2
+has them approved; once the lab sets those two tests to None, order 1's drafts
+leave Result entry and order 2's report is unchanged.
+0033 applied to KAHC after a full backup (owner allowed it); committed, the owner pushes.
+**Verified:** typecheck; full suite with `vitals`, `vitals.integration`,
+`stock-ledger.integration` new and the package and report tests extended;
+`pnpm build`; Chromium on a scratch DB: Vitals dialog (save, a 7000 pulse
+refused, last height used for BMI), the card's vitals table with changes, the
+visit page, the Stock ledger (opening 12 Strip, purchase at 11:50 PM on its
+Nepal day, closing 13 Strip + 5 Tablet), the test editor's None.
+

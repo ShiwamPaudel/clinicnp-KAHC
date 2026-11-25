@@ -10,6 +10,7 @@ const RESULT_LABEL: Record<string, string> = {
   text: "Words",
   select: "Pick from a list",
   pos_neg: "Positive / Negative",
+  none: "None (billed only)",
 };
 
 export default async function TestsPage() {

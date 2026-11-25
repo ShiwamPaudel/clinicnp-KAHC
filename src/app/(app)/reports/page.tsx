@@ -17,6 +17,7 @@ import {
   Paperclip,
   PieChart,
   MapPin,
+  BookOpen,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { can, requirePermission } from "@/lib/session";
@@ -50,6 +51,7 @@ const REPORTS: ReportCard[] = [
   { href: "/reports/profit", label: "Profit margin", desc: "Revenue, cost, margin by item", icon: TrendingUp, adminOnly: true, pharmacyOnly: true },
   { href: "/reports/moving", label: "Fast / slow moving", desc: "Best sellers and dead stock", icon: Activity, adminOnly: true, pharmacyOnly: true },
   { href: "/reports/expiry", label: "Expiry report", desc: "Money on the shelf about to die", icon: CalendarClock, adminOnly: true, pharmacyOnly: true },
+  { href: "/reports/stock-ledger", label: "Stock ledger", desc: "One medicine: opening, in, out and closing for chosen dates", icon: BookOpen, adminOnly: true, pharmacyOnly: true },
   { href: "/reports/valuation", label: "Stock valuation", desc: "Cost and salable value", icon: Wallet, adminOnly: true, pharmacyOnly: true },
   { href: "/reports/shelf", label: "Shelf list", desc: "The shop in the order you walk it", icon: MapPin, adminOnly: true, pharmacyOnly: true },
   { href: "/reports/vat", label: "VAT report", desc: "Sales and purchase VAT summary", icon: Percent, adminOnly: true, vatOnly: true },

@@ -22,7 +22,7 @@ import {
 } from "@/lib/repos/fiscal";
 import { getCompany } from "@/lib/repos/company";
 import { createPatient } from "@/lib/repos/patients";
-import { getServiceForBilling, lastConsultationAd, packageIncludesByService } from "@/lib/repos/services";
+import { getServiceForBilling, lastConsultationAd, packageContentsByService } from "@/lib/repos/services";
 import { getDoctor } from "@/lib/repos/doctors";
 import { resolveFollowup, doctorSharePaisa } from "@/lib/clinic-calc";
 import { splitAtSale, type MoneyMethod } from "@/lib/dues";
@@ -1018,9 +1018,10 @@ export async function getBillDetail(id: string): Promise<BillDetail | null> {
     args: [id],
   });
 
-  // A package line lists what its lab order opened for it: each profile once,
-  // then each single test, in order. Before the order exists (or with the lab
-  // module off), what the package holds now.
+  // A package line lists what its lab order opened for it (each profile once,
+  // then each single test) and its billed-only tests, which never open on an
+  // order, in the package's own order. Before the order exists (or with the
+  // lab module off), what the package holds now.
   const orderTests = await db().execute({
     sql: `SELECT ot.bill_service_line_id AS line_id,
                  CASE WHEN ot.group_name <> '' THEN ot.group_name ELSE ot.test_name END AS label
@@ -1037,7 +1038,16 @@ export async function getBillDetail(id: string): Promise<BillDetail | null> {
     if (!list.includes(r.label as string)) list.push(r.label as string);
     includesByLine.set(r.line_id as string, list);
   }
-  const packageNow = includesByLine.size < svcRes.rows.length ? await packageIncludesByService() : new Map<string, string[]>();
+  const packageNow = svcRes.rows.length > 0 ? await packageContentsByService() : new Map<string, { name: string; billedOnly: boolean }[]>();
+  const includesOf = (lineId: string, serviceId: string): string[] => {
+    const now = packageNow.get(serviceId) ?? [];
+    const opened = includesByLine.get(lineId);
+    if (!opened) return now.map((x) => x.name);
+    // the package as it is now, kept to what was opened and the billed-only tests,
+    // then anything opened that the package no longer holds
+    const listed = now.filter((x) => x.billedOnly || opened.includes(x.name)).map((x) => x.name);
+    return [...listed, ...opened.filter((x) => !listed.includes(x))];
+  };
 
   const serviceLines: BillDetailServiceLine[] = svcRes.rows.map((l) => ({
     id: l.id as string,
@@ -1056,7 +1066,7 @@ export async function getBillDetail(id: string): Promise<BillDetail | null> {
     followupNote: (l.followup_note as string) ?? "",
     dispatchedAt: (l.dispatched_at as string | null) ?? null,
     refundedQty: Number(l.refunded_qty),
-    includes: includesByLine.get(l.id as string) ?? packageNow.get(l.service_id as string) ?? [],
+    includes: includesOf(l.id as string, l.service_id as string),
   }));
 
   return {

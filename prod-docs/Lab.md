@@ -107,11 +107,15 @@ paged preview and for the patient's `/r/` page.
   approver's interpretation prints in the Comments box.
 - Line height 1.3 and tight padding, so more tests fit on a page; the font
   sizes are unchanged. The header row's underline is 25% ink.
-- **Header (D-207):** left Lab ID No., Name, Gender, Referred by, Age,
-  Patient No., Address; right Invoice No., Sample Collected on, Sample
+- **Header (D-207, D-213):** left Name, Age / Gender, Referred by, Patient
+  No., Address; right Lab ID No., Invoice No., Sample Collected on, Sample
   Received on (`lab_orders.received_at`, 0032, the first save in Result
   entry with a value), Report Released on (latest approval). Dates print as
   `08-08-2083 / 4:00 PM`, Nepal time.
+- **Billed-only tests (D-214):** result type "None" (Ultrasound, ECG). Never
+  on a lab order, sample, Result entry or the report; listed under its
+  package on the bill. Switching a test to None takes its unapproved results
+  off open orders.
 - **Boxes (D-208):** each profile is its own bordered table headed by its
   name; a department's single tests share one box. Signatures are 66 px tall.
 - **Approval (D-209):** no choosing; the active signatures (up to 3, in their

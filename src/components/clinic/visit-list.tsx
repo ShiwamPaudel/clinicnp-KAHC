@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import type { VisitWithPatient } from "@/lib/repos/visits";
 import { VISIT_TYPE_LABEL, VISIT_STATUS_LABEL } from "@/lib/visit-types";
 import type { BadgeTone } from "@/components/ui/badge";
+import { VitalsButton } from "@/components/clinic/vitals-fields";
 
 const SEX_SHORT: Record<string, string> = { f: "F", m: "M", o: "-" };
 
@@ -22,11 +23,14 @@ export function VisitList({
   todayAd,
   emptyMessage,
   showDate = false,
+  canRecordVitals = false,
 }: {
   visits: VisitWithPatient[];
   todayAd: string;
   emptyMessage: string;
   showDate?: boolean;
+  /** a Vitals button on each open visit (Today, for whoever may record visits) */
+  canRecordVitals?: boolean;
 }) {
   if (visits.length === 0) return <EmptyState message={emptyMessage} />;
 
@@ -41,6 +45,7 @@ export function VisitList({
             <TH>Type</TH>
             <TH>Department</TH>
             <TH>Status</TH>
+            {canRecordVitals && <TH />}
           </TR>
         </THead>
         <tbody>
@@ -80,6 +85,20 @@ export function VisitList({
                     {VISIT_STATUS_LABEL[v.status]}
                   </Badge>
                 </TD>
+                {canRecordVitals && (
+                  <TD className="text-right">
+                    {v.status !== "cancelled" && (
+                      <VitalsButton
+                        visitId={v.id}
+                        patientId={v.patientId}
+                        patientName={v.patientName}
+                        initial={{ bp: v.bp, pulse: v.pulse, tempC: v.tempC, weightKg: v.weightKg, heightCm: v.heightCm, spo2: v.spo2 }}
+                        ageYears={v.patientDobAd == null && v.patientAgeValue == null ? null : age.years}
+                        lastHeightCm={v.lastHeightCm}
+                      />
+                    )}
+                  </TD>
+                )}
               </TR>
             );
           })}

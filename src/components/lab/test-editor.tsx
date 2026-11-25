@@ -61,6 +61,7 @@ const TYPE_LABEL: Record<LabResultType, string> = {
   select: "Pick from a list",
   pos_neg: "Positive / Negative",
   multi: "Several values",
+  none: "None",
 };
 const PARAM_TYPES: LabParamType[] = ["numeric", "text", "select", "pos_neg"];
 
@@ -273,7 +274,7 @@ export function TestEditor({
         method: form.method,
         description: form.description,
         resultType: form.resultType,
-        unit: form.resultType === "multi" ? "" : form.unit,
+        unit: form.resultType === "multi" || form.resultType === "none" ? "" : form.unit,
         selectOptions: form.resultType === "select" ? form.options : [],
         defaultRemarks: form.defaultRemarks,
         tatHours: tat ? Number(tat) : null,
@@ -282,7 +283,7 @@ export function TestEditor({
         billable: form.billable,
         ratePaisa: toPaisa(rateNum),
         vatApplicable: form.vatApplicable,
-        ...(form.resultType === "multi" ? draftToRange(EMPTY_RANGE) : draftToRange(form.range)),
+        ...(form.resultType === "multi" || form.resultType === "none" ? draftToRange(EMPTY_RANGE) : draftToRange(form.range)),
         parameters:
           form.resultType === "multi"
             ? form.parameters.map((p) => ({
@@ -312,7 +313,7 @@ export function TestEditor({
     });
   }
 
-  const single = form.resultType !== "multi";
+  const single = form.resultType !== "multi" && form.resultType !== "none";
 
   return (
     <div className="mx-auto flex w-full max-w-[1000px] flex-col gap-5 pb-4">
@@ -384,6 +385,12 @@ export function TestEditor({
       <Section title="Result">
         <div className="flex flex-col gap-5">
           <TypePicker value={form.resultType} onChange={(resultType) => set({ resultType })} />
+          {form.resultType === "none" && (
+            <p className="text-[13px] text-sage-600">
+              Billed only. It does not go to Sample collection, Result entry or the report.
+              {test && test.resultType !== "none" && " Saving takes it off Result entry on bills already made."}
+            </p>
+          )}
 
           {single && (
             <div className="grid gap-4 sm:grid-cols-6">
@@ -411,7 +418,7 @@ export function TestEditor({
             </div>
           )}
 
-          {!single && (
+          {form.resultType === "multi" && (
             <div className="flex flex-col gap-2">
               {form.parameters.length > 0 && (
                 <div className="hidden grid-cols-[minmax(0,1.6fr)_120px_180px_minmax(0,1.4fr)_112px] gap-3 px-3 text-[12px] font-medium text-sage-600 sm:grid">

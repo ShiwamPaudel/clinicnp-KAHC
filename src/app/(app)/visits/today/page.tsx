@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
-import { requirePermission } from "@/lib/session";
+import { can, requirePermission } from "@/lib/session";
 import { requireModulePage } from "@/lib/modules";
 import { visitsOn, visitCountsOn } from "@/lib/repos/visits";
 import { adToIso, today, formatBS } from "@/lib/bs";
@@ -11,7 +11,7 @@ import { VisitList } from "@/components/clinic/visit-list";
 export const metadata = { title: "Today" };
 
 export default async function TodayPage() {
-  await requirePermission("visits.view");
+  const user = await requirePermission("visits.view");
   await requireModulePage("clinic");
 
   const todayAd = adToIso(new Date());
@@ -46,6 +46,7 @@ export default async function TodayPage() {
         <VisitList
           visits={visits}
           todayAd={todayAd}
+          canRecordVitals={can(user, "patients.manage")}
           emptyMessage="Nobody has been registered today yet. Register a patient to start the day."
         />
       </div>

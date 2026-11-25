@@ -16,6 +16,8 @@ import {
   type VisitType,
   type VisitStatus,
 } from "@/lib/visit-types";
+import { VitalsFields } from "@/components/clinic/vitals-fields";
+import { payloadOf, type VitalsDraft } from "@/lib/vitals";
 
 const inputClass =
   "h-10 w-full rounded-[8px] border border-line bg-cream-50 px-3 text-[14px] outline-none focus:border-sage-700 focus:ring-2 focus:ring-sage-700/20";
@@ -29,52 +31,20 @@ export interface VisitFormState {
   complaint: string;
   findings: string;
   advice: string;
-  bp: string;
-  pulse: string;
-  tempC: string;
-  weightKg: string;
-  spo2: string;
-}
-
-/** Five small inputs on one line, all optional, all blank by default. Nothing
- *  here validates or interprets a physiological value (Rules §2.5). */
-function Vital({
-  label,
-  suffix,
-  value,
-  onChange,
-  disabled,
-}: {
-  label: string;
-  suffix: string;
-  value: string;
-  onChange: (v: string) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <label className="flex w-[88px] flex-col gap-1">
-      <span className="text-[12px] text-sage-500">{label}</span>
-      <span className="relative">
-        <input
-          value={value}
-          disabled={disabled}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-10 w-full rounded-[8px] border border-line bg-cream-50 pl-2.5 pr-8 text-right font-mono text-[14px] outline-none focus:border-sage-700 disabled:opacity-50"
-        />
-        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-sage-500">
-          {suffix}
-        </span>
-      </span>
-    </label>
-  );
+  vitals: VitalsDraft;
 }
 
 export function VisitDetail({
   initial,
   isAdmin,
+  ageYears,
+  lastHeightCm,
 }: {
   initial: VisitFormState;
   isAdmin: boolean;
+  /** the patient's age in years on the visit's day, for BMI */
+  ageYears: number | null;
+  lastHeightCm: number | null;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -87,8 +57,6 @@ export function VisitDetail({
   const set = <K extends keyof VisitFormState>(k: K, value: VisitFormState[K]) =>
     setV((p) => ({ ...p, [k]: value }));
 
-  const num = (s: string) => (s.trim() === "" ? null : Number(s));
-
   function save() {
     startTransition(async () => {
       const res = await updateVisitAction({
@@ -100,13 +68,7 @@ export function VisitDetail({
         findings: v.findings,
         advice: v.advice,
         status: v.status === "cancelled" ? undefined : v.status,
-        vitals: {
-          bp: v.bp,
-          pulse: num(v.pulse),
-          tempC: num(v.tempC),
-          weightKg: num(v.weightKg),
-          spo2: num(v.spo2),
-        },
+        vitals: payloadOf(v.vitals),
       });
       if (!res.ok) {
         toast.error(res.userMessage ?? "Something went wrong. Please try again.");
@@ -186,13 +148,7 @@ export function VisitDetail({
 
       <section>
         <h2 className="mb-2 text-[15px] font-semibold text-sage-900">Vitals</h2>
-        <div className="flex flex-wrap gap-2">
-          <Vital label="BP" suffix="" value={v.bp} disabled={cancelled} onChange={(x) => set("bp", x)} />
-          <Vital label="Pulse" suffix="/min" value={v.pulse} disabled={cancelled} onChange={(x) => set("pulse", x)} />
-          <Vital label="Temp" suffix="°C" value={v.tempC} disabled={cancelled} onChange={(x) => set("tempC", x)} />
-          <Vital label="Weight" suffix="kg" value={v.weightKg} disabled={cancelled} onChange={(x) => set("weightKg", x)} />
-          <Vital label="SpO₂" suffix="%" value={v.spo2} disabled={cancelled} onChange={(x) => set("spo2", x)} />
-        </div>
+        <VitalsFields value={v.vitals} onChange={(x) => set("vitals", x)} ageYears={ageYears} lastHeightCm={lastHeightCm} disabled={cancelled} />
       </section>
 
       <section className="flex flex-col gap-3">

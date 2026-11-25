@@ -290,7 +290,7 @@ const testSchema = z.object({
   sampleTypeId: z.string().nullable(),
   method: z.string().max(160),
   description: z.string().max(1000),
-  resultType: z.enum(["numeric", "text", "select", "pos_neg", "multi"]),
+  resultType: z.enum(["numeric", "text", "select", "pos_neg", "multi", "none"]),
   unit: z.string().max(40),
   selectOptions: z.array(z.string().max(80)).max(40),
   defaultRemarks: z.string().max(300),
@@ -311,6 +311,12 @@ export async function saveTestAction(input: unknown): Promise<LabActionResult> {
     if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Please check the details.");
     const { id, previousRatePaisa } = await saveTest(parsed.data);
     await recordAudit(user.id, parsed.data.id ? "lab_test.updated" : "lab_test.created", { testId: id, name: parsed.data.name });
+    if (parsed.data.resultType === "none") {
+      // nothing to enter any more: off Result entry on bills already made
+      const { dropOpenResultsOfTest } = await import("@/lib/repos/lab-orders");
+      const dropped = await dropOpenResultsOfTest(id);
+      if (dropped > 0) await recordAudit(user.id, "lab_test.results_dropped", { testId: id, count: dropped });
+    }
     if (previousRatePaisa != null && previousRatePaisa !== parsed.data.ratePaisa) {
       await recordAudit(user.id, "service.rate_changed", { labTestId: id, from: previousRatePaisa, to: parsed.data.ratePaisa });
     }

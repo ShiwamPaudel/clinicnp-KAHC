@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { can, requirePermission } from "@/lib/session";
 import { requireModulePage } from "@/lib/modules";
-import { getVisitWithPatient } from "@/lib/repos/visits";
+import { getVisitWithPatient, ageYearsOn } from "@/lib/repos/visits";
+import { draftOf } from "@/lib/vitals";
 import { getCompany } from "@/lib/repos/company";
 import { displayAge } from "@/lib/age";
 import { patientLabel } from "@/lib/patient-no";
@@ -85,6 +86,8 @@ export default async function VisitDetailPage({
 
         <VisitDetail
           isAdmin={isAdmin}
+          ageYears={ageYearsOn(visit, visit.dateAd)}
+          lastHeightCm={visit.lastHeightCm}
           initial={{
             id: visit.id,
             patientId: visit.patientId,
@@ -94,11 +97,7 @@ export default async function VisitDetailPage({
             complaint: visit.complaint,
             findings: visit.findings,
             advice: visit.advice,
-            bp: visit.bp,
-            pulse: visit.pulse != null ? String(visit.pulse) : "",
-            tempC: visit.tempC != null ? String(visit.tempC) : "",
-            weightKg: visit.weightKg != null ? String(visit.weightKg) : "",
-            spo2: visit.spo2 != null ? String(visit.spo2) : "",
+            vitals: draftOf(visit),
           }}
         />
 

@@ -261,10 +261,22 @@ export async function updateService(id: string, input: ServiceInput): Promise<vo
 // The counter's view
 // ---------------------------------------------------------------------------
 
-/** True for an in-house lab test or profile while the Laboratory module is on. */
+/**
+ * True for an in-house lab test, profile or package while the Laboratory
+ * module is on, when it has something to report: a billed-only test (result
+ * type "none") opens nothing on a lab order, so its bill gets no report QR.
+ */
 const IS_LAB_TEST_SQL = `(CASE WHEN (SELECT module_lab FROM company WHERE id = 1) = 1
-   AND (EXISTS (SELECT 1 FROM lab_tests lt WHERE lt.service_id = s.id)
-     OR EXISTS (SELECT 1 FROM lab_test_groups lg WHERE lg.service_id = s.id))
+   AND (EXISTS (SELECT 1 FROM lab_tests lt WHERE lt.service_id = s.id AND lt.result_type <> 'none')
+     OR EXISTS (SELECT 1 FROM lab_test_groups lg
+                  JOIN lab_test_group_items gi ON gi.group_id = lg.id
+                  JOIN lab_tests gt ON gt.id = gi.test_id
+                 WHERE lg.service_id = s.id AND gt.result_type <> 'none')
+     OR EXISTS (SELECT 1 FROM lab_test_groups lg
+                  JOIN lab_test_group_profiles gp ON gp.group_id = lg.id
+                  JOIN lab_test_group_items gi ON gi.group_id = gp.profile_id
+                  JOIN lab_tests gt ON gt.id = gi.test_id
+                 WHERE lg.service_id = s.id AND gt.result_type <> 'none'))
   THEN 1 ELSE 0 END)`;
 
 /**
@@ -311,6 +323,13 @@ export async function listPosServices(): Promise<PosService[]> {
  * package's profiles is done once, under the profile, so it is not listed again.
  */
 export async function packageIncludesByService(): Promise<Map<string, string[]>> {
+  const out = new Map<string, string[]>();
+  for (const [k, list] of await packageContentsByService()) out.set(k, list.map((x) => x.name));
+  return out;
+}
+
+/** As packageIncludesByService, each entry saying whether it is a billed-only test (never on a lab order). */
+export async function packageContentsByService(): Promise<Map<string, { name: string; billedOnly: boolean }[]>> {
   const [profiles, singles, inProfiles] = await Promise.all([
     db().execute(
       `SELECT pkg.service_id, pg.name FROM lab_test_groups pkg
@@ -320,7 +339,7 @@ export async function packageIncludesByService(): Promise<Map<string, string[]>>
         ORDER BY gp.sort_order, pg.name`,
     ),
     db().execute(
-      `SELECT pkg.service_id, t.id AS test_id, t.name FROM lab_test_groups pkg
+      `SELECT pkg.service_id, t.id AS test_id, t.name, t.result_type FROM lab_test_groups pkg
          JOIN lab_test_group_items i ON i.group_id = pkg.id
          JOIN lab_tests t ON t.id = i.test_id
         WHERE pkg.kind = 'package'
@@ -334,15 +353,17 @@ export async function packageIncludesByService(): Promise<Map<string, string[]>>
     ),
   ]);
   const covered = new Set(inProfiles.rows.map((r) => `${r.service_id as string}|${r.test_id as string}`));
-  const out = new Map<string, string[]>();
-  const add = (serviceId: string, name: string) => {
+  const out = new Map<string, { name: string; billedOnly: boolean }[]>();
+  const add = (serviceId: string, name: string, billedOnly: boolean) => {
     const list = out.get(serviceId) ?? [];
-    list.push(name);
+    list.push({ name, billedOnly });
     out.set(serviceId, list);
   };
-  for (const r of profiles.rows) add(r.service_id as string, r.name as string);
+  for (const r of profiles.rows) add(r.service_id as string, r.name as string, false);
   for (const r of singles.rows) {
-    if (!covered.has(`${r.service_id as string}|${r.test_id as string}`)) add(r.service_id as string, r.name as string);
+    if (!covered.has(`${r.service_id as string}|${r.test_id as string}`)) {
+      add(r.service_id as string, r.name as string, (r.result_type as string) === "none");
+    }
   }
   return out;
 }

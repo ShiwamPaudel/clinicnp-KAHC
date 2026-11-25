@@ -121,13 +121,13 @@ function view(results: OrderResult[]): ReportViewData {
 }
 
 describe("the report header", () => {
-  it("has the four on the left and the invoice and dates on the right", () => {
+  it("has the patient on the left and the numbers and dates on the right, five a side", () => {
     const t = text(renderToStaticMarkup(<ReportBody d={view([result("Uric Acid")])} />));
     expect(t).toMatch(
-      /Lab ID No.: LAB-000003 Name: Ram Thapa Gender: Male Referred by: Dr. Sample Age: 52Y Patient No.: P-000003 Address: Itahari/,
+      /Name: Ram Thapa Age \/ Gender: 52Y \/ Male Referred by: Dr. Sample Patient No.: P-000003 Address: Itahari/,
     );
     expect(t).toMatch(
-      /Invoice No.: 000003 Sample Collected on: 08-08-2083 \/ 9:10 AM Sample Received on: 08-08-2083 \/ 10:00 AM Report Released on: 08-08-2083 \/ 4:00 PM/,
+      /Lab ID No.: LAB-000003 Invoice No.: 000003 Sample Collected on: 08-08-2083 \/ 9:10 AM Sample Received on: 08-08-2083 \/ 10:00 AM Report Released on: 08-08-2083 \/ 4:00 PM/,
     );
   });
 });

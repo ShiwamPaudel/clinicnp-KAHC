@@ -150,17 +150,16 @@ export function ReportBody({ d }: { d: ReportViewData }) {
           fontSize: 13,
         }}
       >
-        {/* owner, 2083-08-08: these four first on the left, then age, number and address */}
+        {/* owner, 2083-08-08/09: five lines a side; Age / Gender on one line, as on the bill */}
         <div>
-          <Line label="Lab ID No." value={d.order.orderNo} />
           <Line label="Name" value={d.patient.name} />
-          <Line label="Gender" value={d.patient.gender} />
+          <Line label="Age / Gender" value={[d.patient.age, d.patient.gender].filter(Boolean).join(" / ")} />
           <Line label="Referred by" value={d.order.referredBy} />
-          <Line label="Age" value={d.patient.age} />
           <Line label="Patient No." value={d.patient.patientNo} />
           <Line label="Address" value={d.patient.address} />
         </div>
         <div>
+          <Line label="Lab ID No." value={d.order.orderNo} right />
           <Line label="Invoice No." value={d.order.invoiceLabel} right />
           <Line label="Sample Collected on" value={d.order.collectedOn} right />
           <Line label="Sample Received on" value={d.order.receivedOn} right />

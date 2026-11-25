@@ -15,6 +15,8 @@ import { db } from "@/lib/db";
 import type { Row } from "@/lib/db";
 import { getOpenFiscalYear, bootstrapCurrentFiscalYear } from "@/lib/repos/fiscal";
 import type { VisitType, VisitStatus } from "@/lib/visit-types";
+import { hasAnyVital, type VitalsRecord } from "@/lib/vitals";
+import { displayAge } from "@/lib/age";
 
 // The vocabulary lives in lib/visit-types so the browser can import it too;
 // re-exported here so server callers have one place to look.
@@ -30,10 +32,13 @@ export interface Vitals {
   pulse: number | null;
   tempC: number | null;
   weightKg: number | null;
+  heightCm: number | null;
   spo2: number | null;
 }
 
 export interface Visit extends Vitals {
+  /** when the vitals were last changed (0033); null when none are recorded */
+  vitalsAt: string | null;
   id: string;
   visitNo: number | null;
   fiscalLabel: string;
@@ -61,6 +66,8 @@ export interface VisitWithPatient extends Visit {
   patientAgeUnit: string | null;
   patientAgeAsOfAd: string | null;
   patientDobAd: string | null;
+  /** the latest height recorded on any of the patient's visits, for BMI */
+  lastHeightCm: number | null;
 }
 
 function mapVisit(r: Row): Visit {
@@ -82,7 +89,9 @@ function mapVisit(r: Row): Visit {
     pulse: r.pulse != null ? Number(r.pulse) : null,
     tempC: r.temp_c != null ? Number(r.temp_c) : null,
     weightKg: r.weight_kg != null ? Number(r.weight_kg) : null,
+    heightCm: r.height_cm != null ? Number(r.height_cm) : null,
     spo2: r.spo2 != null ? Number(r.spo2) : null,
+    vitalsAt: (r.vitals_at as string | null) ?? null,
     status: r.status as VisitStatus,
     cancelReason: (r.cancel_reason as string) ?? "",
     createdAt: r.created_at as string,
@@ -100,13 +109,17 @@ function mapVisitWithPatient(r: Row): VisitWithPatient {
     patientAgeUnit: (r.age_unit as string | null) ?? null,
     patientAgeAsOfAd: (r.age_as_of_ad as string | null) ?? null,
     patientDobAd: (r.dob_ad as string | null) ?? null,
+    lastHeightCm: r.last_height_cm != null ? Number(r.last_height_cm) : null,
   };
 }
 
 const WITH_PATIENT = `
   SELECT v.*, f.bs_label,
          p.name AS patient_name, p.patient_no, p.sex AS patient_sex,
-         p.age_value, p.age_unit, p.age_as_of_ad, p.dob_ad
+         p.age_value, p.age_unit, p.age_as_of_ad, p.dob_ad,
+         (SELECT h.height_cm FROM visits h
+           WHERE h.patient_id = v.patient_id AND h.height_cm IS NOT NULL AND h.status <> 'cancelled'
+           ORDER BY h.date_ad DESC, h.vitals_at DESC LIMIT 1) AS last_height_cm
     FROM visits v
     LEFT JOIN fiscal_years f ON f.id = v.fiscal_year_id
     JOIN patients p ON p.id = v.patient_id`;
@@ -149,9 +162,9 @@ export async function createVisit(input: NewVisitInput): Promise<Visit> {
       sql: `INSERT INTO visits
               (id, visit_no, fiscal_year_id, patient_id, date_ad, date_bs, type,
                doctor_id, department, complaint, findings, advice,
-               bp, pulse, temp_c, weight_kg, spo2, status, cancel_reason,
+               bp, pulse, temp_c, weight_kg, height_cm, spo2, vitals_at, status, cancel_reason,
                user_id, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', '', ?, ?, ?, ?, ?, 'waiting', '', ?, ?, ?)`,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', '', ?, ?, ?, ?, ?, ?, ?, 'waiting', '', ?, ?, ?)`,
       args: [
         id,
         visitNo,
@@ -167,7 +180,9 @@ export async function createVisit(input: NewVisitInput): Promise<Visit> {
         input.vitals?.pulse ?? null,
         input.vitals?.tempC ?? null,
         input.vitals?.weightKg ?? null,
+        input.vitals?.heightCm ?? null,
         input.vitals?.spo2 ?? null,
+        input.vitals && hasAnyVital(input.vitals) ? now : null,
         input.userId,
         now,
         now,
@@ -264,6 +279,47 @@ export async function visitsForPatient(patientId: string): Promise<Visit[]> {
   return res.rows.map(mapVisit);
 }
 
+/**
+ * Every visit of one patient that carries vitals, with the patient's age on
+ * that day, for the card's vitals table. Cancelled visits are left out.
+ */
+export async function vitalsForPatient(patientId: string): Promise<VitalsRecord[]> {
+  const res = await db().execute({
+    sql: `${WITH_PATIENT}
+           WHERE v.patient_id = ? AND v.status <> 'cancelled'
+             AND (v.bp <> '' OR v.pulse IS NOT NULL OR v.temp_c IS NOT NULL OR v.weight_kg IS NOT NULL
+                  OR v.height_cm IS NOT NULL OR v.spo2 IS NOT NULL)
+           ORDER BY v.date_ad, v.vitals_at`,
+    args: [patientId],
+  });
+  return res.rows.map(mapVisitWithPatient).map((v) => ({
+    visitId: v.id,
+    dateBs: v.dateBs,
+    at: v.vitalsAt,
+    ageYears: ageYearsOn(v, v.dateAd),
+    bp: v.bp,
+    pulse: v.pulse,
+    tempC: v.tempC,
+    weightKg: v.weightKg,
+    heightCm: v.heightCm,
+    spo2: v.spo2,
+  }));
+}
+
+/** The patient's age in whole years on a day, or null when no age was recorded. */
+export function ageYearsOn(v: VisitWithPatient, dateAd: string): number | null {
+  if (v.patientDobAd == null && v.patientAgeValue == null) return null;
+  return displayAge(
+    {
+      value: v.patientAgeValue,
+      unit: (v.patientAgeUnit as "y" | "m" | "d" | null) ?? null,
+      asOfAd: v.patientAgeAsOfAd,
+      dobAd: v.patientDobAd,
+    },
+    dateAd,
+  ).years;
+}
+
 /** Today's open visit for a patient, if there is one (Phase 3 attaches to it). */
 export async function openVisitToday(
   patientId: string,
@@ -307,11 +363,30 @@ export async function updateVisit(input: UpdateVisitInput): Promise<void> {
   if (input.advice !== undefined) put("advice", input.advice.trim());
   if (input.status !== undefined) put("status", input.status);
   if (input.vitals) {
-    if (input.vitals.bp !== undefined) put("bp", input.vitals.bp.trim());
-    if (input.vitals.pulse !== undefined) put("pulse", input.vitals.pulse);
-    if (input.vitals.tempC !== undefined) put("temp_c", input.vitals.tempC);
-    if (input.vitals.weightKg !== undefined) put("weight_kg", input.vitals.weightKg);
-    if (input.vitals.spo2 !== undefined) put("spo2", input.vitals.spo2);
+    const vt = input.vitals;
+    if (vt.bp !== undefined) put("bp", vt.bp.trim());
+    if (vt.pulse !== undefined) put("pulse", vt.pulse);
+    if (vt.tempC !== undefined) put("temp_c", vt.tempC);
+    if (vt.weightKg !== undefined) put("weight_kg", vt.weightKg);
+    if (vt.heightCm !== undefined) put("height_cm", vt.heightCm);
+    if (vt.spo2 !== undefined) put("spo2", vt.spo2);
+    // when they were taken: stamped when a value changes, cleared with the last one
+    const before = await getVisit(input.id);
+    if (before) {
+      const after: Vitals = {
+        bp: vt.bp !== undefined ? vt.bp.trim() : before.bp,
+        pulse: vt.pulse !== undefined ? vt.pulse : before.pulse,
+        tempC: vt.tempC !== undefined ? vt.tempC : before.tempC,
+        weightKg: vt.weightKg !== undefined ? vt.weightKg : before.weightKg,
+        heightCm: vt.heightCm !== undefined ? vt.heightCm : before.heightCm,
+        spo2: vt.spo2 !== undefined ? vt.spo2 : before.spo2,
+      };
+      const changed = (["bp", "pulse", "tempC", "weightKg", "heightCm", "spo2"] as const).some(
+        (k) => after[k] !== before[k],
+      );
+      if (!hasAnyVital(after)) put("vitals_at", null);
+      else if (changed || !before.vitalsAt) put("vitals_at", new Date().toISOString());
+    }
   }
 
   if (sets.length === 0) return;

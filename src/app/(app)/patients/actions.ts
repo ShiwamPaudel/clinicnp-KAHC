@@ -1,5 +1,6 @@
 "use server";
 
+import { vitalsProblem } from "@/lib/vitals";
 import { revalidatePath } from "next/cache";
 import { assertPermission, can, NotAuthorizedError } from "@/lib/session";
 import { requireAnyModule, PATIENT_MODULES, ModuleDisabledError } from "@/lib/modules";
@@ -261,6 +262,7 @@ export interface UpdateVisitFormInput {
     pulse?: number | null;
     tempC?: number | null;
     weightKg?: number | null;
+    heightCm?: number | null;
     spo2?: number | null;
   };
 }
@@ -270,6 +272,11 @@ export async function updateVisitAction(
 ): Promise<ActionResult> {
   try {
     await requireClinicWriter();
+    if (input.vitals) {
+      // typing slips only: the value itself is never judged (Rules §2.6)
+      const problem = vitalsProblem(input.vitals);
+      if (problem) return fail(problem);
+    }
     await updateVisit(input);
     revalidatePath(`/visits/${input.id}`);
     revalidatePath("/visits/today");
