@@ -713,6 +713,10 @@ export interface FieldSpec {
   criticalLow: number | null;
   criticalHigh: number | null;
   defaultRemarks: string;
+  /** 0035: worked out from other boxes ("" = typed), its rounding, and the result the box starts with */
+  formula: string;
+  decimals: number | null;
+  defaultValue: string;
 }
 
 export interface OrderResult {
@@ -720,6 +724,8 @@ export interface OrderResult {
   orderTestId: string;
   testId: string;
   testName: string;
+  /** the test's short code, which formulas use to name it */
+  shortCode: string;
   groupName: string;
   /** the package this test was billed in, "" when it was not part of one */
   packageName: string;
@@ -817,6 +823,7 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
     db().execute({ sql: "SELECT * FROM lab_samples WHERE order_id = ? ORDER BY code", args: [orderId] }),
     db().execute({
       sql: `SELECT r.*, ot.group_name, ot.sort_order, t.method, t.description, t.result_type, t.unit, t.select_options,
+                   t.short_code, t.formula, t.decimals, t.default_value,
                    (SELECT g.name FROM bill_service_lines bsl
                       JOIN lab_test_groups g ON g.service_id = bsl.service_id AND g.kind = 'package'
                      WHERE bsl.id = ot.bill_service_line_id LIMIT 1) AS package_name,
@@ -899,6 +906,9 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
       criticalLow: range.criticalLow,
       criticalHigh: range.criticalHigh,
       defaultRemarks: (src.default_remarks as string) ?? "",
+      formula: type === "numeric" ? ((src.formula as string | null) ?? "") : "",
+      decimals: src.decimals == null ? null : Number(src.decimals),
+      defaultValue: (src.default_value as string | null) ?? "",
     };
   };
 
@@ -913,6 +923,7 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
       orderTestId: r.order_test_id as string,
       testId: r.test_id as string,
       testName: r.test_name as string,
+      shortCode: (r.short_code as string | null) ?? "",
       groupName: (r.group_name as string) ?? "",
       packageName: (r.package_name as string | null) ?? "",
       departmentId: (r.department_id as string | null) ?? null,

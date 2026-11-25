@@ -1,8 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Pencil, Stethoscope, Receipt, GitMerge, HeartPulse } from "lucide-react";
+import { Pencil, Stethoscope, Receipt, GitMerge, HeartPulse, CalendarClock } from "lucide-react";
 import { can, requirePermission } from "@/lib/session";
-import { requireAnyModulePage, PATIENT_MODULES } from "@/lib/modules";
+import { getModules, requireAnyModulePage, PATIENT_MODULES } from "@/lib/modules";
+import { listDoctors } from "@/lib/repos/doctors";
+import { nextFollowupFor } from "@/lib/repos/prebookings";
+import { formatTime } from "@/lib/appointment-types";
+import { FollowupButton } from "@/components/clinic/followup-button";
 import { getPatient } from "@/lib/repos/patients";
 import { visitsForPatient, vitalsForPatient } from "@/lib/repos/visits";
 import { vitalsTable } from "@/lib/vitals";
@@ -12,7 +16,7 @@ import { listBillsForPatient } from "@/lib/repos/bills";
 import { owedByPatient } from "@/lib/repos/dues";
 import { formatPaisa } from "@/lib/money";
 import { formatDocNo } from "@/lib/invoice-number";
-import { adToIso, toBS, adFromIso, formatBS, today, bsToDbText } from "@/lib/bs";
+import { adToIso, toBS, adFromIso, formatBS, today, bsToDbText, bsFromDbText } from "@/lib/bs";
 import { PageShell } from "@/components/app/page-shell";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,15 +38,19 @@ export default async function PatientCardPage({
   const patient = await getPatient(id);
   if (!patient) notFound();
 
-  const [visits, attachments, bills, owed, vitals] = await Promise.all([
+  const todayAd = adToIso(new Date());
+  const canBook = can(user, "appointments.manage");
+  const modules = await getModules();
+  const [visits, attachments, bills, owed, vitals, followup, doctors] = await Promise.all([
     visitsForPatient(patient.id),
     attachmentsForPatient(patient.id),
     listBillsForPatient(patient.id),
     owedByPatient(patient.id),
     vitalsForPatient(patient.id),
+    nextFollowupFor(patient.id, todayAd),
+    canBook && modules.clinic ? listDoctors() : Promise.resolve([]),
   ]);
 
-  const todayAd = adToIso(new Date());
   const sinceBs = formatBS(toBS(adFromIso(patient.createdAt.slice(0, 10))));
   const isAdmin = can(user, "patients.merge");
 
@@ -56,6 +64,13 @@ export default async function PatientCardPage({
             todayAd={todayAd}
             todayBs={bsToDbText(today())}
           />
+          {canBook && (
+            <FollowupButton
+              patientId={patient.id}
+              todayBs={bsToDbText(today())}
+              doctors={doctors.map((d) => ({ id: d.id, name: d.name }))}
+            />
+          )}
           <Link href={`/billing?patient=${patient.id}`}>
             <Button variant="secondary">
               <Receipt className="h-4 w-4" />
@@ -81,6 +96,23 @@ export default async function PatientCardPage({
     >
       <div className="flex flex-col gap-6">
         <PatientHeader patient={patient} todayAd={todayAd} sinceBs={sinceBs} />
+
+        {followup && (
+          <Link
+            href={`/prebooking?on=${followup.dateBs}`}
+            className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-line bg-cream-50 px-4 py-3 hover:bg-cream-200"
+          >
+            <span className="flex items-center gap-2 text-[14px] text-sage-900">
+              <CalendarClock className="h-4 w-4 text-clinic-500" />
+              Next follow-up:{" "}
+              <span className="font-semibold">
+                {formatBS(bsFromDbText(followup.dateBs), { form: "long", monthScript: "en" })} · {formatTime(followup.timeHhmm)}
+              </span>
+              {followup.doctorName && <span className="text-sage-600">· {followup.doctorName}</span>}
+            </span>
+            <span className="text-[13px] font-medium text-sage-600">Pre-Booking →</span>
+          </Link>
+        )}
 
         {owed.owedPaisa > 0 && (
           <Link

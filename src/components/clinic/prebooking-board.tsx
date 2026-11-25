@@ -49,6 +49,8 @@ export interface TestRow {
   inHandPaisa: number;
   receipts: ReceiptRow[];
   dateBs: string;
+  /** booked from the patient's page as a follow-up; may have no tests yet */
+  isFollowup: boolean;
 }
 
 export interface ConsultationRow {
@@ -177,7 +179,14 @@ export function PrebookingBoard({
                       <div className="text-[12px] text-sage-500">{[t.phone, t.patientNo != null ? `P-${String(t.patientNo).padStart(6, "0")}` : ""].filter(Boolean).join(" · ")}</div>
                       {t.note && <div className="text-[12px] text-sage-500">{t.note}</div>}
                     </TD>
-                    <TD className="max-w-[320px] text-[13px] text-sage-700">{t.items.map((i) => i.name).join(", ")}</TD>
+                    <TD className="max-w-[320px] text-[13px] text-sage-700">
+                      {t.isFollowup && (
+                        <Badge tone="info" className="mr-1.5">
+                          Follow-up
+                        </Badge>
+                      )}
+                      {t.items.length > 0 ? t.items.map((i) => i.name).join(", ") : <span className="text-sage-500">No tests yet</span>}
+                    </TD>
                     <TD numeric>
                       <Advance inHand={t.inHandPaisa} receipts={t.receipts} />
                     </TD>

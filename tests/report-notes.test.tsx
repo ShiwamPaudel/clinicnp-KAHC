@@ -18,7 +18,7 @@ function value(valueText: string, flag: ResultFlag = "normal"): ResultValueView 
 function result(testName: string, o: Partial<OrderResult> & { v?: ResultValueView } = {}): OrderResult {
   const { v, ...rest } = o;
   return {
-    id: `r${++n}`, orderTestId: "", testId: "", testName, groupName: "", packageName: "",
+    id: `r${++n}`, orderTestId: "", testId: "", testName, shortCode: "", groupName: "", packageName: "",
     departmentId: null, departmentName: "Lab", departmentOrder: 1, showUnit: true, showRange: true,
     method: "", description: "", status: "approved", sampleStatus: null, technicianRemarks: "",
     interpretation: "", correctionNote: "", enteredByName: "", submittedAt: null, approvedByName: "",

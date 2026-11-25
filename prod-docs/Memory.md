@@ -68,6 +68,7 @@
 - 2083-08-07 C-036: typecheck clean, **59 files / 624 tests** green.
 - 2083-08-08 C-037: typecheck clean, **60 files / 633 tests** green, `pnpm build` passes on a scratch DB.
 - 2083-08-09: **0032 applied to KAHC** (owner allowed it; 32 migrations). Deploy this code only with 0032 in place: saving results writes `lab_orders.received_at`.
+- 2083-08-09 C-041: typecheck clean, **65 files / 664 tests** green, `pnpm build` passes; **0035 applied to KAHC**; formulas, defaults and Stool on live (D-220); follow-up booking (D-221).
 - 2083-08-09 C-040: the live lab catalogue now holds 53 tests, 10 profiles and the Whole Body Checkup package (D-219); no code change.
 - 2083-08-09 C-039: typecheck clean, **63 files / 646 tests** green, `pnpm build` passes; **0034 applied to KAHC**; the lab catalogue is empty (D-218).
 - 2083-08-09 C-038: typecheck clean, **63 files / 644 tests** green, `pnpm build` passes on a scratch DB. **0033 applied to KAHC** the same day (owner allowed it; backup `.backups/kahc-before-0033-2026-11-25T09-28-57-721Z.json.gz`). Deploy this code only with 0033 in place: every visit query reads the new columns.
@@ -348,6 +349,8 @@
 | D-217 | **The lab report is laid out by the browser, not paged.js** (removed from package.json). The sheet is one table: its header (letterhead) and footer (signatures, page note, footer image) repeat on every printed page; "Page X of Y" is in the `@page` bottom margin box. The results boxes are blocks, not tables, with `break-after: avoid` on headings and `box-decoration-break: clone` so a split box is closed on both pages. The page is marked `.lab-print` so the app's print rule (which shows only a bill's `.print-area`) no longer blanks it | Owner, 2083-08-09: Print gave blank pages, and the preview repeated Haematology. Cause of the repeats: paged.js gave up placing content ("Unable to layout item") and laid page 1 out again; this was the "fix later" item from 2083-08-06. Cause of the blank print: the global print rule. On the last page the signatures follow the last result rather than sitting at the page bottom (browser behaviour). |
 | D-218 | **The lab catalogue was emptied on the owner's request** (2083-08-09): every lab test (933), profile and package (18), their 951 services and the Laboratory service group are gone; departments (13), sample types (11), report settings and signatures kept. The owner adds tests, profiles and packages one by one. The first new test makes a fresh "Laboratory" service group by itself (`labServiceGroupId`). Supersedes the catalogue of D-190 / D-192 (the Aster rate files in import-templates are only a record now) | Owner: "Clear the Tests, Profiles and Packages everything … and the Laboratory group and its services. I will configure everything one by one myself." |
 | D-219 | **The first catalogue after the clearing comes from the owner's photos of a report** (`test and profile details/`, 7 HEIC photos, kept out of git because they show a patient's results). 52 tests beside the owner's own Bilirubin (Total), 10 profiles (LFT, RFT, Bone and Joint Screening, Lipid Profile, TFT, Blood Sugar (Fasting and PP), Blood Grouping (ABO and Rh), CBC, Urine Routine Examination, Serology Test) and the package **Whole Body Checkup** (`wbc`, Rs 4000, Health Packages) holding all 10 profiles plus H. Pylori Antibody, RA Factor, Vitamin D and eGFR. Units, ranges and methods as printed (spelling corrected; `gm/dl` written `g/dL`, `C.L.I.A` written `CLIA`); sex ranges as Male/Female overrides; limits only where the photo gives one plain range (none for Vitamin D, which shows `Optimal: 30-50` with its grading table as the test's note). Every test and profile at Rs 0 (owner prices them later); the 11 urine lines are not billed on their own. Differential Leucocyte Count is one test with five values | Owner, 2083-08-09: "read and enter other tests and create their profiles … along with its method, reference range and units … all added to the package Whole Body Checkup (wbc), price 4000"; prices Rs 0 for now; everything in the photos goes in the package. |
+| D-220 | **Calculated results and default results** (0035 `formula`, `decimals`, `default_value` on `lab_tests` and `lab_test_parameters`; `lib/lab-formula.ts`). A numeric test or value may carry a formula: numbers, + - * / ( ), and names in braces: another test's short code (`{hb}`), a sibling value of a test with several values (`{Neutrophils}`), or `{code.Value}`. Read by a small parser, never run as code; checked on save (names exist, not itself, no ring). Result entry fills the box as the inputs are typed (chains: MCV reads PCV reads Hb), rounded to the test's decimals (2 when not set); the box stays editable: typed over, it keeps the typed value; emptied, it goes back to the formula. The server stores what was sent (no recalculation on save). A box never saved starts with the default result. A choice named "Other" or "Others" opens a text box; what is typed there is the result. Set per test in Lab → Tests (Formula, Decimals, Default result) | Owner, 2083-08-09: "wire these yourselves and leave the ground open … the calculated field filled automatically as users type … and remain editable". Wired on live: TC/HDL `{chol} / {hdl}`, LDL/HDL `{ldl} / {hdl}`, VLDL `{tg} / 5` (1 decimal); PCV `{hb} * 3` (1); MCV `({pcv} * 10) / {rbc}`, MCH `({hb} * 10) / {rbc}`, MCHC `({hb} * 100) / {pcv}` (2); Eosinophils `100 - (N + L + M)` (0); Basophils a choice 0 / 1, default 0; RA Factor default Negative; urine Colour, Transparency, Reaction, Sugar, Protein, RBC, Cast, Crystal as choices with defaults; new **Stool Routine Examination** (Parasitology, Stool: Colour, Consistency, RBC Seen / Not Seen, Undigested Food Particles), not in the package. Checked against the photo's CBC and lipid values. |
+| D-221 | **Follow-up from the patient's page** (0035 `prebookings.is_followup`): **Follow-up** on /patients/[id] asks date, time, an optional doctor and a note. With a doctor it books that doctor's consultation, reason "Follow-up[: note]", 15 minutes, through the same action as the doctor's day (double booking refused, doctor told). Without one it is a tests booking marked Follow-up with no tests yet; tests are added from Change, or a bill issued, when they come. Both show on Pre-Booking; the patient's page shows "Next follow-up" with a link to that day. A follow-up cannot be for a past day | Owner, 2083-08-09: "the user chooses their next follow-up date and that thing appears on Pre-Booking with no tests selected"; chose "doctor or no doctor". |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---
@@ -1186,4 +1189,28 @@ lines not billed alone), 63 audit entries, `PRAGMA foreign_key_check` clean.
 **Open:** the eGFR photo is cut off below ">= 90 : Normal", so only that line
 is entered; prices for the tests and profiles; "Please correlate with clinical
 conditions" can go in Settings → Lab report → At the end of the report.
+
+### C-041  ·  2083-08-09  ·  Calculated results, default results, follow-up booking
+
+Formula, decimals and default result on tests and their values (D-220, 0035):
+`lib/lab-formula.ts` (parser, `recalculate` over an order), the test editor's
+new fields, Result entry filling calculated boxes and the "Other" text box,
+`checkFormulas` on save. Follow-up from the patient's page (D-221).
+**Live (owner's go-ahead):** backups
+`.backups/kahc-before-0035-2026-11-25T13-40-14-652Z.json.gz` and
+`.backups/kahc-before-0035-2026-11-25T13-51-31-008Z.json.gz`; 0035 applied;
+the owner's formulas and choices set through `saveTest` by a temporary vitest
+file (copy first, then live; audit entries under admin), Stool Routine
+Examination added (4 tests, Rs 0). After: 57 tests, 12 groups,
+`PRAGMA foreign_key_check` clean.
+**Verified:** typecheck; full suite (new `lab-formula.test.ts` with the photo's
+CBC, `lab-formula.integration.test.ts`); on a local copy of live in Chromium:
+defaults in the boxes, Hb 11.7 / RBC 5.61 gave PCV 35.1, MCV 62.57, MCH 20.86,
+MCHC 33.33; N 64 / L 28 / M 6 gave Eosinophils 2; lipid gave VLDL 23.6,
+TC/HDL 3.9, LDL/HDL 2.1 (as on the photo); a typed-over PCV stayed and MCV
+followed it; emptied, PCV came back from Hb; Colour → Other → typed text
+survived a draft save and reload; follow-up with and without a doctor showed
+on Pre-Booking, with "Next follow-up" on the patient's page.
+**Not done (not asked):** Bilirubin (Indirect) as `{bilitot} - {bilidir}`; eGFR
+still typed (its formula needs age and gender: a ready-made choice later).
 

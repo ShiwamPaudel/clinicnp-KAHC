@@ -11,6 +11,7 @@ import { isSaneAge } from "@/lib/age";
 import type { DraftPatient } from "@/components/clinic/patient-picker";
 import { ClosedFiscalYearError } from "@/lib/repos/fiscal";
 import {
+  FOLLOWUP_REASON,
   PrebookingProblem,
   bookingForAppointment,
   checkTestBooking,
@@ -57,7 +58,8 @@ const bookingSchema = z.object({
   dateBs: DATE,
   timeHhmm: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Choose the time they will come"),
   note: z.string().trim().max(300),
-  serviceIds: z.array(z.string()).min(1, "Choose at least one test or service").max(60),
+  // at least one, except on a follow-up booking (the repo checks which)
+  serviceIds: z.array(z.string()).max(60),
 });
 
 /**
@@ -118,6 +120,67 @@ export async function saveTestBookingAction(input: unknown, newPatient?: DraftPa
       await recordAudit(user.id, "prebooking.created", { entity: "prebooking", entityId: id, detail: patient.name });
     }
     revalidatePath("/prebooking");
+    return { ok: true, id };
+  } catch (err) {
+    return handle(err);
+  }
+}
+
+const followupSchema = z.object({
+  patientId: z.string().min(1, "Choose the patient"),
+  dateBs: DATE,
+  timeHhmm: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Choose the time they will come"),
+  /** a doctor books that doctor's consultation; none books a follow-up with no tests yet */
+  doctorId: z.string().nullable(),
+  note: z.string().trim().max(250),
+});
+
+/**
+ * Next follow-up, from the patient's page (owner, 2083-08-09). With a doctor it
+ * is that doctor's consultation, reason "Follow-up", under Doctors'
+ * consultations; without one it is a booking with no tests yet, marked
+ * Follow-up, under Tests and services booked. Both show on Pre-Booking.
+ */
+export async function bookFollowupAction(input: unknown): Promise<PrebookingActionResult> {
+  try {
+    const parsed = followupSchema.safeParse(input);
+    if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Please check the details.");
+    const d = parsed.data;
+    const dateAd = toIso(d.dateBs);
+    if (dateAd < toIso(bsToDbText(today()))) return fail("Choose today or a later day.");
+
+    if (d.doctorId) {
+      const { bookConsultationAction } = await import("@/app/(app)/doctors/actions");
+      const res = await bookConsultationAction({
+        doctorId: d.doctorId,
+        patientId: d.patientId,
+        dateBs: d.dateBs,
+        timeHhmm: d.timeHhmm,
+        durationMin: 15,
+        reason: d.note ? `${FOLLOWUP_REASON}: ${d.note}` : FOLLOWUP_REASON,
+      });
+      if (res.ok) revalidatePath(`/patients/${d.patientId}`);
+      return { ok: res.ok, userMessage: res.userMessage, id: res.id };
+    }
+
+    const user = await guard();
+    const patient = await getPatient(d.patientId);
+    if (!patient) return fail("That patient record is no longer there.");
+    const id = await createTestBooking({
+      name: patient.name,
+      phone: patient.phone,
+      patientId: patient.id,
+      dateAd,
+      dateBs: d.dateBs,
+      timeHhmm: d.timeHhmm,
+      note: d.note,
+      serviceIds: [],
+      userId: user.id,
+      isFollowup: true,
+    });
+    await recordAudit(user.id, "prebooking.created", { entity: "prebooking", entityId: id, detail: `${patient.name} · follow-up` });
+    revalidatePath("/prebooking");
+    revalidatePath(`/patients/${patient.id}`);
     return { ok: true, id };
   } catch (err) {
     return handle(err);

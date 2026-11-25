@@ -79,6 +79,7 @@ export default async function PrebookingPage({ searchParams }: { searchParams: P
                 .filter((m) => m.kind === "received")
                 .map((m) => ({ id: m.id, label: m.receiptLabel, amountPaisa: m.amountPaisa, method: m.method })),
               dateBs: b.dateBs,
+              isFollowup: b.isFollowup,
             }))}
           consultations={appointments.map((a) => {
             const pb = byAppointment.get(a.id);

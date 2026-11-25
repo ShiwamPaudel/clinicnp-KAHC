@@ -71,6 +71,17 @@ product's name appears nowhere in ClinicNP (owner's instruction).
   Payables and the ledger (Dr Outside laboratory charges, Cr the laboratory)
   all read it. The patient's bill is income from the lab as before.
 
+## Calculated and default results (0035, D-220)
+
+- **Formula** (numeric tests and values only): `{short code}` of another test,
+  `{Value}` of the same test, `{code.Value}`; numbers, + - * / ( ). Checked
+  on save. **Decimals**: rounding of the worked-out value, 2 when empty.
+- Result entry fills a calculated box as its inputs are typed, marked
+  "Calculated"; typing over it keeps the typed value, emptying it hands it back
+  to the formula. What is on screen is what is saved.
+- **Default result**: in the box when entry starts (never saved before).
+- A choice "Other" or "Others" opens a text box for any other answer.
+
 ## Workflow states
 
 ```

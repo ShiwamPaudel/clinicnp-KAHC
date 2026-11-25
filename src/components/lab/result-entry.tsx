@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Save, Send, AlertTriangle, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
 import { saveResultsAction } from "@/app/(app)/lab/actions";
 import { computeFlag, flagSymbol, numericValue, type ResultFlag } from "@/lib/lab-flags";
+import { recalculate, isOtherOption, type CalcField } from "@/lib/lab-formula";
 import { RESULT_STATUS_LABEL, resultTone } from "@/lib/lab-format";
 import { strings } from "@/lib/strings";
 import { SendOutDialog, BringBackButton, type PartnerOption } from "@/components/lab/send-out";
@@ -38,17 +39,61 @@ function enterToNextResult(e: React.KeyboardEvent<HTMLElement>) {
   }
 }
 
+/** A box's id on the order, for the calculation. */
+const boxId = (resultId: string, key: string) => `${resultId}:${key}`;
+
+/**
+ * A box never saved starts with the test's default result (0035): RA Factor
+ * "Negative", urine Colour "Light Yellow". Once saved, what was saved stands,
+ * even when it was left empty.
+ */
 function initialDraft(results: OrderResult[]): Draft {
   const d: Draft = {};
   for (const r of results) {
     const values: Draft[string]["values"] = {};
     for (const f of r.fields) {
       const saved = r.values.find((v) => (v.parameterId ?? null) === f.parameterId);
-      values[keyOf(f.parameterId)] = { value: saved?.valueText ?? "", remarks: saved?.remarks ?? f.defaultRemarks };
+      values[keyOf(f.parameterId)] = { value: saved ? saved.valueText : f.defaultValue, remarks: saved?.remarks ?? f.defaultRemarks };
     }
     d[r.id] = { remarks: r.technicianRemarks, values };
   }
   return d;
+}
+
+/** Every box of the order as the formulas see it. */
+function calcFieldsOf(results: OrderResult[]): CalcField[] {
+  return results.flatMap((r) =>
+    r.fields.map((f) => ({
+      id: boxId(r.id, keyOf(f.parameterId)),
+      group: r.id,
+      code: r.shortCode,
+      paramName: f.parameterId == null ? null : f.label,
+      formula: f.formula,
+      decimals: f.decimals,
+    })),
+  );
+}
+
+function valuesOf(d: Draft): Map<string, string> {
+  const m = new Map<string, string>();
+  for (const [rid, r] of Object.entries(d)) for (const [k, v] of Object.entries(r.values)) m.set(boxId(rid, k), v.value);
+  return m;
+}
+
+/** The draft with the calculated boxes filled; boxes in `keep` are left alone. */
+function withCalculated(d: Draft, fields: CalcField[], keep: ReadonlySet<string>): Draft {
+  const changed = recalculate(fields, valuesOf(d), keep);
+  if (changed.size === 0) return d;
+  const next: Draft = { ...d };
+  for (const [id, text] of changed) {
+    const at = id.indexOf(":");
+    const rid = id.slice(0, at);
+    const key = id.slice(at + 1);
+    const r = next[rid];
+    if (!r || !r.values[key]) continue;
+    next[rid] = { ...r, values: { ...r.values, [key]: { ...r.values[key]!, value: text } } };
+  }
+  return next;
 }
 
 const FLAG_TONE: Record<ResultFlag, string> = {
@@ -91,7 +136,26 @@ export function ResultEntry({
 }) {
   const router = useRouter();
   const toast = useToast();
-  const [draft, setDraft] = useState<Draft>(() => initialDraft(results));
+  const calcFields = useMemo(() => calcFieldsOf(results), [results]);
+  // boxes the formulas must not change: locked results, and calculated boxes
+  // typed over by hand (emptying one hands it back to its formula)
+  const lockedBoxes = useMemo(
+    () => new Set(results.filter((r) => LOCKED.includes(r.status)).flatMap((r) => r.fields.map((f) => boxId(r.id, keyOf(f.parameterId))))),
+    [results],
+  );
+  const typedOver = useRef<Set<string> | null>(null);
+  const [draft, setDraft] = useState<Draft>(() => {
+    const first = initialDraft(results);
+    // a saved calculated value that is not what its formula gives was typed by hand
+    const expected = recalculate(calcFields, valuesOf(first), lockedBoxes);
+    const saved = valuesOf(first);
+    typedOver.current = new Set(
+      [...expected.keys()].filter((id) => (saved.get(id) ?? "").trim() !== "" && expected.get(id) !== saved.get(id)),
+    );
+    return withCalculated(first, calcFields, new Set([...lockedBoxes, ...typedOver.current]));
+  });
+  // a choice list's "Other" picked with nothing typed yet
+  const [otherOpen, setOtherOpen] = useState<Set<string>>(() => new Set());
   const [pending, start] = useTransition();
   const [sendDialog, setSendDialog] = useState<{ key: number; initial: string[] } | null>(null);
 
@@ -104,10 +168,29 @@ export function ResultEntry({
   const openSend = (initial: string[]) => setSendDialog({ key: Date.now(), initial });
 
   function setValue(resultId: string, key: string, patch: Partial<{ value: string; remarks: string }>) {
+    const id = boxId(resultId, key);
+    const kept = typedOver.current ?? new Set<string>();
+    if (patch.value !== undefined && calcFields.some((f) => f.id === id && f.formula.trim())) {
+      if (patch.value.trim() === "") kept.delete(id);
+      else kept.add(id);
+    }
+    typedOver.current = kept;
     setDraft((d) => {
       const r = d[resultId]!;
-      return { ...d, [resultId]: { ...r, values: { ...r.values, [key]: { ...r.values[key]!, ...patch } } } };
+      const next = { ...d, [resultId]: { ...r, values: { ...r.values, [key]: { ...r.values[key]!, ...patch } } } };
+      return patch.value === undefined ? next : withCalculated(next, calcFields, new Set([...lockedBoxes, ...kept]));
     });
+  }
+
+  function chooseOption(resultId: string, key: string, option: string) {
+    const id = boxId(resultId, key);
+    setOtherOpen((s) => {
+      const n = new Set(s);
+      if (isOtherOption(option)) n.add(id);
+      else n.delete(id);
+      return n;
+    });
+    setValue(resultId, key, { value: isOtherOption(option) ? "" : option });
   }
 
   function save(mode: "draft" | "submit") {
@@ -214,27 +297,49 @@ export function ResultEntry({
                     const v = draft[r.id]?.values[key] ?? { value: "", remarks: "" };
                     const num = f.resultType === "numeric" ? numericValue(v.value) : null;
                     const flag = num == null ? "normal" : computeFlag(num, f);
+                    const id = boxId(r.id, key);
+                    const otherChoice = f.options.find(isOtherOption);
+                    const listed = f.options.filter((o) => !isOtherOption(o));
+                    // a value not in the list was typed under "Other"
+                    const inOther = Boolean(otherChoice) && (otherOpen.has(id) || (v.value !== "" && !listed.includes(v.value)));
+                    const stray = !otherChoice && v.value !== "" && !f.options.includes(v.value);
+                    const calculated = f.resultType === "numeric" && f.formula.trim() !== "";
                     return (
                       <tr key={key} className="border-t border-line">
                         <td className="px-4 py-2 text-sage-900">{f.label}</td>
                         <td className="px-2 py-2">
                           <div className="flex items-center gap-2">
                             {f.resultType === "select" || f.resultType === "pos_neg" ? (
-                              <Select
-                                data-result-field=""
-                                onKeyDown={enterToNextResult}
-                                value={v.value}
-                                disabled={locked || pending}
-                                onChange={(e) => setValue(r.id, key, { value: e.target.value })}
-                                className="w-44"
-                              >
-                                <option value="">-</option>
-                                {f.options.map((o) => (
-                                  <option key={o} value={o}>
-                                    {o}
-                                  </option>
-                                ))}
-                              </Select>
+                              <>
+                                <Select
+                                  data-result-field=""
+                                  onKeyDown={enterToNextResult}
+                                  value={inOther ? otherChoice! : v.value}
+                                  disabled={locked || pending}
+                                  onChange={(e) => chooseOption(r.id, key, e.target.value)}
+                                  className="w-44"
+                                >
+                                  <option value="">-</option>
+                                  {stray && <option value={v.value}>{v.value}</option>}
+                                  {f.options.map((o) => (
+                                    <option key={o} value={o}>
+                                      {o}
+                                    </option>
+                                  ))}
+                                </Select>
+                                {inOther && (
+                                  <Input
+                                    data-result-field=""
+                                    onKeyDown={enterToNextResult}
+                                    value={v.value}
+                                    autoFocus={otherOpen.has(id) && v.value === ""}
+                                    disabled={locked || pending}
+                                    aria-label={`${f.label}, other`}
+                                    onChange={(e) => setValue(r.id, key, { value: e.target.value })}
+                                    className="w-48"
+                                  />
+                                )}
+                              </>
                             ) : (
                               <Input
                                 data-result-field=""
@@ -243,9 +348,11 @@ export function ResultEntry({
                                 disabled={locked || pending}
                                 inputMode={f.resultType === "numeric" ? "decimal" : undefined}
                                 onChange={(e) => setValue(r.id, key, { value: e.target.value })}
-                                className={cn(f.resultType === "numeric" ? "w-32" : "w-64", FLAG_TONE[flag])}
+                                title={calculated ? `= ${f.formula}` : undefined}
+                                className={cn(f.resultType === "numeric" ? "w-32" : "w-64", calculated && "bg-sage-75/60", FLAG_TONE[flag])}
                               />
                             )}
+                            {calculated && <span className="text-[11px] text-sage-500">Calculated</span>}
                             {flag !== "normal" && (
                               <span className={cn("text-[13px]", FLAG_TONE[flag])}>{flagSymbol(flag)}</span>
                             )}

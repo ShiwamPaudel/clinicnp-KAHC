@@ -98,7 +98,7 @@ describe("the printed bill", () => {
 let n = 0;
 function result(testName: string, groupName = ""): OrderResult {
   return {
-    id: `r${++n}`, orderTestId: "", testId: "", testName, groupName, packageName: "",
+    id: `r${++n}`, orderTestId: "", testId: "", testName, shortCode: "", groupName, packageName: "",
     departmentId: null, departmentName: "Biochemistry", departmentOrder: 1, showUnit: true, showRange: true,
     method: "", description: "", status: "approved", sampleStatus: null, technicianRemarks: "",
     interpretation: "", correctionNote: "", enteredByName: "", submittedAt: null, approvedByName: "",

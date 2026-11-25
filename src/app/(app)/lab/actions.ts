@@ -273,6 +273,12 @@ const rangeSchema = {
   criticalHigh: optNum,
   overrides: z.array(overrideSchema).max(20),
 };
+// 0035: a calculated value and the result a box starts with
+const calcSchema = {
+  formula: z.string().max(300).default(""),
+  decimals: z.number().int().min(0, "Decimals: 0 to 6").max(6, "Decimals: 0 to 6").nullable().default(null),
+  defaultValue: z.string().max(120).default(""),
+};
 const paramSchema = z.object({
   id: z.string().optional(),
   name: z.string().trim().min(1, "Every value needs a name").max(120),
@@ -281,6 +287,7 @@ const paramSchema = z.object({
   selectOptions: z.array(z.string().max(80)).max(40),
   defaultRemarks: z.string().max(300),
   ...rangeSchema,
+  ...calcSchema,
 });
 const testSchema = z.object({
   id: z.string().optional(),
@@ -302,6 +309,7 @@ const testSchema = z.object({
   vatApplicable: z.boolean(),
   parameters: z.array(paramSchema).max(80),
   ...rangeSchema,
+  ...calcSchema,
 });
 
 export async function saveTestAction(input: unknown): Promise<LabActionResult> {

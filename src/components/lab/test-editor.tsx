@@ -14,6 +14,7 @@ import { paisaToRupees, toPaisa } from "@/lib/money";
 import { strings } from "@/lib/strings";
 import { cn } from "@/lib/cn";
 import { RangeEditor, rangeToDraft, draftToRange, rangeSummary, EMPTY_RANGE, type RangeDraft } from "@/components/lab/range-editor";
+import { formulaProblem } from "@/lib/lab-formula";
 import type { LabTest, LabResultType, LabParamType } from "@/lib/repos/lab-catalog";
 
 interface Option {
@@ -31,6 +32,9 @@ interface ParamDraft {
   defaultRemarks: string;
   range: RangeDraft;
   open: boolean;
+  formula: string;
+  decimals: string;
+  defaultValue: string;
 }
 
 interface TestDraft {
@@ -53,6 +57,9 @@ interface TestDraft {
   vatApplicable: boolean;
   range: RangeDraft;
   parameters: ParamDraft[];
+  formula: string;
+  decimals: string;
+  defaultValue: string;
 }
 
 const TYPE_LABEL: Record<LabResultType, string> = {
@@ -77,6 +84,9 @@ const blankParam = (): ParamDraft => ({
   defaultRemarks: "",
   range: EMPTY_RANGE,
   open: false,
+  formula: "",
+  decimals: "",
+  defaultValue: "",
 });
 
 function toDraft(t: LabTest | null): TestDraft {
@@ -100,6 +110,9 @@ function toDraft(t: LabTest | null): TestDraft {
       vatApplicable: false,
       range: EMPTY_RANGE,
       parameters: [],
+      formula: "",
+      decimals: "",
+      defaultValue: "",
     };
   }
   return {
@@ -131,8 +144,86 @@ function toDraft(t: LabTest | null): TestDraft {
       defaultRemarks: p.defaultRemarks,
       range: rangeToDraft(p),
       open: false,
+      formula: p.formula,
+      decimals: p.decimals == null ? "" : String(p.decimals),
+      defaultValue: p.defaultValue,
     })),
+    formula: t.formula,
+    decimals: t.decimals == null ? "" : String(t.decimals),
+    defaultValue: t.defaultValue,
   };
+}
+
+/** "" = not set; otherwise a whole number 0 to 6, or an error in words. */
+function decimalsOf(text: string, label: string): number | null {
+  const t = text.trim();
+  if (!t) return null;
+  if (!/^\d$/.test(t) || Number(t) > 6) throw new Error(`${label}: decimals must be a whole number from 0 to 6.`);
+  return Number(t);
+}
+
+/**
+ * Formula, decimals and the result the box starts with (0035). A formula is
+ * offered only for a number; the default is picked from the choices when there
+ * are choices.
+ */
+function CalcFields({
+  type,
+  options,
+  formula,
+  decimals,
+  defaultValue,
+  onChange,
+}: {
+  type: LabParamType;
+  options: string[];
+  formula: string;
+  decimals: string;
+  defaultValue: string;
+  onChange: (patch: { formula?: string; decimals?: string; defaultValue?: string }) => void;
+}) {
+  const problem = type === "numeric" ? formulaProblem(formula) : null;
+  const choices = type === "pos_neg" ? ["Positive", "Negative"] : type === "select" ? options : null;
+  return (
+    <div className="grid gap-4 sm:grid-cols-6">
+      {type === "numeric" && (
+        <>
+          <div className="sm:col-span-3">
+            <Field label="Formula">
+              <Input
+                value={formula}
+                placeholder="{chol} / {hdl}"
+                className="font-mono"
+                onChange={(e) => onChange({ formula: e.target.value })}
+              />
+            </Field>
+            {problem && <p className="mt-1 text-[12px] text-danger-600">{problem}</p>}
+          </div>
+          <div className="sm:col-span-1">
+            <Field label="Decimals">
+              <Input value={decimals} numeric inputMode="numeric" placeholder="2" onChange={(e) => onChange({ decimals: e.target.value })} />
+            </Field>
+          </div>
+        </>
+      )}
+      <div className="sm:col-span-2">
+        <Field label="Default result">
+          {choices ? (
+            <Select value={choices.includes(defaultValue) ? defaultValue : ""} onChange={(e) => onChange({ defaultValue: e.target.value })}>
+              <option value="">-</option>
+              {choices.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </Select>
+          ) : (
+            <Input value={defaultValue} onChange={(e) => onChange({ defaultValue: e.target.value })} />
+          )}
+        </Field>
+      </div>
+    </div>
+  );
 }
 
 /** One card of the form: a heading and its fields. */
@@ -284,6 +375,9 @@ export function TestEditor({
         ratePaisa: toPaisa(rateNum),
         vatApplicable: form.vatApplicable,
         ...(form.resultType === "multi" || form.resultType === "none" ? draftToRange(EMPTY_RANGE) : draftToRange(form.range)),
+        formula: form.resultType === "numeric" ? form.formula.trim() : "",
+        decimals: form.resultType === "numeric" ? decimalsOf(form.decimals, "Formula") : null,
+        defaultValue: form.resultType === "multi" || form.resultType === "none" ? "" : form.defaultValue.trim(),
         parameters:
           form.resultType === "multi"
             ? form.parameters.map((p) => ({
@@ -294,6 +388,9 @@ export function TestEditor({
                 selectOptions: p.resultType === "select" ? p.options : [],
                 defaultRemarks: p.defaultRemarks,
                 ...draftToRange(p.range),
+                formula: p.resultType === "numeric" ? p.formula.trim() : "",
+                decimals: p.resultType === "numeric" ? decimalsOf(p.decimals, p.name || "A value") : null,
+                defaultValue: p.defaultValue.trim(),
               }))
             : [],
       };
@@ -418,6 +515,17 @@ export function TestEditor({
             </div>
           )}
 
+          {single && (
+            <CalcFields
+              type={form.resultType as LabParamType}
+              options={form.options}
+              formula={form.formula}
+              decimals={form.decimals}
+              defaultValue={form.defaultValue}
+              onChange={(patch) => set(patch)}
+            />
+          )}
+
           {form.resultType === "multi" && (
             <div className="flex flex-col gap-2">
               {form.parameters.length > 0 && (
@@ -469,12 +577,22 @@ export function TestEditor({
                       className="flex items-center gap-1.5 text-[13px] text-sage-700 hover:text-sage-900"
                     >
                       {p.open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                      Reference range
+                      Reference range, formula, default
                       <span className="text-sage-500">{rangeSummary(p.range) ? `· ${rangeSummary(p.range)}` : "· not set"}</span>
+                      {p.resultType === "numeric" && p.formula.trim() && <span className="font-mono text-sage-500">· = {p.formula.trim()}</span>}
+                      {p.defaultValue.trim() && <span className="text-sage-500">· Default {p.defaultValue.trim()}</span>}
                     </button>
                     {p.open && (
-                      <div className="mt-3 pb-1">
+                      <div className="mt-3 flex flex-col gap-4 pb-1">
                         <RangeEditor value={p.range} numeric={p.resultType === "numeric"} onChange={(range) => setP(p.key, { range })} />
+                        <CalcFields
+                          type={p.resultType}
+                          options={p.options}
+                          formula={p.formula}
+                          decimals={p.decimals}
+                          defaultValue={p.defaultValue}
+                          onChange={(patch) => setP(p.key, patch)}
+                        />
                       </div>
                     )}
                   </div>

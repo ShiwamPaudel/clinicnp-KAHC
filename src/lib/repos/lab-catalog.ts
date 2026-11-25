@@ -12,6 +12,7 @@ import { ulid } from "ulid";
 import { db } from "@/lib/db";
 import type { Row, InStatement } from "@/lib/db";
 import { parseOverrides, type RangeOverride } from "@/lib/lab-flags";
+import { formulaProblem, formulaRefs } from "@/lib/lab-formula";
 
 // "none" (owner, 2083-08-09): billed like any test, but nothing to enter or
 // report: Ultrasound, ECG. It never opens on a lab order (openLabOrderForBill).
@@ -187,6 +188,16 @@ function serviceStatements(
 // tests and their parameters
 // ---------------------------------------------------------------------------
 
+/** A calculated value (0035): formula, rounding, and the result the box starts with. */
+export interface CalcSettings {
+  /** "" = typed in; otherwise e.g. "{chol} / {hdl}" (lib/lab-formula.ts) */
+  formula: string;
+  /** decimals a worked-out value is rounded to; null = 2 */
+  decimals: number | null;
+  /** already in the box when result entry starts; "" = empty */
+  defaultValue: string;
+}
+
 export interface RangeFields {
   refText: string;
   refLow: number | null;
@@ -196,7 +207,7 @@ export interface RangeFields {
   overrides: RangeOverride[];
 }
 
-export interface LabParameter extends RangeFields {
+export interface LabParameter extends RangeFields, CalcSettings {
   id: string;
   name: string;
   unit: string;
@@ -206,7 +217,7 @@ export interface LabParameter extends RangeFields {
   sortOrder: number;
 }
 
-export interface LabTest extends RangeFields {
+export interface LabTest extends RangeFields, CalcSettings {
   id: string;
   serviceId: string;
   name: string;
@@ -254,6 +265,14 @@ function rangeOf(r: Row): RangeFields {
   };
 }
 
+function calcOf(r: Row): CalcSettings {
+  return {
+    formula: (r.formula as string) ?? "",
+    decimals: r.decimals == null ? null : Number(r.decimals),
+    defaultValue: (r.default_value as string) ?? "",
+  };
+}
+
 function mapParam(r: Row): LabParameter {
   return {
     id: r.id as string,
@@ -264,6 +283,7 @@ function mapParam(r: Row): LabParameter {
     defaultRemarks: (r.default_remarks as string) ?? "",
     sortOrder: Number(r.sort_order),
     ...rangeOf(r),
+    ...calcOf(r),
   };
 }
 
@@ -299,6 +319,7 @@ function mapTest(r: Row, params: LabParameter[]): LabTest {
     vatApplicable: Number(r.vat_applicable) === 1,
     parameters: params,
     ...rangeOf(r),
+    ...calcOf(r),
   };
 }
 
@@ -328,7 +349,7 @@ export async function getTest(id: string): Promise<LabTest | null> {
   return mapTest(r, params.rows.map(mapParam));
 }
 
-export interface ParameterInput extends RangeFields {
+export interface ParameterInput extends RangeFields, Partial<CalcSettings> {
   /** present for a parameter that already exists */
   id?: string;
   name: string;
@@ -338,7 +359,7 @@ export interface ParameterInput extends RangeFields {
   defaultRemarks: string;
 }
 
-export interface TestInput extends RangeFields {
+export interface TestInput extends RangeFields, Partial<CalcSettings> {
   id?: string;
   name: string;
   shortCode: string;
@@ -361,6 +382,81 @@ export interface TestInput extends RangeFields {
 
 const json = (v: unknown) => JSON.stringify(v);
 
+const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/**
+ * A formula may read only names that exist: another test's short code, a
+ * value of this test by name, or `code.Value` of another test; never itself,
+ * and never in a ring (A reads B, B reads A). Throws a LabCatalogProblem.
+ */
+async function checkFormulas(input: TestInput, id: string | null): Promise<void> {
+  const own = input.resultType === "numeric" ? (input.formula ?? "").trim() : "";
+  const params = input.resultType === "multi" ? input.parameters : [];
+  if (!own && !params.some((p) => p.resultType === "numeric" && (p.formula ?? "").trim())) return;
+
+  const others = (
+    await db().execute({
+      sql: `SELECT t.id, t.short_code, t.formula, t.result_type,
+                   (SELECT json_group_array(json_object('name', pm.name, 'formula', pm.formula))
+                      FROM lab_test_parameters pm WHERE pm.test_id = t.id AND pm.active = 1) AS params
+              FROM lab_tests t WHERE t.active = 1 AND t.short_code <> ''${id ? " AND t.id <> ?" : ""}`,
+      args: id ? [id] : [],
+    })
+  ).rows.map((r) => ({
+    code: r.short_code as string,
+    formula: (r.formula as string) ?? "",
+    multi: (r.result_type as string) === "multi",
+    params: (JSON.parse((r.params as string) ?? "[]") as { name: string; formula: string }[]).filter((p) => p.name),
+  }));
+  const code = input.shortCode.trim();
+
+  const where = (name: string, inParams: boolean): string | null => {
+    if (inParams && params.some((p) => sameName(p.name, name))) return code ? `${code}.${params.find((p) => sameName(p.name, name))!.name}` : "(self)";
+    const matches = others.filter((o) => !o.multi && sameName(o.code, name));
+    if (matches.length === 1) return matches[0]!.code.toLowerCase();
+    if (matches.length > 1) throw new LabCatalogProblem(`More than one test has the short code "${name}". Give each test its own short code.`);
+    if (code && sameName(code, name)) throw new LabCatalogProblem("A test's formula cannot use the test itself.");
+    const dot = name.indexOf(".");
+    if (dot > 0) {
+      const o = others.find((x) => x.multi && sameName(x.code, name.slice(0, dot)));
+      const p = o?.params.find((x) => sameName(x.name, name.slice(dot + 1)));
+      if (o && p) return `${o.code}.${p.name}`.toLowerCase();
+    }
+    throw new LabCatalogProblem(`The formula uses {${name}}, but no test has that short code.`);
+  };
+
+  const check = (formula: string, label: string, inParams: boolean, selfName: string | null) => {
+    const problem = formulaProblem(formula);
+    if (problem) throw new LabCatalogProblem(`${label}: ${problem}`);
+    for (const ref of formulaRefs(formula)) {
+      if (selfName && sameName(ref, selfName)) throw new LabCatalogProblem(`${label}: a value cannot be worked out from itself.`);
+      where(ref, inParams);
+    }
+  };
+  if (own) check(own, "Formula", false, null);
+  for (const p of params) if (p.resultType === "numeric" && (p.formula ?? "").trim()) check(p.formula!, `Formula of ${p.name}`, true, p.name);
+
+  // a ring between tests: follow test-level formulas by short code
+  if (own && code) {
+    const graph = new Map<string, string[]>();
+    for (const o of others) {
+      if (!o.formula.trim() || formulaProblem(o.formula)) continue;
+      graph.set(o.code.toLowerCase(), formulaRefs(o.formula).map((r) => r.toLowerCase()));
+    }
+    graph.set(code.toLowerCase(), formulaRefs(own).map((r) => r.toLowerCase()));
+    const seen = new Set<string>();
+    const walk = (c: string): boolean => {
+      if (c === code.toLowerCase() && seen.size > 0) return true;
+      if (seen.has(c)) return false;
+      seen.add(c);
+      return (graph.get(c) ?? []).some(walk);
+    };
+    if ((graph.get(code.toLowerCase()) ?? []).some(walk)) {
+      throw new LabCatalogProblem("This formula goes round in a circle: a test it reads is worked out from this test.");
+    }
+  }
+}
+
 /**
  * Save a test, its service row and its parameters in one transaction.
  * Parameters no longer in the list are switched off rather than deleted — a
@@ -375,6 +471,10 @@ export async function saveTest(input: TestInput): Promise<{ id: string; previous
   const now = new Date().toISOString();
   const existing = input.id ? await getTest(input.id) : null;
   if (input.id && !existing) throw new LabCatalogProblem("That test no longer exists. Reload and try again.");
+  if (input.decimals != null && (!Number.isInteger(input.decimals) || input.decimals < 0 || input.decimals > 6)) {
+    throw new LabCatalogProblem("Decimals must be a whole number from 0 to 6.");
+  }
+  await checkFormulas(input, existing?.id ?? null);
 
   const id = existing?.id ?? ulid();
   const serviceId = existing?.serviceId ?? ulid();
@@ -419,6 +519,10 @@ export async function saveTest(input: TestInput): Promise<{ id: string; previous
     input.tatHours,
     input.sortOrder,
     input.active ? 1 : 0,
+    // a formula only means something on a numeric test
+    input.resultType === "numeric" ? (input.formula ?? "").trim() : "",
+    input.decimals ?? null,
+    input.resultType === "multi" || input.resultType === "none" ? "" : (input.defaultValue ?? "").trim(),
     now,
   ];
   if (existing) {
@@ -426,7 +530,7 @@ export async function saveTest(input: TestInput): Promise<{ id: string; previous
       sql: `UPDATE lab_tests SET name = ?, short_code = ?, department_id = ?, sample_type_id = ?, method = ?,
                description = ?, result_type = ?, unit = ?, select_options = ?, ref_text = ?, ref_low = ?,
                ref_high = ?, critical_low = ?, critical_high = ?, ref_overrides = ?, default_remarks = ?,
-               tat_hours = ?, sort_order = ?, active = ?, updated_at = ?
+               tat_hours = ?, sort_order = ?, active = ?, formula = ?, decimals = ?, default_value = ?, updated_at = ?
              WHERE id = ?`,
       args: [...testArgs, id],
     });
@@ -435,8 +539,8 @@ export async function saveTest(input: TestInput): Promise<{ id: string; previous
       sql: `INSERT INTO lab_tests
               (name, short_code, department_id, sample_type_id, method, description, result_type, unit,
                select_options, ref_text, ref_low, ref_high, critical_low, critical_high, ref_overrides,
-               default_remarks, tat_hours, sort_order, active, updated_at, id, service_id, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+               default_remarks, tat_hours, sort_order, active, formula, decimals, default_value, updated_at, id, service_id, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [...testArgs, id, serviceId, now],
     });
   }
@@ -463,13 +567,16 @@ export async function saveTest(input: TestInput): Promise<{ id: string; previous
       json(p.overrides),
       p.defaultRemarks,
       i,
+      p.resultType === "numeric" ? (p.formula ?? "").trim() : "",
+      p.decimals ?? null,
+      (p.defaultValue ?? "").trim(),
       now,
     ];
     if (p.id && existing?.parameters.some((x) => x.id === p.id)) {
       stmts.push({
         sql: `UPDATE lab_test_parameters SET name = ?, unit = ?, result_type = ?, select_options = ?, ref_text = ?,
                  ref_low = ?, ref_high = ?, critical_low = ?, critical_high = ?, ref_overrides = ?,
-                 default_remarks = ?, sort_order = ?, updated_at = ?, active = 1
+                 default_remarks = ?, sort_order = ?, formula = ?, decimals = ?, default_value = ?, updated_at = ?, active = 1
                WHERE id = ? AND test_id = ?`,
         args: [...args, p.id, id],
       });
@@ -477,8 +584,8 @@ export async function saveTest(input: TestInput): Promise<{ id: string; previous
       stmts.push({
         sql: `INSERT INTO lab_test_parameters
                 (name, unit, result_type, select_options, ref_text, ref_low, ref_high, critical_low,
-                 critical_high, ref_overrides, default_remarks, sort_order, updated_at, id, test_id, created_at, active)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+                 critical_high, ref_overrides, default_remarks, sort_order, formula, decimals, default_value, updated_at, id, test_id, created_at, active)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
         args: [...args, ulid(), id, now],
       });
     }

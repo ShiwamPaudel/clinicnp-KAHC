@@ -68,6 +68,8 @@ export interface Prebooking {
   timeHhmm: string;
   note: string;
   status: PrebookingStatus;
+  /** a follow-up booked from the patient's page with no doctor (0035); may have no tests yet */
+  isFollowup: boolean;
   billId: string | null;
   billNo: number | null;
   cancelReason: string;
@@ -190,6 +192,7 @@ async function hydrate(rows: Row[]): Promise<Prebooking[]> {
       timeHhmm: r.time_hhmm as string,
       note: (r.note as string) ?? "",
       status: r.status as PrebookingStatus,
+      isFollowup: Number(r.is_followup ?? 0) === 1,
       billId: (r.bill_id as string | null) ?? null,
       billNo: r.bill_no != null ? Number(r.bill_no) : null,
       cancelReason: (r.cancel_reason as string) ?? "",
@@ -262,11 +265,16 @@ export interface TestBookingInput {
   note: string;
   serviceIds: string[];
   userId: string;
+  /** a follow-up (0035): saved even with no tests; they are added when the patient comes */
+  isFollowup?: boolean;
 }
 
-async function bookableNames(serviceIds: string[]): Promise<Map<string, string>> {
+async function bookableNames(serviceIds: string[], allowNone = false): Promise<Map<string, string>> {
   const ids = [...new Set(serviceIds)];
-  if (ids.length === 0) throw new PrebookingProblem("Choose at least one test or service.");
+  if (ids.length === 0) {
+    if (allowNone) return new Map();
+    throw new PrebookingProblem("Choose at least one test or service.");
+  }
   const res = await db().execute({
     sql: `SELECT id, name FROM services WHERE active = 1 AND id IN (${ids.map(() => "?").join(",")})`,
     args: ids,
@@ -286,9 +294,9 @@ export async function checkTestBooking(input: { timeHhmm: string; serviceIds: st
   await bookableNames(input.serviceIds);
 }
 
-async function itemStatements(prebookingId: string, serviceIds: string[]): Promise<InStatement[]> {
+async function itemStatements(prebookingId: string, serviceIds: string[], allowNone = false): Promise<InStatement[]> {
   const ids = [...new Set(serviceIds)];
-  const names = await bookableNames(ids);
+  const names = await bookableNames(ids, allowNone);
   return [
     { sql: "DELETE FROM prebooking_items WHERE prebooking_id = ?", args: [prebookingId] },
     ...ids.map((sid, i) => ({
@@ -310,11 +318,11 @@ export async function createTestBooking(input: TestBookingInput): Promise<string
   await db().batch(
     [
       {
-        sql: `INSERT INTO prebookings (id, kind, patient_id, name, phone, date_ad, date_bs, time_hhmm, note, status, booked_by, created_at, updated_at)
-              VALUES (?, 'tests', ?, ?, ?, ?, ?, ?, ?, 'booked', ?, ?, ?)`,
-        args: [id, input.patientId, input.name.trim(), input.phone.trim(), input.dateAd, input.dateBs, input.timeHhmm, input.note.trim(), input.userId, now, now],
+        sql: `INSERT INTO prebookings (id, kind, patient_id, name, phone, date_ad, date_bs, time_hhmm, note, status, booked_by, created_at, updated_at, is_followup)
+              VALUES (?, 'tests', ?, ?, ?, ?, ?, ?, ?, 'booked', ?, ?, ?, ?)`,
+        args: [id, input.patientId, input.name.trim(), input.phone.trim(), input.dateAd, input.dateBs, input.timeHhmm, input.note.trim(), input.userId, now, now, input.isFollowup ? 1 : 0],
       },
-      ...(await itemStatements(id, input.serviceIds)),
+      ...(await itemStatements(id, input.serviceIds, input.isFollowup === true)),
     ],
     "write",
   );
@@ -334,11 +342,40 @@ export async function updateTestBooking(id: string, input: TestBookingInput): Pr
                WHERE id = ? AND status = 'booked'`,
         args: [input.patientId, input.name.trim(), input.phone.trim(), input.dateAd, input.dateBs, input.timeHhmm, input.note.trim(), new Date().toISOString(), id],
       },
-      ...(await itemStatements(id, input.serviceIds)),
+      ...(await itemStatements(id, input.serviceIds, current.isFollowup)),
     ],
     "write",
   );
 }
+
+export interface NextFollowup {
+  dateBs: string;
+  timeHhmm: string;
+  /** "" for a follow-up with no doctor */
+  doctorName: string;
+}
+
+/**
+ * The patient's next follow-up still waiting, from today on: a follow-up
+ * booking (no doctor) or a doctor's appointment booked as a follow-up.
+ */
+export async function nextFollowupFor(patientId: string, todayAd: string): Promise<NextFollowup | null> {
+  const res = await db().execute({
+    sql: `SELECT date_ad, date_bs, time_hhmm, '' AS doctor_name FROM prebookings
+           WHERE patient_id = ? AND is_followup = 1 AND status = 'booked' AND date_ad >= ?
+          UNION ALL
+          SELECT a.date_ad, a.date_bs, a.time_hhmm, d.name AS doctor_name FROM appointments a JOIN doctors d ON d.id = a.doctor_id
+           WHERE a.patient_id = ? AND a.status = 'booked' AND a.date_ad >= ? AND a.reason LIKE ?
+          ORDER BY date_ad, time_hhmm LIMIT 1`,
+    args: [patientId, todayAd, patientId, todayAd, `${FOLLOWUP_REASON}%`],
+  });
+  const r = res.rows[0];
+  if (!r) return null;
+  return { dateBs: r.date_bs as string, timeHhmm: r.time_hhmm as string, doctorName: (r.doctor_name as string) ?? "" };
+}
+
+/** How a doctor's appointment booked as a follow-up starts its reason. */
+export const FOLLOWUP_REASON = "Follow-up";
 
 /**
  * The booking for a doctor's appointment, made the first time it is needed

@@ -30,6 +30,15 @@ Actions on a waiting booking: **Issue bill**, **Advance**, change (tests only),
 close (**Cancelled** or **Did not come**). Permission `appointments.manage`;
 Issue bill also needs `counter.use`.
 
+## Follow-up (0035, D-221)
+
+**Follow-up** on the patient's page: date, time, an optional doctor, a note.
+With a doctor: that doctor's consultation, reason "Follow-up", under Doctors'
+consultations. Without: a tests booking with `is_followup = 1` that may have
+no tests until they come (Change adds them; Issue bill opens the counter with
+the patient on it), shown with a **Follow-up** badge. The patient's page shows
+the next one still waiting.
+
 ## Money
 
 An advance is not income: it is owed back to the patient until a bill uses it,
