@@ -68,6 +68,7 @@
 - 2083-08-07 C-036: typecheck clean, **59 files / 624 tests** green.
 - 2083-08-08 C-037: typecheck clean, **60 files / 633 tests** green, `pnpm build` passes on a scratch DB.
 - 2083-08-09: **0032 applied to KAHC** (owner allowed it; 32 migrations). Deploy this code only with 0032 in place: saving results writes `lab_orders.received_at`.
+- 2083-08-09 C-040: the live lab catalogue now holds 53 tests, 10 profiles and the Whole Body Checkup package (D-219); no code change.
 - 2083-08-09 C-039: typecheck clean, **63 files / 646 tests** green, `pnpm build` passes; **0034 applied to KAHC**; the lab catalogue is empty (D-218).
 - 2083-08-09 C-038: typecheck clean, **63 files / 644 tests** green, `pnpm build` passes on a scratch DB. **0033 applied to KAHC** the same day (owner allowed it; backup `.backups/kahc-before-0033-2026-11-25T09-28-57-721Z.json.gz`). Deploy this code only with 0033 in place: every visit query reads the new columns.
 
@@ -346,6 +347,7 @@
 | D-216 | **Two notes on every lab report**, set in Settings → Lab report (0034 `lab_settings.page_note`, `end_note`): **On every page** prints at the foot of each page under the signatures; **At the end of the report** prints once after the last result (and notes), before End of report | Owner, 2083-08-09. Typed by the lab, nothing seeded. |
 | D-217 | **The lab report is laid out by the browser, not paged.js** (removed from package.json). The sheet is one table: its header (letterhead) and footer (signatures, page note, footer image) repeat on every printed page; "Page X of Y" is in the `@page` bottom margin box. The results boxes are blocks, not tables, with `break-after: avoid` on headings and `box-decoration-break: clone` so a split box is closed on both pages. The page is marked `.lab-print` so the app's print rule (which shows only a bill's `.print-area`) no longer blanks it | Owner, 2083-08-09: Print gave blank pages, and the preview repeated Haematology. Cause of the repeats: paged.js gave up placing content ("Unable to layout item") and laid page 1 out again; this was the "fix later" item from 2083-08-06. Cause of the blank print: the global print rule. On the last page the signatures follow the last result rather than sitting at the page bottom (browser behaviour). |
 | D-218 | **The lab catalogue was emptied on the owner's request** (2083-08-09): every lab test (933), profile and package (18), their 951 services and the Laboratory service group are gone; departments (13), sample types (11), report settings and signatures kept. The owner adds tests, profiles and packages one by one. The first new test makes a fresh "Laboratory" service group by itself (`labServiceGroupId`). Supersedes the catalogue of D-190 / D-192 (the Aster rate files in import-templates are only a record now) | Owner: "Clear the Tests, Profiles and Packages everything … and the Laboratory group and its services. I will configure everything one by one myself." |
+| D-219 | **The first catalogue after the clearing comes from the owner's photos of a report** (`test and profile details/`, 7 HEIC photos, kept out of git because they show a patient's results). 52 tests beside the owner's own Bilirubin (Total), 10 profiles (LFT, RFT, Bone and Joint Screening, Lipid Profile, TFT, Blood Sugar (Fasting and PP), Blood Grouping (ABO and Rh), CBC, Urine Routine Examination, Serology Test) and the package **Whole Body Checkup** (`wbc`, Rs 4000, Health Packages) holding all 10 profiles plus H. Pylori Antibody, RA Factor, Vitamin D and eGFR. Units, ranges and methods as printed (spelling corrected; `gm/dl` written `g/dL`, `C.L.I.A` written `CLIA`); sex ranges as Male/Female overrides; limits only where the photo gives one plain range (none for Vitamin D, which shows `Optimal: 30-50` with its grading table as the test's note). Every test and profile at Rs 0 (owner prices them later); the 11 urine lines are not billed on their own. Differential Leucocyte Count is one test with five values | Owner, 2083-08-09: "read and enter other tests and create their profiles … along with its method, reference range and units … all added to the package Whole Body Checkup (wbc), price 4000"; prices Rs 0 for now; everything in the photos goes in the package. |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---
@@ -1167,4 +1169,21 @@ end note once and the page note in the repeating footer); the local copy
 printed to PDF: 4 pages, no repeat, "Page X of 4", page note on every page,
 end note once on the last, Parasitology kept with its box; after the
 clearing `PRAGMA foreign_key_check` clean and kept counts unchanged.
+
+### C-040  ·  2083-08-09  ·  Tests, profiles and the Whole Body Checkup from the owner's photos
+
+The owner photographed another lab's report (7 HEIC photos in
+`test and profile details/`, not committed: a patient's results) and asked for
+every test on it with its unit, range and method, the profiles, and a package
+Whole Body Checkup (wbc, Rs 4000) holding everything (D-219). Entered through
+the app's own `saveTest` / `saveProfile` (with audit entries under admin) by a
+temporary vitest file, first on a local copy of live rebuilt from the backup,
+where billing the package opened all 53 tests under their profiles, then on
+live. **Live:** backup before,
+`.backups/kahc-before-wbc-catalogue-2026-11-25T10-35-36-250Z.json.gz`; after,
+53 tests, 5 parameters, 10 profiles, 1 package, 64 lab services (11 urine
+lines not billed alone), 63 audit entries, `PRAGMA foreign_key_check` clean.
+**Open:** the eGFR photo is cut off below ">= 90 : Normal", so only that line
+is entered; prices for the tests and profiles; "Please correlate with clinical
+conditions" can go in Settings → Lab report → At the end of the report.
 
