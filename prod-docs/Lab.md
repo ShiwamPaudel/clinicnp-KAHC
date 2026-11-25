@@ -24,7 +24,7 @@ product's name appears nowhere in ClinicNP (owner's instruction).
 | Reference ranges | Entered by KAHC's **lab in-charge**. Never seeded, guessed or copied in (Rules §2.2). |
 | Sent-out tests | KAHC does **both**: its own laboratory, and some samples sent out (owner, 2083-08-03). **From Result entry, per test** (2083-08-04, 0027) — the counter-side send-out (`services.outsourced`, a partner picked at billing, `/sendout`) is retired; its old rows stay readable in statements and the books. |
 | What a laboratory charges | **Each outside laboratory has its own price list** (Settings → Outside labs → the lab). A test sent there appears on it by itself; the owner fills in the price (2083-08-04). |
-| Catalogue | Copied from the bgp install with **no rates and no ranges** (2083-08-04): 258 lab tests, 17 profiles; its 91 non-lab items became Clinic services. Histopathology became a lab department so its tests can be sent out. |
+| Catalogue | **Emptied on 2083-08-09 (D-218)**; the owner adds tests, profiles and packages one by one. Before that: copied from the bgp install with **no rates and no ranges** (2083-08-04): 258 lab tests, 17 profiles; its 91 non-lab items became Clinic services. Histopathology became a lab department so its tests can be sent out. |
 | Rates | **Aster Path Labs' MRP list** (2083-08-05, `import-templates/aster-price-list.xlsx`): 222 tests and profiles priced, 672 tests added (930 in all; departments Molecular & Genetics and Health Packages added). `import-templates/aster-price-match.csv` records every match and gap. Reference ranges are still the lab's to enter. |
 
 ## How a bill becomes a lab order
@@ -118,6 +118,8 @@ paged preview and for the patient's `/r/` page.
   off open orders.
 - **Boxes (D-208):** each profile is its own bordered table headed by its
   name; a department's single tests share one box. Signatures are 66 px tall.
+- **Notes (D-216):** Settings → Lab report → Notes on the report: one at the
+  foot of every page, one once at the end.
 - **Approval (D-209):** no choosing; the active signatures (up to 3, in their
   set order) sign every report.
 
@@ -146,5 +148,6 @@ of saved roles.
 
 - `qrcode` — the QR on the bill and the report. Loaded only when printing.
 - `bwip-js` — Code 128 barcodes on sample labels and reports.
-- `pagedjs` — paginates the printed report so the letterhead, signatures and
-  "Page X of Y" repeat on every page.
+- *(`pagedjs` was removed on 2083-08-09, D-217: the browser lays the report
+  out; the letterhead, signatures and page note repeat through the sheet's
+  table header and footer, and "Page X of Y" sits in the page margin.)*

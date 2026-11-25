@@ -15,6 +15,9 @@ export interface ReportViewData {
   headerImage: string;
   footerImage: string;
   margins: { topMm: number; bottomMm: number; xMm: number };
+  /** Settings → Lab report (0034): at the foot of every page, and once at the end */
+  pageNote: string;
+  endNote: string;
   patient: { name: string; patientNo: string; age: string; gender: string; phone: string; address: string };
   /** dates as printed, "08-08-2083 / 4:00 PM"; empty prints "-" */
   order: { orderNo: string; invoiceLabel: string; referredBy: string; collectedOn: string; receivedOn: string; releasedOn: string };
@@ -48,6 +51,16 @@ export function ReportFooter({ d, show = true }: { d: ReportViewData; show?: boo
   if (!show || !d.footerImage) return null;
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={d.footerImage} alt="" style={{ display: "block", width: "100%" }} />;
+}
+
+/** The lab's note at the foot of every page (Settings → Lab report). */
+export function ReportPageNote({ d }: { d: ReportViewData }) {
+  if (!d.pageNote) return null;
+  return (
+    <div style={{ padding: `1mm ${d.margins.xMm + 4}mm 0`, textAlign: "center", fontSize: 10.5, color: INK, whiteSpace: "pre-line" }}>
+      {d.pageNote}
+    </div>
+  );
 }
 
 /** The signature row, repeated at the foot of every page. */
@@ -91,26 +104,33 @@ function Line({ label, value, right }: { label: string; value: string; right?: b
   );
 }
 
-function widths(showUnit: boolean, showRange: boolean) {
-  if (showUnit && showRange) return { name: "38%", result: "20%", unit: "14%", ref: "28%" };
-  if (showRange) return { name: "44%", result: "22%", unit: "0", ref: "34%" };
-  if (showUnit) return { name: "52%", result: "28%", unit: "20%", ref: "0" };
-  return { name: "62%", result: "38%", unit: "0", ref: "0" };
+/** The columns of a results box, as grid tracks. */
+function columns(showUnit: boolean, showRange: boolean): string {
+  if (showUnit && showRange) return "38fr 20fr 14fr 28fr";
+  if (showRange) return "44fr 22fr 34fr";
+  if (showUnit) return "52fr 28fr 20fr";
+  return "62fr 38fr";
 }
 
+/*
+ * The results are blocks, not tables (2083-08-09): they split cleanly between
+ * rows when a box runs onto the next page, and a box split over two pages is
+ * drawn as two boxes. The browser lays the pages out now (report-print-view).
+ */
 function ValueRow({ v, label, indent, showUnit, showRange }: { v: ResultValueView; label: string; indent: number; showUnit: boolean; showRange: boolean }) {
   const flagged = v.flag !== "normal";
+  const cols = columns(showUnit, showRange);
   return (
-    <tr style={{ breakInside: "avoid" }}>
-      <td style={{ padding: `1px 6px 1px calc(${indent * 4}mm + 6px)` }}>{label}</td>
+    <div style={{ display: "grid", gridTemplateColumns: cols, breakInside: "avoid" }}>
+      <div style={{ padding: `1px 6px 1px calc(${indent * 4}mm + 6px)` }}>{label}</div>
       {/* weight, not colour, marks a low or high value: the report is often printed in black and white */}
-      <td style={{ padding: "1px 0", fontWeight: flagged ? 800 : 400 }}>
+      <div style={{ padding: "1px 0", fontWeight: flagged ? 800 : 400 }}>
         {v.valueText || "-"}
         {flagged && <span style={{ marginLeft: 4, fontWeight: 800 }}>{flagSymbol(v.flag)}</span>}
-      </td>
-      {showUnit && <td style={{ padding: "1px 0", color: MUTED }}>{v.unit}</td>}
-      {showRange && <td style={{ padding: "1px 6px 1px 0", color: MUTED }}>{v.refText}</td>}
-    </tr>
+      </div>
+      {showUnit && <div style={{ padding: "1px 0", color: MUTED }}>{v.unit}</div>}
+      {showRange && <div style={{ padding: "1px 6px 1px 0", color: MUTED }}>{v.refText}</div>}
+    </div>
   );
 }
 
@@ -168,8 +188,7 @@ export function ReportBody({ d }: { d: ReportViewData }) {
       </div>
 
       {d.sections.map((s) => {
-        const w = widths(s.showUnit, s.showRange);
-        const cols = 2 + (s.showUnit ? 1 : 0) + (s.showRange ? 1 : 0);
+        const cols = columns(s.showUnit, s.showRange);
         // One bordered box per profile, its name as the heading (owner,
         // 2083-08-08). The department's tests billed on their own share one
         // box, where the first of them stands.
@@ -180,6 +199,7 @@ export function ReportBody({ d }: { d: ReportViewData }) {
           if (!b) boxes.push((b = { key, name: r.groupName, items: [] }));
           b.items.push(r);
         }
+        const line = { padding: "0 6px", fontSize: 10.5, fontStyle: "italic" as const, color: MUTED };
         return (
           <div key={s.departmentName} style={{ marginTop: 8 }}>
             <div style={{ background: "#eef2ee", padding: "2px 6px", fontWeight: 800, fontSize: 13.5, textTransform: "uppercase", letterSpacing: 0.5, breakAfter: "avoid" }}>
@@ -188,83 +208,57 @@ export function ReportBody({ d }: { d: ReportViewData }) {
             {boxes.map((b) => {
               const inGroup = Boolean(b.name);
               const noteRow = (r: OrderResult, first: boolean) => (
-                <tr key={`note-${r.id}`} style={{ breakInside: "avoid" }}>
-                  <td
-                    colSpan={cols}
-                    style={{ padding: `${first ? 3 : 1}px 6px 1px 6px`, fontSize: 10.5, fontStyle: "italic", color: MUTED }}
-                  >
-                    {inGroup && <span style={{ fontStyle: "normal", fontWeight: 600, color: INK }}>{r.testName}: </span>}
-                    {r.description}
-                  </td>
-                </tr>
+                <div key={`note-${r.id}`} style={{ ...line, padding: `${first ? 3 : 1}px 6px 1px 6px`, breakInside: "avoid" }}>
+                  {inGroup && <span style={{ fontStyle: "normal", fontWeight: 600, color: INK }}>{r.testName}: </span>}
+                  {r.description}
+                </div>
               );
               const groupNotes = inGroup ? b.items.filter((r) => !r.packageName && r.description.trim()) : [];
               return (
-                <table
+                <div
                   key={b.key}
-                  style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5, marginTop: 4, border: `1px solid ${INK}` }}
+                  data-box={b.name || "tests"}
+                  // split over two pages, each part is drawn as a closed box
+                  style={{ fontSize: 12.5, marginTop: 4, border: `1px solid ${INK}`, paddingBottom: 3, boxDecorationBreak: "clone", WebkitBoxDecorationBreak: "clone" }}
                 >
-                  <thead>
-                    {b.name && (
-                      <tr>
-                        <th colSpan={cols} style={{ textAlign: "left", padding: "3px 6px", fontWeight: 700, fontSize: 13.5, borderBottom: `1px solid ${INK}40` }}>
-                          {b.name}
-                        </th>
-                      </tr>
-                    )}
-                    <tr style={{ textAlign: "left", color: MUTED, borderBottom: `1px solid ${INK}40` }}>
-                      <th style={{ width: w.name, padding: "2px 6px", fontWeight: 600 }}>Investigation</th>
-                      <th style={{ width: w.result, padding: "2px 0", fontWeight: 600 }}>Result</th>
-                      {s.showUnit && <th style={{ width: w.unit, padding: "2px 0", fontWeight: 600 }}>Unit</th>}
-                      {s.showRange && <th style={{ width: w.ref, padding: "2px 6px 2px 0", fontWeight: 600 }}>Reference range</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {b.items.map((r) => {
-                      const only = r.values.length === 1 ? r.values[0]! : null;
-                      const oneLine = only != null && (only.parameterId == null || only.label.trim().toLowerCase() === r.testName.trim().toLowerCase());
-                      return (
-                        <Fragment key={r.id}>
-                          {oneLine ? (
-                            <ValueRow v={only!} label={r.testName} indent={0} showUnit={s.showUnit} showRange={s.showRange} />
-                          ) : (
-                            <>
-                              <tr>
-                                <td colSpan={cols} style={{ padding: "2px 6px 0", fontWeight: 600, textDecoration: "underline" }}>
-                                  {r.testName}
-                                </td>
-                              </tr>
-                              {r.values.map((v) => (
-                                <ValueRow key={v.id} v={v} label={v.label} indent={1} showUnit={s.showUnit} showRange={s.showRange} />
-                              ))}
-                            </>
-                          )}
-                          {r.method && (
-                            <tr>
-                              <td colSpan={cols} style={{ padding: "0 6px", fontSize: 10.5, fontStyle: "italic", color: MUTED }}>
-                                Method: {r.method}
-                              </td>
-                            </tr>
-                          )}
-                          {r.technicianRemarks && (
-                            <tr>
-                              <td colSpan={cols} style={{ padding: "0 6px", fontSize: 10.5, fontStyle: "italic", color: MUTED }}>
-                                {r.technicianRemarks}
-                              </td>
-                            </tr>
-                          )}
-                          {/* a test on its own: its note right under it */}
-                          {!inGroup && !r.packageName && r.description.trim() && noteRow(r, true)}
-                        </Fragment>
-                      );
-                    })}
-                    {/* a profile's notes after its last test */}
-                    {groupNotes.map((r, i) => noteRow(r, i === 0))}
-                    <tr>
-                      <td colSpan={cols} style={{ padding: 0, height: 3 }} />
-                    </tr>
-                  </tbody>
-                </table>
+                  {b.name && (
+                    <div style={{ padding: "3px 6px", fontWeight: 700, fontSize: 13.5, borderBottom: `1px solid ${INK}40`, breakAfter: "avoid" }}>
+                      {b.name}
+                    </div>
+                  )}
+                  <div
+                    style={{ display: "grid", gridTemplateColumns: cols, color: MUTED, fontWeight: 600, borderBottom: `1px solid ${INK}40`, breakAfter: "avoid" }}
+                  >
+                    <div style={{ padding: "2px 6px" }}>Investigation</div>
+                    <div style={{ padding: "2px 0" }}>Result</div>
+                    {s.showUnit && <div style={{ padding: "2px 0" }}>Unit</div>}
+                    {s.showRange && <div style={{ padding: "2px 6px 2px 0" }}>Reference range</div>}
+                  </div>
+                  {b.items.map((r) => {
+                    const only = r.values.length === 1 ? r.values[0]! : null;
+                    const oneLine = only != null && (only.parameterId == null || only.label.trim().toLowerCase() === r.testName.trim().toLowerCase());
+                    return (
+                      <Fragment key={r.id}>
+                        {oneLine ? (
+                          <ValueRow v={only!} label={r.testName} indent={0} showUnit={s.showUnit} showRange={s.showRange} />
+                        ) : (
+                          <>
+                            <div style={{ padding: "2px 6px 0", fontWeight: 600, textDecoration: "underline" }}>{r.testName}</div>
+                            {r.values.map((v) => (
+                              <ValueRow key={v.id} v={v} label={v.label} indent={1} showUnit={s.showUnit} showRange={s.showRange} />
+                            ))}
+                          </>
+                        )}
+                        {r.method && <div style={line}>Method: {r.method}</div>}
+                        {r.technicianRemarks && <div style={line}>{r.technicianRemarks}</div>}
+                        {/* a test on its own: its note right under it */}
+                        {!inGroup && !r.packageName && r.description.trim() && noteRow(r, true)}
+                      </Fragment>
+                    );
+                  })}
+                  {/* a profile's notes after its last test */}
+                  {groupNotes.map((r, i) => noteRow(r, i === 0))}
+                </div>
               );
             })}
           </div>
@@ -300,6 +294,10 @@ export function ReportBody({ d }: { d: ReportViewData }) {
             </div>
           ))}
         </div>
+      )}
+
+      {d.endNote && (
+        <div style={{ marginTop: 12, fontSize: 11.5, whiteSpace: "pre-line", breakInside: "avoid" }}>{d.endNote}</div>
       )}
 
       <p style={{ marginTop: 10, textAlign: "center", fontSize: 10, fontStyle: "italic", color: MUTED }}>
@@ -342,6 +340,7 @@ export function ReportSheet({ d, showHeader = true, showFooter = true }: { d: Re
           <tr>
             <td style={{ padding: 0 }}>
               <ReportSignatures d={d} />
+              <ReportPageNote d={d} />
               <div style={{ minHeight: `${d.margins.bottomMm}mm` }}>
                 <ReportFooter d={d} show={showFooter} />
               </div>

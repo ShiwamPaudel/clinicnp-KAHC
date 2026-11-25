@@ -433,6 +433,8 @@ const labSettingsSchema = z.object({
   marginTopMm: z.number().int().min(0).max(120),
   marginBottomMm: z.number().int().min(0).max(120),
   marginXMm: z.number().int().min(0).max(40),
+  pageNote: z.string().max(400, "Keep the note on every page under 400 characters"),
+  endNote: z.string().max(2000, "Keep the note at the end under 2,000 characters"),
 });
 
 export async function saveLabSettingsAction(input: unknown): Promise<LabActionResult> {

@@ -30,7 +30,7 @@ function result(testName: string, o: Partial<OrderResult> & { v?: ResultValueVie
 function view(results: OrderResult[]): ReportViewData {
   return {
     company: { name: "Sample Health Clinic", address: "", phone: "" },
-    headerImage: "", footerImage: "", margins: { topMm: 10, bottomMm: 10, xMm: 10 },
+    headerImage: "", footerImage: "", margins: { topMm: 10, bottomMm: 10, xMm: 10 }, pageNote: "", endNote: "",
     patient: { name: "Ram Thapa", patientNo: "P-000001", age: "52 Y", gender: "Male", phone: "", address: "" },
     order: { orderNo: "LAB-000001", invoiceLabel: "000001", referredBy: "", collectedOn: "", receivedOn: "", releasedOn: "" },
     sections: [{ departmentName: "Immunology", showUnit: true, showRange: true, results }],

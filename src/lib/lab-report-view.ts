@@ -28,6 +28,8 @@ export async function toReportView(data: ReportData, origin: string, pendingNote
     headerImage: data.headerImage,
     footerImage: data.footerImage,
     margins: data.margins,
+    pageNote: data.pageNote,
+    endNote: data.endNote,
     patient: {
       name: o.patient.name,
       patientNo,

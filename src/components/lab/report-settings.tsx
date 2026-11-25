@@ -18,6 +18,8 @@ export interface ReportSettingsValue {
   marginTopMm: number;
   marginBottomMm: number;
   marginXMm: number;
+  pageNote: string;
+  endNote: string;
 }
 
 export interface SignatoryValue {
@@ -54,6 +56,9 @@ const SIGNATURE_COPY: ImageCopy = {
   alt: "The signature",
 };
 
+const NOTE_CLASS =
+  "w-full rounded-[8px] border border-line bg-cream-50 px-3 py-2 text-[14px] leading-[1.45] outline-none focus:border-sage-700 focus:ring-2 focus:ring-sage-700/20";
+
 /** Settings → Lab report: how the report looks, and who signs it. */
 export function ReportSettings({ initial, signatories }: { initial: ReportSettingsValue; signatories: SignatoryValue[] }) {
   const router = useRouter();
@@ -75,6 +80,8 @@ export function ReportSettings({ initial, signatories }: { initial: ReportSettin
         marginTopMm: Math.trunc(Number(v.top) || 0),
         marginBottomMm: Math.trunc(Number(v.bottom) || 0),
         marginXMm: Math.trunc(Number(v.x) || 0),
+        pageNote: v.pageNote,
+        endNote: v.endNote,
       });
       if (res.ok) {
         toast.success(strings.saved);
@@ -113,10 +120,39 @@ export function ReportSettings({ initial, signatories }: { initial: ReportSettin
       </section>
 
       <section className="rounded-[10px] border border-line bg-cream-50 p-4">
+        <h2 className="mb-3 text-[16px] font-semibold text-sage-900">Notes on the report</h2>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Field label="On every page" hint="Printed at the foot of every page, under the signatures">
+            <textarea
+              value={v.pageNote}
+              rows={3}
+              maxLength={400}
+              onChange={(e) => setV({ ...v, pageNote: e.target.value })}
+              className={NOTE_CLASS}
+            />
+          </Field>
+          <Field label="At the end of the report" hint="Printed once, after the last result">
+            <textarea
+              value={v.endNote}
+              rows={3}
+              maxLength={2000}
+              onChange={(e) => setV({ ...v, endNote: e.target.value })}
+              className={NOTE_CLASS}
+            />
+          </Field>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <Button disabled={pending} onClick={saveSettings}>
+            {strings.save}
+          </Button>
+        </div>
+      </section>
+
+      <section className="rounded-[10px] border border-line bg-cream-50 p-4">
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h2 className="text-[16px] font-semibold text-sage-900">Signatures</h2>
-            <p className="text-[13px] text-sage-500">The person approving chooses up to three of these for each report.</p>
+            <p className="text-[13px] text-sage-500">Signatures that are on sign every report, in this order (up to three).</p>
           </div>
           <Button
             variant="secondary"

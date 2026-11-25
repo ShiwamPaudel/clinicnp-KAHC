@@ -14,6 +14,10 @@ export interface LabSettings {
   marginTopMm: number;
   marginBottomMm: number;
   marginXMm: number;
+  /** printed at the foot of every page of every report (0034) */
+  pageNote: string;
+  /** printed once, at the end of the report (0034) */
+  endNote: string;
 }
 
 export async function getLabSettings(): Promise<LabSettings> {
@@ -25,17 +29,22 @@ export async function getLabSettings(): Promise<LabSettings> {
     marginTopMm: Number(r?.margin_top_mm ?? 14),
     marginBottomMm: Number(r?.margin_bottom_mm ?? 14),
     marginXMm: Number(r?.margin_x_mm ?? 12),
+    pageNote: (r?.page_note as string) ?? "",
+    endNote: (r?.end_note as string) ?? "",
   };
 }
 
 export async function saveLabSettings(s: LabSettings): Promise<void> {
   await db().execute({
-    sql: `INSERT INTO lab_settings (id, header_image, footer_image, margin_top_mm, margin_bottom_mm, margin_x_mm, updated_at)
-          VALUES (1, ?, ?, ?, ?, ?, ?)
+    sql: `INSERT INTO lab_settings (id, header_image, footer_image, margin_top_mm, margin_bottom_mm, margin_x_mm,
+                                   page_note, end_note, updated_at)
+          VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT (id) DO UPDATE SET header_image = excluded.header_image, footer_image = excluded.footer_image,
             margin_top_mm = excluded.margin_top_mm, margin_bottom_mm = excluded.margin_bottom_mm,
-            margin_x_mm = excluded.margin_x_mm, updated_at = excluded.updated_at`,
-    args: [s.headerImage, s.footerImage, s.marginTopMm, s.marginBottomMm, s.marginXMm, new Date().toISOString()],
+            margin_x_mm = excluded.margin_x_mm, page_note = excluded.page_note, end_note = excluded.end_note,
+            updated_at = excluded.updated_at`,
+    args: [s.headerImage, s.footerImage, s.marginTopMm, s.marginBottomMm, s.marginXMm,
+      s.pageNote.trim(), s.endNote.trim(), new Date().toISOString()],
   });
 }
 
@@ -99,6 +108,8 @@ export interface ReportData {
   headerImage: string;
   footerImage: string;
   margins: { topMm: number; bottomMm: number; xMm: number };
+  pageNote: string;
+  endNote: string;
   sections: ReportSection[];
   signatories: { id: string; name: string; description: string; image: string }[];
   /** the date and person of the latest approval among the printed tests */
@@ -148,6 +159,8 @@ export async function getReportData(orderId: string, onlyResultIds?: string[]): 
     headerImage: settings.headerImage || company.logoUrl || "",
     footerImage: settings.footerImage,
     margins: { topMm: settings.marginTopMm, bottomMm: settings.marginBottomMm, xMm: settings.marginXMm },
+    pageNote: settings.pageNote,
+    endNote: settings.endNote,
     sections,
     signatories: chosen,
     approvedAt,

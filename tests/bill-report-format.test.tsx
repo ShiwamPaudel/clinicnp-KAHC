@@ -11,7 +11,7 @@ import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { amountInWords, numberInWords, stampNumeric, time12, bsTextNumeric } from "@/lib/print-format";
 import { InvoiceA4 } from "@/components/print/invoice-a4";
-import { ReportBody, type ReportViewData } from "@/components/lab/report-sheet";
+import { ReportBody, ReportSheet, type ReportViewData } from "@/components/lab/report-sheet";
 import type { PrintBill } from "@/lib/print-types";
 import type { OrderResult } from "@/lib/repos/lab-orders";
 
@@ -109,7 +109,7 @@ function result(testName: string, groupName = ""): OrderResult {
 function view(results: OrderResult[]): ReportViewData {
   return {
     company: { name: "Sample Health Clinic", address: "", phone: "" },
-    headerImage: "", footerImage: "", margins: { topMm: 10, bottomMm: 10, xMm: 10 },
+    headerImage: "", footerImage: "", margins: { topMm: 10, bottomMm: 10, xMm: 10 }, pageNote: "", endNote: "",
     patient: { name: "Ram Thapa", patientNo: "P-000003", age: "52Y", gender: "Male", phone: "", address: "Itahari" },
     order: {
       orderNo: "LAB-000003", invoiceLabel: "000003", referredBy: "Dr. Sample",
@@ -133,7 +133,7 @@ describe("the report header", () => {
 });
 
 describe("the report's boxes", () => {
-  it("puts each profile in its own bordered table headed by its name, and single tests together in one", () => {
+  it("puts each profile in its own bordered box headed by its name, and single tests together in one", () => {
     const html = renderToStaticMarkup(
       <ReportBody
         d={view([
@@ -145,14 +145,35 @@ describe("the report's boxes", () => {
         ])}
       />,
     );
-    const tables = html.split("<table").slice(1);
-    expect(tables).toHaveLength(3);
-    for (const t of tables) expect(t).toMatch(/^[^>]*border:1px solid/);
-    expect(tables[0]).toMatch(/<th colSpan="\d"[^>]*>Liver Function Test<\/th>/);
-    expect(tables[0]).toContain(">SGPT<");
-    expect(tables[0]).toContain(">SGOT<");
-    expect(tables[1]).toContain(">Uric Acid<");
-    expect(tables[1]).toContain(">Calcium<");
-    expect(tables[2]).toMatch(/>Lipid Profile<\/th>/);
+    // blocks, not tables: the paged print layout cannot split a table (2083-08-09)
+    expect(html).not.toContain("<table");
+    const boxes = html.split("data-box=").slice(1);
+    expect(boxes).toHaveLength(3);
+    for (const b of boxes) expect(b).toMatch(/^"[^"]*" style="[^"]*border:1px solid/);
+    expect(boxes[0]).toMatch(/^"Liver Function Test"/);
+    expect(boxes[0]).toContain(">SGPT<");
+    expect(boxes[0]).toContain(">SGOT<");
+    expect(boxes[1]).toMatch(/^"tests"/);
+    expect(boxes[1]).toContain(">Uric Acid<");
+    expect(boxes[1]).toContain(">Calcium<");
+    expect(boxes[2]).toMatch(/^"Lipid Profile"/);
+  });
+});
+
+describe("the lab's notes (Settings, Lab report)", () => {
+  it("prints the end note once, after the results and before End of report", () => {
+    const d = { ...view([result("Uric Acid")]), endNote: "Results relate only to the sample tested." };
+    const html = renderToStaticMarkup(<ReportBody d={d} />);
+    expect(html.match(/Results relate only/g)).toHaveLength(1);
+    expect(html.indexOf("Results relate only")).toBeGreaterThan(html.indexOf(">Uric Acid<"));
+    expect(html.indexOf("Results relate only")).toBeLessThan(html.indexOf("End of report"));
+  });
+
+  it("prints the page note in the footer that repeats on every page, not in the body", () => {
+    const d = { ...view([result("Uric Acid")]), pageNote: "Not valid for medico-legal purposes." };
+    expect(renderToStaticMarkup(<ReportBody d={d} />)).not.toContain("medico-legal");
+    const sheet = renderToStaticMarkup(<ReportSheet d={d} />);
+    const foot = sheet.slice(sheet.indexOf("<tfoot"), sheet.indexOf("</tfoot>"));
+    expect(foot).toContain("Not valid for medico-legal purposes.");
   });
 });

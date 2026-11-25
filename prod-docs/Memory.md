@@ -68,6 +68,7 @@
 - 2083-08-07 C-036: typecheck clean, **59 files / 624 tests** green.
 - 2083-08-08 C-037: typecheck clean, **60 files / 633 tests** green, `pnpm build` passes on a scratch DB.
 - 2083-08-09: **0032 applied to KAHC** (owner allowed it; 32 migrations). Deploy this code only with 0032 in place: saving results writes `lab_orders.received_at`.
+- 2083-08-09 C-039: typecheck clean, **63 files / 646 tests** green, `pnpm build` passes; **0034 applied to KAHC**; the lab catalogue is empty (D-218).
 - 2083-08-09 C-038: typecheck clean, **63 files / 644 tests** green, `pnpm build` passes on a scratch DB. **0033 applied to KAHC** the same day (owner allowed it; backup `.backups/kahc-before-0033-2026-11-25T09-28-57-721Z.json.gz`). Deploy this code only with 0033 in place: every visit query reads the new columns.
 
 ### Working practices that were earned the hard way
@@ -101,7 +102,6 @@
 - *(latent, not fixed)* `billRequestBody` in `offline/outbox.ts` drops the inline `patient` snapshot, although D-064 and `ingestBill` expect it. It self-heals (the patient queue drains first and a bill that overtakes it retries), but D-064's "the bill can create the patient itself" is not what ships.
 - The per-line "Disc." boxes on medicine and service lines are still rupees only; only the bill discount has the `रू | %` switch (C-015).
 - Per-report recomputation beyond the `?fy=` range, and "refund a closed-year bill into the open year", remain unbuilt.
-- **Lab report preview repeats the report** (found 2083-08-06, owner: fix later). The paged.js view in `components/lab/report-print-view.tsx` showed one report as "Page 1 of 3 … 3 of 3", each page holding the whole report (staff print and the patient's `/r/` page), with the header and footer on or off. Seen on a dev server; not yet checked on the live build.
 - `/stock` draws all 6,768 items in one table (about 3 minutes on a dev server). Needs paging or an in-stock filter.
 
 **Requested but deliberately NOT built** *(keep this list; it is the scope fence)*
@@ -343,6 +343,9 @@
 | D-213 | **Lab report header, five lines a side**: left Name, **Age / Gender** (one line, as on the bill), Referred by, Patient No., Address; right **Lab ID No.**, Invoice No., Sample Collected on, Sample Received on, Report Released on. Supersedes D-207's layout | Owner, 2083-08-09. |
 | D-214 | **A lab test can be "None" (billed only)**: `lab_tests.result_type = 'none'` (no schema change; the column has no CHECK). It never opens on a lab order (no sample, no Result entry, no report), still bills, and is listed under its package on the bill; a bill with only such tests gets no report QR (`IS_LAB_TEST_SQL`). Switching a test to None takes its unapproved results off open orders (`dropOpenResultsOfTest`: results and their order tests cancelled, an emptied sample cancelled, order status worked out again, audit `lab_test.results_dropped`); approved results stay on their reports | Owner, 2083-08-09: "Some can just be None … doesn't appear on Results Entry but does appear on the Bill" (Ultrasound, ECG in the Whole Body Check Up). |
 | D-215 | **Reports → Stock ledger** (`/reports/stock-ledger`, `reports.all`, Pharmacy): one medicine between two BS dates: opening stock on the first day, each kind of movement (opening stock entered, purchases, sale returns, cancelled bills, sales, purchase returns, stock out, count corrections), closing stock, then every movement with its reference and a running balance, in packs ("13 Strip + 5 Tablet"). Read from `stock_moves` alone; days are Nepal days | Owner, 2083-08-09: "on the initial date this much existed, then purchase of this much was added, now it shall be …". "Stock ledger" is the usual name for it in Nepal's accounting. |
+| D-216 | **Two notes on every lab report**, set in Settings → Lab report (0034 `lab_settings.page_note`, `end_note`): **On every page** prints at the foot of each page under the signatures; **At the end of the report** prints once after the last result (and notes), before End of report | Owner, 2083-08-09. Typed by the lab, nothing seeded. |
+| D-217 | **The lab report is laid out by the browser, not paged.js** (removed from package.json). The sheet is one table: its header (letterhead) and footer (signatures, page note, footer image) repeat on every printed page; "Page X of Y" is in the `@page` bottom margin box. The results boxes are blocks, not tables, with `break-after: avoid` on headings and `box-decoration-break: clone` so a split box is closed on both pages. The page is marked `.lab-print` so the app's print rule (which shows only a bill's `.print-area`) no longer blanks it | Owner, 2083-08-09: Print gave blank pages, and the preview repeated Haematology. Cause of the repeats: paged.js gave up placing content ("Unable to layout item") and laid page 1 out again; this was the "fix later" item from 2083-08-06. Cause of the blank print: the global print rule. On the last page the signatures follow the last result rather than sitting at the page bottom (browser behaviour). |
+| D-218 | **The lab catalogue was emptied on the owner's request** (2083-08-09): every lab test (933), profile and package (18), their 951 services and the Laboratory service group are gone; departments (13), sample types (11), report settings and signatures kept. The owner adds tests, profiles and packages one by one. The first new test makes a fresh "Laboratory" service group by itself (`labServiceGroupId`). Supersedes the catalogue of D-190 / D-192 (the Aster rate files in import-templates are only a record now) | Owner: "Clear the Tests, Profiles and Packages everything … and the Laboratory group and its services. I will configure everything one by one myself." |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---
@@ -1142,4 +1145,26 @@ leave Result entry and order 2's report is unchanged.
 refused, last height used for BMI), the card's vitals table with changes, the
 visit page, the Stock ledger (opening 12 Strip, purchase at 11:50 PM on its
 Nepal day, closing 13 Strip + 5 Tablet), the test editor's None.
+
+### C-039  ·  2083-08-09  ·  Report notes, the report printed by the browser, an empty lab catalogue
+
+Two notes on every report (D-216, 0034). Print gave blank pages and the
+preview repeated its first page: reproduced on a local copy of the live
+database built from the backup (order 2, 5 pages with page 1 three times),
+traced to the app's print rule and to paged.js giving up on a page; paged.js
+removed and the report laid out by the browser (D-217).
+**Live (owner's answers):** today's dummy patient DEBENDRA BDR GHIMIRE with
+bills 000001 and 000002, the visit, both lab orders (82 tests, values,
+approvals, samples) and 2 audit entries deleted; then the whole lab catalogue
+(933 tests, 18 profiles and packages, parameters, items, their 951 services,
+the Laboratory group) in the same write batch. Kept: departments, sample
+types, settings, signatures, the 11 other service groups and their 92
+services. All numbers back to 1. Backups before each step:
+`.backups/kahc-before-clearing-lab-catalogue-2026-11-25T10-09-06-045Z.json.gz`,
+`.backups/kahc-before-0034-2026-11-25T10-11-07-921Z.json.gz`. 0034 applied.
+**Verified:** typecheck; full suite (report tests now check the blocks, the
+end note once and the page note in the repeating footer); the local copy
+printed to PDF: 4 pages, no repeat, "Page X of 4", page note on every page,
+end note once on the last, Parasitology kept with its box; after the
+clearing `PRAGMA foreign_key_check` clean and kept counts unchanged.
 
