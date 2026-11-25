@@ -118,3 +118,26 @@ describe("the lab's note on a box (owner, 2083-08-09)", () => {
     expect(html).toMatch(/>Note: <\/span>Sample slightly lipaemic\./);
   });
 });
+
+describe("the method (owner, 2083-08-09)", () => {
+  it("is a column of its own on the test's row, not a line under it", () => {
+    const html = renderToStaticMarkup(
+      <ReportBody d={view([result("TLC", { groupName: "CBC", method: "Cell Counter" }), result("Hb", { groupName: "CBC", method: "Cell Counter" })])} />,
+    );
+    expect(html).toContain(">Method<");
+    expect(html).not.toContain("Method: ");
+    // the method sits after the TLC value and before the next test's name
+    expect(at(html, ">Cell Counter<")).toBeGreaterThan(at(html, ">TLC<"));
+    expect(at(html, ">Cell Counter<")).toBeLessThan(at(html, ">Hb<"));
+  });
+
+  it("leaves the column out when no test of the department has a method", () => {
+    const html = renderToStaticMarkup(<ReportBody d={view([result("Volume"), result("Colour")])} />);
+    expect(html).not.toContain(">Method<");
+  });
+
+  it("keeps a box on one page when it fits, so no test is cut from its profile", () => {
+    const html = renderToStaticMarkup(<ReportBody d={view([result("TLC", { groupName: "CBC", method: "Cell Counter" })])} />);
+    expect(html).toMatch(/data-box="CBC" style="[^"]*break-inside:avoid/);
+  });
+});

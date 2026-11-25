@@ -30,8 +30,9 @@ export interface ReportViewData {
   pendingNote?: string;
 }
 
-const INK = "#16241b";
-const MUTED = "#5f6b63";
+// black throughout (owner, 2083-08-09: the grey looked faint on paper)
+const INK = "#000000";
+const MUTED = "#000000";
 
 export function ReportHeader({ d, show = true }: { d: ReportViewData; show?: boolean }) {
   if (!show) return null;
@@ -104,12 +105,16 @@ function Line({ label, value, right }: { label: string; value: string; right?: b
   );
 }
 
-/** The columns of a results box, as grid tracks. */
-function columns(showUnit: boolean, showRange: boolean): string {
-  if (showUnit && showRange) return "38fr 20fr 14fr 28fr";
-  if (showRange) return "44fr 22fr 34fr";
-  if (showUnit) return "52fr 28fr 20fr";
-  return "62fr 38fr";
+/**
+ * The columns of a results box, as grid tracks. Method is a column of its own
+ * (owner, 2083-08-09), shown when any test of the department has one.
+ */
+function columns(showUnit: boolean, showRange: boolean, showMethod: boolean): string {
+  const tracks = ["34fr", "17fr"];
+  if (showUnit) tracks.push("13fr");
+  if (showRange) tracks.push("21fr");
+  if (showMethod) tracks.push("17fr");
+  return tracks.join(" ");
 }
 
 /*
@@ -117,9 +122,24 @@ function columns(showUnit: boolean, showRange: boolean): string {
  * rows when a box runs onto the next page, and a box split over two pages is
  * drawn as two boxes. The browser lays the pages out now (report-print-view).
  */
-function ValueRow({ v, label, indent, showUnit, showRange }: { v: ResultValueView; label: string; indent: number; showUnit: boolean; showRange: boolean }) {
+function ValueRow({
+  v,
+  label,
+  indent,
+  showUnit,
+  showRange,
+  method,
+}: {
+  v: ResultValueView;
+  label: string;
+  indent: number;
+  showUnit: boolean;
+  showRange: boolean;
+  /** null when the department has no Method column */
+  method: string | null;
+}) {
   const flagged = v.flag !== "normal";
-  const cols = columns(showUnit, showRange);
+  const cols = columns(showUnit, showRange, method != null);
   return (
     <div style={{ display: "grid", gridTemplateColumns: cols, breakInside: "avoid" }}>
       <div style={{ padding: `1px 6px 1px calc(${indent * 4}mm + 6px)` }}>{label}</div>
@@ -128,8 +148,9 @@ function ValueRow({ v, label, indent, showUnit, showRange }: { v: ResultValueVie
         {v.valueText || "-"}
         {flagged && <span style={{ marginLeft: 4, fontWeight: 800 }}>{flagSymbol(v.flag)}</span>}
       </div>
-      {showUnit && <div style={{ padding: "1px 0", color: MUTED }}>{v.unit}</div>}
+      {showUnit && <div style={{ padding: "1px 6px 1px 0", color: MUTED, overflowWrap: "anywhere" }}>{v.unit}</div>}
       {showRange && <div style={{ padding: "1px 6px 1px 0", color: MUTED }}>{v.refText}</div>}
+      {method != null && <div style={{ padding: "1px 6px 1px 0", color: MUTED }}>{method}</div>}
     </div>
   );
 }
@@ -188,7 +209,9 @@ export function ReportBody({ d }: { d: ReportViewData }) {
       </div>
 
       {d.sections.map((s) => {
-        const cols = columns(s.showUnit, s.showRange);
+        const showMethod = s.results.some((r) => r.method.trim() !== "");
+        const cols = columns(s.showUnit, s.showRange, showMethod);
+        const methodOf = (r: OrderResult) => (showMethod ? r.method.trim() : null);
         // One bordered box per profile, its name as the heading (owner,
         // 2083-08-08). The department's tests billed on their own share one
         // box, where the first of them stands.
@@ -218,8 +241,10 @@ export function ReportBody({ d }: { d: ReportViewData }) {
                 <div
                   key={b.key}
                   data-box={b.name || "tests"}
-                  // split over two pages, each part is drawn as a closed box
-                  style={{ fontSize: 12.5, marginTop: 4, border: `1px solid ${INK}`, paddingBottom: 3, boxDecorationBreak: "clone", WebkitBoxDecorationBreak: "clone" }}
+                  // a box that does not fit on what is left of the page starts on the
+                  // next one (owner, 2083-08-09); only one longer than a whole page
+                  // is split, and then each part is drawn as a closed box
+                  style={{ fontSize: 12.5, marginTop: 4, border: `1px solid ${INK}`, paddingBottom: 3, breakInside: "avoid", boxDecorationBreak: "clone", WebkitBoxDecorationBreak: "clone" }}
                 >
                   {b.name && (
                     <div style={{ padding: "3px 6px", fontWeight: 700, fontSize: 13.5, borderBottom: `1px solid ${INK}40`, breakAfter: "avoid" }}>
@@ -233,6 +258,7 @@ export function ReportBody({ d }: { d: ReportViewData }) {
                     <div style={{ padding: "2px 0" }}>Result</div>
                     {s.showUnit && <div style={{ padding: "2px 0" }}>Unit</div>}
                     {s.showRange && <div style={{ padding: "2px 6px 2px 0" }}>Reference range</div>}
+                    {showMethod && <div style={{ padding: "2px 6px 2px 0" }}>Method</div>}
                   </div>
                   {b.items.map((r) => {
                     const only = r.values.length === 1 ? r.values[0]! : null;
@@ -240,16 +266,15 @@ export function ReportBody({ d }: { d: ReportViewData }) {
                     return (
                       <Fragment key={r.id}>
                         {oneLine ? (
-                          <ValueRow v={only!} label={r.testName} indent={0} showUnit={s.showUnit} showRange={s.showRange} />
+                          <ValueRow v={only!} label={r.testName} indent={0} showUnit={s.showUnit} showRange={s.showRange} method={methodOf(r)} />
                         ) : (
                           <>
                             <div style={{ padding: "2px 6px 0", fontWeight: 600, textDecoration: "underline" }}>{r.testName}</div>
                             {r.values.map((v) => (
-                              <ValueRow key={v.id} v={v} label={v.label} indent={1} showUnit={s.showUnit} showRange={s.showRange} />
+                              <ValueRow key={v.id} v={v} label={v.label} indent={1} showUnit={s.showUnit} showRange={s.showRange} method={methodOf(r)} />
                             ))}
                           </>
                         )}
-                        {r.method && <div style={line}>Method: {r.method}</div>}
                         {/* a test on its own: its note right under it */}
                         {!inGroup && !r.packageName && r.description.trim() && noteRow(r, true)}
                       </Fragment>
@@ -333,8 +358,34 @@ export function ReportBody({ d }: { d: ReportViewData }) {
  * off, the configured margin is kept blank instead, for pre-printed pads.
  */
 export function ReportSheet({ d, showHeader = true, showFooter = true }: { d: ReportViewData; showHeader?: boolean; showFooter?: boolean }) {
+  const foot = (
+    <>
+      <ReportSignatures d={d} />
+      <ReportPageNote d={d} />
+      <div style={{ minHeight: `${d.margins.bottomMm}mm` }}>
+        <ReportFooter d={d} show={showFooter} />
+      </div>
+    </>
+  );
   return (
     <div className="lab-a4" style={{ background: "#fff", color: INK, width: "210mm", margin: "0 auto" }}>
+      {/*
+        The footer sits at the foot of every printed page, the last one too
+        (owner, 2083-08-09). Printed, a fixed copy is drawn at the bottom of
+        each page; the table's own footer stays as an invisible spacer of the
+        same height, so results never run under it. On screen only the
+        table's footer shows, right after the results.
+      */}
+      <style>{`
+        .lab-a4 .report-foot-fixed { display: none; }
+        @media print {
+          .lab-a4 .report-foot-fixed { display: block; position: fixed; left: 0; right: 0; bottom: 0; background: #fff; }
+          .lab-a4 .report-foot-flow, .lab-a4 .report-foot-flow * { visibility: hidden !important; }
+        }
+      `}</style>
+      <div className="report-foot-fixed" aria-hidden="true">
+        {foot}
+      </div>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead style={{ display: "table-header-group" }}>
           <tr>
@@ -348,11 +399,7 @@ export function ReportSheet({ d, showHeader = true, showFooter = true }: { d: Re
         <tfoot style={{ display: "table-footer-group" }}>
           <tr>
             <td style={{ padding: 0 }}>
-              <ReportSignatures d={d} />
-              <ReportPageNote d={d} />
-              <div style={{ minHeight: `${d.margins.bottomMm}mm` }}>
-                <ReportFooter d={d} show={showFooter} />
-              </div>
+              <div className="report-foot-flow">{foot}</div>
             </td>
           </tr>
         </tfoot>

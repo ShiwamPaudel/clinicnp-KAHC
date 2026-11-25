@@ -62,7 +62,7 @@ export function ReportPrintView({ d, backHref, forPatient = false }: { d: Report
         @page {
           size: A4;
           margin: 0 0 7mm 0;
-          @bottom-center { content: "Page " counter(page) " of " counter(pages); font: italic 9pt sans-serif; color: #5f6b63; }
+          @bottom-center { content: "Page " counter(page) " of " counter(pages); font: italic 9pt sans-serif; color: #000; }
         }
         @media print {
           /* the app's print sheet shows only a bill's .print-area; this page is the report itself */

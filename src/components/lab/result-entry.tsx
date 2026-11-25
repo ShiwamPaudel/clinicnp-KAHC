@@ -232,167 +232,207 @@ export function ResultEntry({
           </Button>
         </div>
       )}
-      {groups.map((g) => (
-        <Fragment key={g.key}>
-      {g.results.map((r) => {
-        const locked = LOCKED.includes(r.status);
-        const noSample = Boolean(r.sampleStatus && r.sampleStatus !== "collected");
-        const sent = r.status === "sent_out" ? sentByResult.get(r.id) : undefined;
-        const canSend = SENDABLE.includes(r.status) && !noSample;
+      {groups.map((g, gi) => {
+        const dept = g.results[0]?.departmentName ?? "";
+        const newDept = gi === 0 || groups[gi - 1]!.results[0]?.departmentName !== dept;
+        const titled = Boolean(g.results[0]?.groupName);
         return (
-          <section key={r.id} className="rounded-[10px] border border-line bg-cream-50">
-            <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
-              <div>
-                <span className="text-[15px] font-semibold text-sage-900">{r.testName}</span>
-                {r.groupName && <span className="ml-2 text-[12px] text-sage-500">{r.groupName}</span>}
-                {r.departmentName && <span className="ml-2 text-[12px] text-sage-500">· {r.departmentName}</span>}
-              </div>
-              <div className="flex items-center gap-2">
-                {canSend && (
-                  <Button variant="ghost" disabled={pending} onClick={() => openSend([r.id])}>
-                    <ArrowUpRight className="h-4 w-4" />
-                    Send to another lab
-                  </Button>
-                )}
-                <Badge tone={resultTone(r.status)}>{RESULT_STATUS_LABEL[r.status] ?? r.status}</Badge>
-              </div>
-            </header>
-            {r.status === "sent_out" ? (
-              <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-[14px]">
-                <span className="text-sage-700">
-                  {sent ? (
-                    <>
-                      Sent to <span className="font-semibold text-sage-900">{sent.partnerName}</span>
-                      <span className="text-sage-500">
-                        {" "}
-                        · {sent.sentByName} · {stampAt(sent.sentAt)}
-                      </span>
-                    </>
-                  ) : (
-                    "Sent to another lab"
-                  )}
-                </span>
-                {sent && <BringBackButton sendoutId={sent.id} testName={r.testName} />}
-              </div>
-            ) : (
-            <>
-            {r.correctionNote && !locked && (
-              <div className="flex items-start gap-2 border-b border-line bg-danger-100/50 px-4 py-2 text-[13px] text-danger-600">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                Sent back: {r.correctionNote}
-              </div>
+          <Fragment key={g.key}>
+            {newDept && dept && (
+              <h2 className="mt-2 rounded-[6px] bg-sage-75 px-3 py-1.5 text-[13px] font-bold uppercase tracking-wide text-sage-900">{dept}</h2>
             )}
-            {noSample ? (
-              <p className="px-4 py-3 text-[13px] text-sage-500">The sample for this test has not been collected yet.</p>
-            ) : (
-              <table className="w-full text-[14px]">
+            {/* one box per profile, and one for a department's tests billed on their own: as on the report */}
+            <section className="overflow-hidden rounded-[10px] border border-line bg-cream-50">
+              {titled && (
+                <header className="border-b border-line px-4 py-2.5">
+                  <span className="text-[15px] font-semibold text-sage-900">{g.results[0]!.groupName}</span>
+                </header>
+              )}
+              <table className="w-full table-fixed text-[14px]">
+                <colgroup>
+                  <col className="w-[30%]" />
+                  <col />
+                  <col className="w-[13%]" />
+                  <col className="w-[17%]" />
+                  <col className="w-[170px]" />
+                </colgroup>
                 <thead className="text-[12px] text-sage-500">
                   <tr>
                     <th className="px-4 py-2 text-left font-medium">Test</th>
                     <th className="px-2 py-2 text-left font-medium">Result</th>
                     <th className="px-2 py-2 text-left font-medium">Unit</th>
-                    <th className="px-4 py-2 text-left font-medium">Reference range</th>
+                    <th className="px-2 py-2 text-left font-medium">Reference range</th>
+                    <th className="px-4 py-2 text-right font-medium">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {r.fields.map((f) => {
-                    const key = keyOf(f.parameterId);
-                    const v = draft[r.id]?.values[key] ?? { value: "", remarks: "" };
-                    const num = f.resultType === "numeric" ? numericValue(v.value) : null;
-                    const flag = num == null ? "normal" : computeFlag(num, f);
-                    const id = boxId(r.id, key);
-                    const otherChoice = f.options.find(isOtherOption);
-                    const listed = f.options.filter((o) => !isOtherOption(o));
-                    // a value not in the list was typed under "Other"
-                    const inOther = Boolean(otherChoice) && (otherOpen.has(id) || (v.value !== "" && !listed.includes(v.value)));
-                    const stray = !otherChoice && v.value !== "" && !f.options.includes(v.value);
-                    const calculated = f.resultType === "numeric" && f.formula.trim() !== "";
-                    return (
-                      <tr key={key} className="border-t border-line">
-                        <td className="px-4 py-2 text-sage-900">{f.label}</td>
-                        <td className="px-2 py-2">
-                          <div className="flex items-center gap-2">
-                            {f.resultType === "select" || f.resultType === "pos_neg" ? (
-                              <>
-                                <Select
-                                  data-result-field=""
-                                  onKeyDown={enterToNextResult}
-                                  value={inOther ? otherChoice! : v.value}
-                                  disabled={locked || pending}
-                                  onChange={(e) => chooseOption(r.id, key, e.target.value)}
-                                  className="w-44"
-                                >
-                                  <option value="">-</option>
-                                  {stray && <option value={v.value}>{v.value}</option>}
-                                  {f.options.map((o) => (
-                                    <option key={o} value={o}>
-                                      {o}
-                                    </option>
-                                  ))}
-                                </Select>
-                                {inOther && (
-                                  <Input
+                  {g.results.map((r) => {
+                    const locked = LOCKED.includes(r.status);
+                    const noSample = Boolean(r.sampleStatus && r.sampleStatus !== "collected");
+                    const sent = r.status === "sent_out" ? sentByResult.get(r.id) : undefined;
+                    const canSend = SENDABLE.includes(r.status) && !noSample;
+                    const several = r.fields.length > 1 || r.fields.some((f) => f.parameterId != null);
+                    const status = (
+                      <div className="flex items-center justify-end gap-1">
+                        {canSend && (
+                          <Button
+                            variant="ghost"
+                            className="h-7 px-1.5"
+                            aria-label={`Send ${r.testName} to another lab`}
+                            title="Send to another lab"
+                            disabled={pending}
+                            onClick={() => openSend([r.id])}
+                          >
+                            <ArrowUpRight className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Badge tone={resultTone(r.status)}>{RESULT_STATUS_LABEL[r.status] ?? r.status}</Badge>
+                      </div>
+                    );
+                    const field = (f: OrderResult["fields"][number], label: string, indent: boolean, withStatus: boolean) => {
+                      const key = keyOf(f.parameterId);
+                      const v = draft[r.id]?.values[key] ?? { value: "", remarks: "" };
+                      const num = f.resultType === "numeric" ? numericValue(v.value) : null;
+                      const flag = num == null ? "normal" : computeFlag(num, f);
+                      const id = boxId(r.id, key);
+                      const otherChoice = f.options.find(isOtherOption);
+                      const listed = f.options.filter((o) => !isOtherOption(o));
+                      // a value not in the list was typed under "Other"
+                      const inOther = Boolean(otherChoice) && (otherOpen.has(id) || (v.value !== "" && !listed.includes(v.value)));
+                      const stray = !otherChoice && v.value !== "" && !f.options.includes(v.value);
+                      const calculated = f.resultType === "numeric" && f.formula.trim() !== "";
+                      return (
+                        <tr key={`${r.id}:${key}`} className={cn(!indent && "border-t border-line")}>
+                          <td className={cn("py-1 pr-2 text-sage-900", indent ? "pl-9" : "pl-4")}>{label}</td>
+                          <td className="px-2 py-1">
+                            <div className="flex items-center gap-2">
+                              {f.resultType === "select" || f.resultType === "pos_neg" ? (
+                                <>
+                                  <Select
                                     data-result-field=""
                                     onKeyDown={enterToNextResult}
-                                    value={v.value}
-                                    autoFocus={otherOpen.has(id) && v.value === ""}
+                                    value={inOther ? otherChoice! : v.value}
                                     disabled={locked || pending}
-                                    aria-label={`${f.label}, other`}
-                                    onChange={(e) => setValue(r.id, key, { value: e.target.value })}
-                                    className="w-48"
-                                  />
-                                )}
-                              </>
-                            ) : (
-                              <Input
-                                data-result-field=""
-                                onKeyDown={enterToNextResult}
-                                value={v.value}
-                                disabled={locked || pending}
-                                inputMode={f.resultType === "numeric" ? "decimal" : undefined}
-                                onChange={(e) => setValue(r.id, key, { value: e.target.value })}
-                                title={calculated ? `= ${f.formula}` : undefined}
-                                className={cn(f.resultType === "numeric" ? "w-32" : "w-64", calculated && "bg-sage-75/60", FLAG_TONE[flag])}
-                              />
-                            )}
-                            {calculated && <span className="text-[11px] text-sage-500">Calculated</span>}
-                            {flag !== "normal" && (
-                              <span className={cn("text-[13px]", FLAG_TONE[flag])}>{flagSymbol(flag)}</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-2 py-2 text-sage-600">{f.unit}</td>
-                        <td className="px-4 py-2 text-sage-600">{f.refText || "-"}</td>
-                      </tr>
+                                    onChange={(e) => chooseOption(r.id, key, e.target.value)}
+                                    className="!h-8 !w-40"
+                                  >
+                                    <option value="">-</option>
+                                    {stray && <option value={v.value}>{v.value}</option>}
+                                    {f.options.map((o) => (
+                                      <option key={o} value={o}>
+                                        {o}
+                                      </option>
+                                    ))}
+                                  </Select>
+                                  {inOther && (
+                                    <Input
+                                      data-result-field=""
+                                      onKeyDown={enterToNextResult}
+                                      value={v.value}
+                                      autoFocus={otherOpen.has(id) && v.value === ""}
+                                      disabled={locked || pending}
+                                      aria-label={`${f.label}, other`}
+                                      onChange={(e) => setValue(r.id, key, { value: e.target.value })}
+                                      className="!h-8 !w-40"
+                                    />
+                                  )}
+                                </>
+                              ) : (
+                                <Input
+                                  data-result-field=""
+                                  onKeyDown={enterToNextResult}
+                                  value={v.value}
+                                  disabled={locked || pending}
+                                  inputMode={f.resultType === "numeric" ? "decimal" : undefined}
+                                  onChange={(e) => setValue(r.id, key, { value: e.target.value })}
+                                  aria-label={label}
+                                  title={calculated ? `= ${f.formula}` : undefined}
+                                  className={cn("!h-8", f.resultType === "numeric" ? "!w-32" : "!w-56", calculated && "bg-sage-75/60", FLAG_TONE[flag])}
+                                />
+                              )}
+                              {calculated && <span className="text-[11px] text-sage-500">Calculated</span>}
+                              {flag !== "normal" && <span className={cn("text-[13px]", FLAG_TONE[flag])}>{flagSymbol(flag)}</span>}
+                            </div>
+                          </td>
+                          <td className="px-2 py-1 text-sage-600">{f.unit}</td>
+                          <td className="px-2 py-1 text-sage-600">{f.refText || "-"}</td>
+                          <td className="px-4 py-1">{withStatus ? status : null}</td>
+                        </tr>
+                      );
+                    };
+                    return (
+                      <Fragment key={r.id}>
+                        {r.status === "sent_out" ? (
+                          <tr className="border-t border-line">
+                            <td className="py-2 pl-4 pr-2 text-sage-900">{r.testName}</td>
+                            <td colSpan={3} className="px-2 py-2 text-[13px] text-sage-700">
+                              {sent ? (
+                                <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                  <span>
+                                    Sent to <span className="font-semibold text-sage-900">{sent.partnerName}</span>
+                                    <span className="text-sage-500"> · {sent.sentByName} · {stampAt(sent.sentAt)}</span>
+                                  </span>
+                                  <BringBackButton sendoutId={sent.id} testName={r.testName} />
+                                </span>
+                              ) : (
+                                "Sent to another lab"
+                              )}
+                            </td>
+                            <td className="px-4 py-2">{status}</td>
+                          </tr>
+                        ) : noSample ? (
+                          <tr className="border-t border-line">
+                            <td className="py-2 pl-4 pr-2 text-sage-900">{r.testName}</td>
+                            <td colSpan={3} className="px-2 py-2 text-[13px] text-sage-500">Sample not collected yet</td>
+                            <td className="px-4 py-2">{status}</td>
+                          </tr>
+                        ) : several ? (
+                          <>
+                            <tr className="border-t border-line">
+                              <td colSpan={4} className="pb-0.5 pl-4 pr-2 pt-2 font-semibold text-sage-900 underline underline-offset-2">
+                                {r.testName}
+                              </td>
+                              <td className="px-4 pt-1.5">{status}</td>
+                            </tr>
+                            {r.fields.map((f) => field(f, f.label, true, false))}
+                          </>
+                        ) : (
+                          field(r.fields[0]!, r.testName, false, true)
+                        )}
+                        {r.correctionNote && !locked && (
+                          <tr>
+                            <td colSpan={5} className="px-4 pb-2">
+                              <div className="flex items-start gap-2 rounded-[6px] bg-danger-100/50 px-3 py-1.5 text-[13px] text-danger-600">
+                                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                                Sent back: {r.correctionNote}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
                     );
                   })}
                 </tbody>
               </table>
-            )}
-            </>
-            )}
-          </section>
+              {g.holderId && (
+                <label className="flex flex-col gap-1 border-t border-line bg-cream-100/60 px-4 py-2.5">
+                  <span className="text-[12px] font-medium text-sage-600">Note: {g.label}</span>
+                  <Input
+                    onKeyDown={enterToNextResult}
+                    value={draft[g.holderId]?.remarks ?? ""}
+                    disabled={g.holderLocked || pending}
+                    placeholder="Optional, printed on the report after the last test"
+                    onChange={(e) => {
+                      const id = g.holderId!;
+                      setDraft((d) => ({ ...d, [id]: { ...d[id]!, remarks: e.target.value } }));
+                    }}
+                  />
+                </label>
+              )}
+            </section>
+          </Fragment>
         );
       })}
-          {g.holderId && (
-            <div className="-mt-1 rounded-[10px] border border-dashed border-line bg-cream-100/60 px-4 py-2.5">
-              <label className="flex flex-col gap-1">
-                <span className="text-[12px] font-medium text-sage-600">Note: {g.label}</span>
-                <Input
-                  onKeyDown={enterToNextResult}
-                  value={draft[g.holderId]?.remarks ?? ""}
-                  disabled={g.holderLocked || pending}
-                  placeholder="Optional, printed on the report after the last test"
-                  onChange={(e) => {
-                    const id = g.holderId!;
-                    setDraft((d) => ({ ...d, [id]: { ...d[id]!, remarks: e.target.value } }));
-                  }}
-                />
-              </label>
-            </div>
-          )}
-        </Fragment>
-      ))}
 
       {sendDialog && (
         <SendOutDialog

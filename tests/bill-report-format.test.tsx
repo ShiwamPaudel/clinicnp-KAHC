@@ -176,4 +176,14 @@ describe("the lab's notes (Settings, Lab report)", () => {
     const foot = sheet.slice(sheet.indexOf("<tfoot"), sheet.indexOf("</tfoot>"));
     expect(foot).toContain("Not valid for medico-legal purposes.");
   });
+
+  it("keeps a printed copy of the footer fixed at the foot of every page, the last one too", () => {
+    const d = { ...view([result("Uric Acid")]), pageNote: "Not valid for medico-legal purposes." };
+    const sheet = renderToStaticMarkup(<ReportSheet d={d} />);
+    const fixed = sheet.slice(sheet.indexOf('class="report-foot-fixed"'), sheet.indexOf("<table"));
+    expect(fixed).toContain("Not valid for medico-legal purposes.");
+    expect(sheet).toMatch(/\.report-foot-fixed \{ display: block; position: fixed;[^}]*bottom: 0/);
+    // the table's own footer stays, as the spacer that keeps results clear of it
+    expect(sheet.slice(sheet.indexOf("<tfoot"), sheet.indexOf("</tfoot>"))).toContain('class="report-foot-flow"');
+  });
 });
