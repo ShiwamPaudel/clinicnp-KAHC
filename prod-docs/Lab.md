@@ -82,6 +82,13 @@ product's name appears nowhere in ClinicNP (owner's instruction).
 - **Default result**: in the box when entry starts (never saved before).
 - A choice "Other" or "Others" opens a text box for any other answer.
 
+## Notes (D-222)
+
+One optional note per report box (a profile, or a department's tests billed on
+their own), typed after the box's last test in Result entry and printed after
+its last row. Stored on one test of the box (`technician_remarks`), so it is
+approved and locked with that test.
+
 ## Workflow states
 
 ```

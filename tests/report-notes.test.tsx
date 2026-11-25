@@ -97,3 +97,24 @@ describe("a test's note", () => {
     expect(html.match(/T3 note\./g)).toHaveLength(1);
   });
 });
+
+describe("the lab's note on a box (owner, 2083-08-09)", () => {
+  it("prints once, after the box's last test row, before the next box", () => {
+    const html = renderToStaticMarkup(
+      <ReportBody
+        d={view([
+          result("Triglyceride", { groupName: "Lipid Profile" }),
+          // Result entry keeps the box's note on one of its tests
+          result("HDL", { groupName: "Lipid Profile", technicianRemarks: "Sample slightly lipaemic." }),
+          result("LDL", { groupName: "Lipid Profile" }),
+          result("Calcium", { technicianRemarks: "Repeated twice." }),
+        ])}
+      />,
+    );
+    expect(at(html, "Sample slightly lipaemic.")).toBeGreaterThan(at(html, ">LDL<"));
+    expect(at(html, "Sample slightly lipaemic.")).toBeLessThan(at(html, ">Calcium<"));
+    expect(at(html, "Repeated twice.")).toBeGreaterThan(at(html, ">Calcium<"));
+    expect(html.match(/Sample slightly lipaemic\./g)).toHaveLength(1);
+    expect(html).toMatch(/>Note: <\/span>Sample slightly lipaemic\./);
+  });
+});

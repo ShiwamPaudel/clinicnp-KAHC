@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { Fragment, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Save, Send, AlertTriangle, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/toast";
 import { saveResultsAction } from "@/app/(app)/lab/actions";
 import { computeFlag, flagSymbol, numericValue, type ResultFlag } from "@/lib/lab-flags";
 import { recalculate, isOtherOption, type CalcField } from "@/lib/lab-formula";
+import { noteGroups } from "@/lib/lab-notes";
 import { RESULT_STATUS_LABEL, resultTone } from "@/lib/lab-format";
 import { strings } from "@/lib/strings";
 import { SendOutDialog, BringBackButton, type PartnerOption } from "@/components/lab/send-out";
@@ -160,6 +161,7 @@ export function ResultEntry({
   const [sendDialog, setSendDialog] = useState<{ key: number; initial: string[] } | null>(null);
 
   const editable = useMemo(() => results.filter((r) => !LOCKED.includes(r.status)), [results]);
+  const groups = useMemo(() => noteGroups(results), [results]);
   const sendable = useMemo(
     () => results.filter((r) => SENDABLE.includes(r.status) && (!r.sampleStatus || r.sampleStatus === "collected")),
     [results],
@@ -230,7 +232,9 @@ export function ResultEntry({
           </Button>
         </div>
       )}
-      {results.map((r) => {
+      {groups.map((g) => (
+        <Fragment key={g.key}>
+      {g.results.map((r) => {
         const locked = LOCKED.includes(r.status);
         const noSample = Boolean(r.sampleStatus && r.sampleStatus !== "collected");
         const sent = r.status === "sent_out" ? sentByResult.get(r.id) : undefined;
@@ -287,8 +291,7 @@ export function ResultEntry({
                     <th className="px-4 py-2 text-left font-medium">Test</th>
                     <th className="px-2 py-2 text-left font-medium">Result</th>
                     <th className="px-2 py-2 text-left font-medium">Unit</th>
-                    <th className="px-2 py-2 text-left font-medium">Reference range</th>
-                    <th className="px-4 py-2 text-left font-medium">Remark</th>
+                    <th className="px-4 py-2 text-left font-medium">Reference range</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -359,38 +362,37 @@ export function ResultEntry({
                           </div>
                         </td>
                         <td className="px-2 py-2 text-sage-600">{f.unit}</td>
-                        <td className="px-2 py-2 text-sage-600">{f.refText || "-"}</td>
-                        <td className="px-4 py-2">
-                          <Input
-                            onKeyDown={enterToNextResult}
-                            value={v.remarks}
-                            disabled={locked || pending}
-                            onChange={(e) => setValue(r.id, key, { remarks: e.target.value })}
-                            className="w-48"
-                          />
-                        </td>
+                        <td className="px-4 py-2 text-sage-600">{f.refText || "-"}</td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
             )}
-            {!noSample && (
-              <div className="border-t border-line px-4 py-2">
-                <Input
-                  onKeyDown={enterToNextResult}
-                  value={draft[r.id]?.remarks ?? ""}
-                  disabled={locked || pending}
-                  placeholder="Note on this test (printed on the report)"
-                  onChange={(e) => setDraft((d) => ({ ...d, [r.id]: { ...d[r.id]!, remarks: e.target.value } }))}
-                />
-              </div>
-            )}
             </>
             )}
           </section>
         );
       })}
+          {g.holderId && (
+            <div className="-mt-1 rounded-[10px] border border-dashed border-line bg-cream-100/60 px-4 py-2.5">
+              <label className="flex flex-col gap-1">
+                <span className="text-[12px] font-medium text-sage-600">Note: {g.label}</span>
+                <Input
+                  onKeyDown={enterToNextResult}
+                  value={draft[g.holderId]?.remarks ?? ""}
+                  disabled={g.holderLocked || pending}
+                  placeholder="Optional, printed on the report after the last test"
+                  onChange={(e) => {
+                    const id = g.holderId!;
+                    setDraft((d) => ({ ...d, [id]: { ...d[id]!, remarks: e.target.value } }));
+                  }}
+                />
+              </label>
+            </div>
+          )}
+        </Fragment>
+      ))}
 
       {sendDialog && (
         <SendOutDialog

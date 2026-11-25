@@ -250,12 +250,21 @@ export function ReportBody({ d }: { d: ReportViewData }) {
                           </>
                         )}
                         {r.method && <div style={line}>Method: {r.method}</div>}
-                        {r.technicianRemarks && <div style={line}>{r.technicianRemarks}</div>}
                         {/* a test on its own: its note right under it */}
                         {!inGroup && !r.packageName && r.description.trim() && noteRow(r, true)}
                       </Fragment>
                     );
                   })}
+                  {/* the lab's note on this box (Result entry keeps one per profile
+                      or department), after its last test row (owner, 2083-08-09) */}
+                  {b.items
+                    .filter((r) => r.technicianRemarks.trim())
+                    .map((r) => (
+                      <div key={`remark-${r.id}`} style={{ padding: "3px 6px 1px", fontSize: 11.5, whiteSpace: "pre-line", breakInside: "avoid" }}>
+                        <span style={{ fontWeight: 700 }}>Note: </span>
+                        {r.technicianRemarks.trim()}
+                      </div>
+                    ))}
                   {/* a profile's notes after its last test */}
                   {groupNotes.map((r, i) => noteRow(r, i === 0))}
                 </div>
