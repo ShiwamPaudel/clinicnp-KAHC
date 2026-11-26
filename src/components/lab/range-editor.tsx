@@ -99,6 +99,19 @@ export function rangeSummary(d: RangeDraft): string {
   return main ? main + extra : extra.replace(/^ · /, "");
 }
 
+/** The range as printed: Enter starts a new line, and the box grows with it. */
+function RangeText({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <textarea
+      value={value}
+      placeholder={placeholder}
+      rows={Math.max(1, value.split("\n").length)}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full resize-none rounded-[8px] border border-line bg-cream-50 px-3 py-[9px] text-[14px] leading-5 text-sage-950 placeholder:text-sage-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-700"
+    />
+  );
+}
+
 /**
  * The reference range for one value, with optional narrower ranges by sex and
  * age. Fixed columns, so every row lines up with the one above it.
@@ -125,13 +138,13 @@ export function RangeEditor({ value, onChange, numeric }: { value: RangeDraft; o
           </Field>
           <div className="col-span-2 sm:col-span-1">
             <Field label="Print as (optional)">
-              <Input value={value.refText} placeholder="Up to 200" onChange={(e) => set({ refText: e.target.value })} />
+              <RangeText value={value.refText} placeholder="Up to 200" onChange={(v) => set({ refText: v })} />
             </Field>
           </div>
         </div>
       ) : (
         <Field label="Reference, as printed">
-          <Input value={value.refText} placeholder="Negative" onChange={(e) => set({ refText: e.target.value })} />
+          <RangeText value={value.refText} placeholder="Negative" onChange={(v) => set({ refText: v })} />
         </Field>
       )}
 
@@ -151,7 +164,7 @@ export function RangeEditor({ value, onChange, numeric }: { value: RangeDraft; o
             </thead>
             <tbody>
               {value.overrides.map((o, i) => (
-                <tr key={i} className="border-t border-line">
+                <tr key={i} className="border-t border-line align-top">
                   <td className="px-2 py-1.5">
                     <Select value={o.sex} onChange={(e) => setO(i, { sex: e.target.value as OverrideDraft["sex"] })}>
                       <option value="">Anyone</option>
@@ -176,7 +189,7 @@ export function RangeEditor({ value, onChange, numeric }: { value: RangeDraft; o
                     </td>
                   )}
                   <td className="px-2 py-1.5">
-                    <Input value={o.text} onChange={(e) => setO(i, { text: e.target.value })} />
+                    <RangeText value={o.text} onChange={(v) => setO(i, { text: v })} />
                   </td>
                   <td className="px-1 py-1.5 text-right">
                     <Button

@@ -42,7 +42,7 @@ export function ResultValues({ result }: { result: OrderResult }) {
               {v.valueText || "-"} {flagSymbol(v.flag)}
             </td>
             <td className="px-2 py-1.5 text-sage-600">{v.unit}</td>
-            <td className="px-2 py-1.5 text-sage-600">{v.refText || "-"}</td>
+            <td className="whitespace-pre-line px-2 py-1.5 text-sage-600">{v.refText || "-"}</td>
             <td className="px-4 py-1.5 text-sage-600">{v.remarks}</td>
           </tr>
         ))}

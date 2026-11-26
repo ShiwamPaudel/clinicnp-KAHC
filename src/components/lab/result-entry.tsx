@@ -355,7 +355,7 @@ export function ResultEntry({
                             </div>
                           </td>
                           <td className="px-2 py-1 text-sage-600">{f.unit}</td>
-                          <td className="px-2 py-1 text-sage-600">{f.refText || "-"}</td>
+                          <td className="whitespace-pre-line px-2 py-1 text-sage-600">{f.refText || "-"}</td>
                           <td className="px-4 py-1">{withStatus ? status : null}</td>
                         </tr>
                       );

@@ -149,7 +149,7 @@ function ValueRow({
         {flagged && <span style={{ marginLeft: 4, fontWeight: 800 }}>{flagSymbol(v.flag)}</span>}
       </div>
       {showUnit && <div style={{ padding: "1px 6px 1px 0", color: MUTED, overflowWrap: "anywhere" }}>{v.unit}</div>}
-      {showRange && <div style={{ padding: "1px 6px 1px 0", color: MUTED }}>{v.refText}</div>}
+      {showRange && <div style={{ padding: "1px 6px 1px 0", color: MUTED, whiteSpace: "pre-line" }}>{v.refText}</div>}
       {method != null && <div style={{ padding: "1px 6px 1px 0", color: MUTED }}>{method}</div>}
     </div>
   );
