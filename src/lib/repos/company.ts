@@ -9,6 +9,7 @@ import {
   isDateCalendar,
   type DateCalendar,
 } from "@/lib/calendar-view";
+import { isPercentDiscountMethod, type PercentDiscountMethod } from "@/lib/discount";
 
 /** a4_half is a full A4 sheet with the bill in its top half, so one sheet
  *  carries two bills and is cut once. It is not A5, which is a smaller sheet. */
@@ -223,5 +224,33 @@ export async function setModuleFlags(flags: ModuleFlags): Promise<void> {
       flags.lab ? 1 : 0,
       new Date().toISOString(),
     ],
+  });
+}
+
+// ============================================================
+// How a percentage bill discount becomes rupees (0036)
+//
+// Kept off the Company profile for the same reason as the floor size: the
+// Company form rewrites every column it knows about, and this setting has its
+// own card and its own save.
+// ============================================================
+
+/** The method the counter uses for a discount typed as a percentage. */
+export async function getPercentDiscountMethod(): Promise<PercentDiscountMethod> {
+  try {
+    const res = await db().execute("SELECT percent_discount_method FROM company WHERE id = 1");
+    const v = res.rows[0]?.percent_discount_method;
+    return isPercentDiscountMethod(v) ? v : "of_subtotal";
+  } catch {
+    // 0036 not applied yet on this database: the counter keeps the old method
+    // rather than failing to open
+    return "of_subtotal";
+  }
+}
+
+export async function setPercentDiscountMethod(method: PercentDiscountMethod): Promise<void> {
+  await db().execute({
+    sql: "UPDATE company SET percent_discount_method = ?, updated_at = ? WHERE id = 1",
+    args: [method, new Date().toISOString()],
   });
 }

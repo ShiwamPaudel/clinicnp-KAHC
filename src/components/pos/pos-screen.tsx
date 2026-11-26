@@ -243,6 +243,7 @@ export function PosScreen({ config }: { config: PosConfig }) {
         mode: s.billDiscountMode,
         amountPaisa: s.billDiscountPaisa,
         percent: s.billDiscountPercent,
+        method: config.percentDiscountMethod,
       },
       {
         vatRegistered: config.vatRegistered,

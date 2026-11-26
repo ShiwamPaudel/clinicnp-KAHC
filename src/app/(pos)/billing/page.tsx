@@ -1,5 +1,5 @@
 import { requirePermission, can } from "@/lib/session";
-import { getCompany } from "@/lib/repos/company";
+import { getCompany, getPercentDiscountMethod } from "@/lib/repos/company";
 import { adToIso, bsToDbText, formatBS, today } from "@/lib/bs";
 import { PosScreen } from "@/components/pos/pos-screen";
 import { getModules } from "@/lib/modules";
@@ -45,6 +45,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const prebooking = sp.prebooking ? await counterPrebooking(sp.prebooking) : null;
   const company = await getCompany();
+  const percentDiscountMethod = await getPercentDiscountMethod();
   const modules = await getModules();
   const bsToday = today();
 
@@ -52,6 +53,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
     appName: appNameFor(modules),
     vatRegistered: company.vatRegistered,
     roundingOn: company.roundingOn,
+    percentDiscountMethod,
     rackDisplay: company.rackDisplay,
     minRateIsCost: company.minRateIsCost,
     // patients and services at the counter: Clinic or Laboratory

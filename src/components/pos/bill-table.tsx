@@ -1,6 +1,7 @@
 "use client";
 
 import type { RackDisplay } from "@/lib/repos/company";
+import type { PercentDiscountMethod } from "@/lib/discount";
 import { useEffect, useRef, useState } from "react";
 import { Trash2, Layers, AlertTriangle } from "lucide-react";
 import { useBillStore, type AttachedPatient } from "@/stores/bill-store";
@@ -21,6 +22,8 @@ export interface PosConfig {
   appName: string;
   vatRegistered: boolean;
   roundingOn: boolean;
+  /** how a discount typed as a percentage becomes rupees (0036); absent = of the sub total */
+  percentDiscountMethod?: PercentDiscountMethod;
   /** whether the counter says where a medicine is kept, and how loudly */
   rackDisplay: RackDisplay;
   minRateIsCost: boolean;

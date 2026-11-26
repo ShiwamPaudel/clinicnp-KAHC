@@ -119,6 +119,7 @@ export const PaymentPane = forwardRef<
       mode: billDiscountMode,
       amountPaisa: billDiscountPaisa,
       percent: billDiscountPercent,
+      method: config.percentDiscountMethod,
     },
     {
       vatRegistered: config.vatRegistered,
@@ -227,7 +228,9 @@ export const PaymentPane = forwardRef<
             <span>
               {percentTooBig
                 ? "At most 100%"
-                : `${clampPercent(billDiscountPercent)}% of ${formatPaisa(totals.subtotalPaisa)}`}
+                : config.percentDiscountMethod === "inclusive"
+                  ? `x + ${clampPercent(billDiscountPercent)}% = ${formatPaisa(totals.subtotalPaisa)}`
+                  : `${clampPercent(billDiscountPercent)}% of ${formatPaisa(totals.subtotalPaisa)}`}
             </span>
             <span className="tnum">− {formatPaisa(totals.billDiscountPaisa)}</span>
           </div>

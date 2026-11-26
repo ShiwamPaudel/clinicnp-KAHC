@@ -7,7 +7,10 @@ import {
   getCompany,
   setModuleFlags,
   type ModuleFlags,
+  getPercentDiscountMethod,
+  setPercentDiscountMethod,
 } from "@/lib/repos/company";
+import { isPercentDiscountMethod } from "@/lib/discount";
 import { recordAudit } from "@/lib/repos/audit";
 import {
   closeYearAndOpenNext,
@@ -81,6 +84,27 @@ export async function saveCompanyAction(
   }
 }
 
+
+/**
+ * How a bill discount typed as a percentage becomes rupees (0036). Its own
+ * save, apart from the Company form; the counter reads it when it opens.
+ */
+export async function savePercentDiscountMethodAction(method: unknown): Promise<ActionResult> {
+  try {
+    const user = await assertPermission("settings.manage");
+    if (!isPercentDiscountMethod(method)) return fail("Choose how the percentage is taken.");
+    const before = await getPercentDiscountMethod();
+    if (before !== method) {
+      await setPercentDiscountMethod(method);
+      await recordAudit(user.id, "settings.percent_discount_method", { from: before, to: method });
+    }
+    revalidatePath("/settings/company");
+    revalidatePath("/billing");
+    return OK;
+  } catch (err) {
+    return handle(err);
+  }
+}
 
 export async function createUserAction(input: unknown): Promise<ActionResult> {
   try {

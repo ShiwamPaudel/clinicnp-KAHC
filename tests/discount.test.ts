@@ -85,3 +85,29 @@ describe("clampPercent", () => {
     expect(clampPercent(-1)).toBe(0);
   });
 });
+
+describe("the inclusive percentage (0036, owner 2083-08-10)", () => {
+  it("takes the sub total back to the net that, plus the percentage, makes it: x + 10% = 100", () => {
+    // 100.00 → net 90.91, discount 9.09
+    expect(resolveBillDiscount(10_000, "percent", 0, 10, "inclusive")).toBe(909);
+    // 4,000.00 at 10% → net 3,636.36, discount 363.64
+    expect(resolveBillDiscount(400_000, "percent", 0, 10, "inclusive")).toBe(36_364);
+    // net + its percentage is the sub total again, to the paisa
+    const net = 400_000 - 36_364;
+    expect(Math.round(net * 1.1)).toBe(400_000);
+  });
+
+  it("leaves rupees typed as they are, and 0% as no discount", () => {
+    expect(resolveBillDiscount(10_000, "amount", 500, 10, "inclusive")).toBe(500);
+    expect(resolveBillDiscount(10_000, "percent", 0, 0, "inclusive")).toBe(0);
+  });
+
+  it("is not used unless chosen: the default is still a percentage of the sub total", () => {
+    expect(resolveBillDiscount(10_000, "percent", 0, 10)).toBe(1_000);
+    const plain = { vatRegistered: false, roundingOn: false };
+    expect(counterTotals([], [service(10_000)], { mode: "percent", amountPaisa: 0, percent: 10 }, plain).totalPaisa).toBe(9_000);
+    expect(
+      counterTotals([], [service(10_000)], { mode: "percent", amountPaisa: 0, percent: 10, method: "inclusive" }, plain).totalPaisa,
+    ).toBe(9_091);
+  });
+});
