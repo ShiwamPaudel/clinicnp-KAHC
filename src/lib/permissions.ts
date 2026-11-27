@@ -91,9 +91,9 @@ export const PERMISSION_GROUPS = [
   {
     label: "Accounts",
     items: [
-      { key: "accounts.view", label: "See the books: ledgers, parties, aging, profit and loss, balance sheet", module: null },
-      { key: "accounts.post", label: "Enter and cancel vouchers (expenses, bank, payouts)", module: null },
-      { key: "accounts.setup", label: "Chart of accounts, other parties and opening balances", module: null },
+      { key: "accounts.view", label: "See the accounts: summary, daily list, who owes, profit and loss", module: null },
+      { key: "accounts.post", label: "Enter and cancel entries (expenses, money received, cash and bank)", module: null },
+      { key: "accounts.setup", label: "Account heads, people and companies, starting balances", module: null },
     ],
   },
   {

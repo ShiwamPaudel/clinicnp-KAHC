@@ -100,7 +100,7 @@ export function ChartManager({ accounts, canEdit, showBalances }: { accounts: Ro
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <label className="flex items-center gap-2 text-[13px] text-sage-600">
-          <input type="checkbox" checked={showOff} onChange={(e) => setShowOff(e.target.checked)} /> Show accounts that are switched off
+          <input type="checkbox" checked={showOff} onChange={(e) => setShowOff(e.target.checked)} /> Show account heads not in use
         </label>
         {canEdit && (
           <div className="flex gap-2">
@@ -113,7 +113,7 @@ export function ChartManager({ accounts, canEdit, showBalances }: { accounts: Ro
             <Button
               onClick={() => setDraft({ id: "", code: "", name: "", grp: "indirect_expense", segment: "", isBank: false, note: "", active: true, isSystem: false, inUse: false })}
             >
-              <Plus className="h-4 w-4" /> Add an account
+              <Plus className="h-4 w-4" /> Add an account head
             </Button>
           </div>
         )}
@@ -130,9 +130,9 @@ export function ChartManager({ accounts, canEdit, showBalances }: { accounts: Ro
                 <THead>
                   <TR>
                     <TH>Code</TH>
-                    <TH>Account</TH>
-                    <TH>Heading</TH>
-                    <TH>Part</TH>
+                    <TH>Account head</TH>
+                    <TH>Type</TH>
+                    <TH>Part of the clinic</TH>
                     {showBalances && <TH numeric>Balance today</TH>}
                     <TH> </TH>
                   </TR>
@@ -184,7 +184,7 @@ export function ChartManager({ accounts, canEdit, showBalances }: { accounts: Ro
         })}
       </div>
 
-      <Dialog open={draft !== null} onClose={() => setDraft(null)} title={draft?.id ? "Edit account" : "Add an account"}>
+      <Dialog open={draft !== null} onClose={() => setDraft(null)} title={draft?.id ? "Edit account head" : "Add an account head"}>
         {draft && (
           <div className="flex flex-col gap-4">
             {draft.isSystem && (
@@ -202,7 +202,7 @@ export function ChartManager({ accounts, canEdit, showBalances }: { accounts: Ro
             </div>
             {!draft.isSystem && (
               <>
-                <Field label="Heading" hint={draft.inUse ? "It already has entries, so it stays the same kind." : undefined}>
+                <Field label="Type" hint={draft.inUse ? "It already has entries, so it stays the same kind." : undefined}>
                   <Select value={draft.grp} onChange={(e) => set("grp", e.target.value)}>
                     {GROUPS.map(([k, g]) => (
                       <option key={k} value={k}>

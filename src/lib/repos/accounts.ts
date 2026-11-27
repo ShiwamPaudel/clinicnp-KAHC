@@ -132,9 +132,9 @@ export interface AccountInput {
 export async function saveAccount(input: AccountInput): Promise<string> {
   const code = input.code.trim();
   const name = input.name.trim();
-  if (!code) throw new AccountProblem("Give the account a code.");
-  if (!name) throw new AccountProblem("Give the account a name.");
-  if (!isAccountGroup(input.grp)) throw new AccountProblem("Choose where the account belongs.");
+  if (!code) throw new AccountProblem("Give the account head a code.");
+  if (!name) throw new AccountProblem("Give the account head a name.");
+  if (!isAccountGroup(input.grp)) throw new AccountProblem("Choose the account head's type.");
   const segment = input.segment === "pharmacy" || input.segment === "clinic" || input.segment === "lab" ? input.segment : null;
   const now = new Date().toISOString();
 
@@ -152,10 +152,10 @@ export async function saveAccount(input: AccountInput): Promise<string> {
 
   if (input.id) {
     const existing = await getAccount(input.id);
-    if (!existing) throw new AccountProblem("That account was not found.");
+    if (!existing) throw new AccountProblem("That account head was not found.");
     if (existing.systemKey) {
       // The app posts to it by itself: only its label and note may change.
-      if (!input.active) throw new AccountProblem("This account is used by the app itself and stays on.");
+      if (!input.active) throw new AccountProblem("This account head is filled by the app and stays in use.");
       await db().execute({
         sql: "UPDATE accounts SET code = ?, name = ?, note = ?, updated_at = ? WHERE id = ?",
         args: [code, name, input.note.trim(), now, input.id],
@@ -165,7 +165,7 @@ export async function saveAccount(input: AccountInput): Promise<string> {
     const grp = input.grp as AccountGroup;
     const kind = ACCOUNT_GROUPS[grp].kind;
     if (existing.inUse && kind !== existing.kind) {
-      throw new AccountProblem("This account already has entries, so it cannot move to a different kind of heading.");
+      throw new AccountProblem("This account head already has entries, so its type cannot change.");
     }
     await db().execute({
       sql: `UPDATE accounts SET code = ?, name = ?, kind = ?, grp = ?, segment = ?, is_bank = ?, note = ?, active = ?, updated_at = ?
@@ -188,7 +188,7 @@ export async function saveAccount(input: AccountInput): Promise<string> {
 export async function deleteAccount(id: string): Promise<void> {
   const a = await getAccount(id);
   if (!a) return;
-  if (a.inUse) throw new AccountProblem("This account has entries. Switch it off instead.");
+  if (a.inUse) throw new AccountProblem("This account head has entries. Untick In use instead.");
   await db().execute({ sql: "DELETE FROM accounts WHERE id = ? AND system_key IS NULL", args: [id] });
 }
 
@@ -260,20 +260,20 @@ export interface PartyInput {
 
 export async function saveParty(input: PartyInput): Promise<string> {
   const name = input.name.trim();
-  if (!name) throw new AccountProblem("Enter the party's name.");
+  if (!name) throw new AccountProblem("Enter the name.");
   const category = (PARTY_CATEGORIES as readonly string[]).includes(input.category) ? input.category : "other";
   const side = input.side === "debtor" ? "debtor" : "creditor";
   const now = new Date().toISOString();
   if (input.id) {
     const existing = await getParty(input.id);
-    if (!existing) throw new AccountProblem("That party was not found.");
+    if (!existing) throw new AccountProblem("That person or company was not found.");
     if (existing.side !== side) {
       const used = await db().execute({
         sql: "SELECT 1 FROM voucher_lines WHERE party_type = 'party' AND party_id = ? LIMIT 1",
         args: [input.id],
       });
       if (used.rows.length > 0) {
-        throw new AccountProblem("This party already has entries, so whether they owe or are owed cannot change.");
+        throw new AccountProblem("This person or company already has entries, so whether they owe or are owed cannot change.");
       }
     }
     await db().execute({

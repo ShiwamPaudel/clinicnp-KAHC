@@ -12,7 +12,6 @@ import { createVoucherAction } from "@/app/(app)/accounts/actions";
 import { formatPaisa, toPaisa } from "@/lib/money";
 import {
   PARTY_TYPE_LABEL,
-  VOUCHER_LABEL,
   voucherPartyTypes,
   type PartyType,
   type VoucherType,
@@ -54,10 +53,10 @@ const blankRow = (target = ""): Row => ({ key: nextKey++, target, amount: "", de
 const rupees = (s: string) => toPaisa(Number(s.replace(/,/g, "")) || 0);
 
 const HELP: Record<VoucherType, string> = {
-  payment: "Rent, salaries, bills, a doctor's payout, a loan repaid.",
-  receipt: "Capital, a loan, other income.",
+  payment: "Rent, salaries, tea and snacks, bills, a doctor's payout, a loan repaid.",
+  receipt: "Owner's money put in, a loan, other income.",
   contra: "Cash deposited, cash withdrawn, wallet money paid into the bank.",
-  journal: "Corrections, and moving opening balances to capital.",
+  journal: "Corrections between account heads, and moving starting balances to owner's money.",
   opening: "What the clinic owned and owed on its first day here.",
 };
 
@@ -171,7 +170,7 @@ export function VoucherForm({
     <Select value={r.target} onChange={(e) => setRow(r.key, { target: e.target.value })}>
       <option value="">Choose…</option>
       {partyChoices.length > 0 && (
-        <optgroup label="People">
+        <optgroup label="People and companies">
           {partyChoices.map((p) => (
             <option key={`${p.partyType}:${p.partyId}`} value={`p:${p.partyType}:${p.partyId}`}>
               {p.name} ({PARTY_TYPE_LABEL[p.partyType]})
@@ -179,7 +178,7 @@ export function VoucherForm({
           ))}
         </optgroup>
       )}
-      <optgroup label="Accounts">
+      <optgroup label="Account heads">
         {accountChoices.map((a) => (
           <option key={a.id} value={`a:${a.id}`}>
             {a.code} · {a.name}
@@ -231,7 +230,7 @@ export function VoucherForm({
           <div className="flex flex-col gap-3">
             {rows.map((r) => (
               <div key={r.key} className="grid items-end gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)_auto]">
-                <Field label={type === "payment" ? "Paid for" : type === "receipt" ? "Received for" : "Account or person"}>
+                <Field label={type === "payment" ? "Paid for" : type === "receipt" ? "Received for" : "Account head or person"}>
                   {targetSelect(r)}
                 </Field>
                 {type === "payment" || type === "receipt" ? (
@@ -243,10 +242,10 @@ export function VoucherForm({
                   </>
                 ) : (
                   <>
-                    <Field label={type === "opening" ? "Owned / owed to us" : "Debit (रू)"}>
+                    <Field label={type === "opening" ? "Owned / owed to us" : "In (रू)"}>
                       <Input numeric inputMode="decimal" value={r.debit} onChange={(e) => setRow(r.key, { debit: e.target.value, credit: "" })} />
                     </Field>
-                    <Field label={type === "opening" ? "Owed by us" : "Credit (रू)"}>
+                    <Field label={type === "opening" ? "Owed by us" : "Out (रू)"}>
                       <Input numeric inputMode="decimal" value={r.credit} onChange={(e) => setRow(r.key, { credit: e.target.value, debit: "" })} />
                     </Field>
                   </>
@@ -291,7 +290,7 @@ export function VoucherForm({
                 <>Total {formatPaisa(type === "payment" ? dr : cr)}</>
               ) : (
                 <>
-                  Debit {formatPaisa(dr)} · Credit {formatPaisa(cr)}
+                  {type === "opening" ? "Owned / owed to us" : "In"} {formatPaisa(dr)} · {type === "opening" ? "Owed by us" : "Out"} {formatPaisa(cr)}
                   {type === "journal" && dr !== cr && <span className="ml-2 font-semibold text-danger-600">Not equal yet</span>}
                   {type === "opening" && dr !== cr && (
                     <span className="ml-2 text-sage-500">Difference {formatPaisa(Math.abs(dr - cr))}</span>
@@ -308,7 +307,7 @@ export function VoucherForm({
         </div>
       )}
 
-      <Field label="Narration">
+      <Field label="Description">
         <Input value={narration} onChange={(e) => setNarration(e.target.value)} placeholder="What this was for" />
       </Field>
 
@@ -317,7 +316,7 @@ export function VoucherForm({
           {strings.cancel}
         </Button>
         <Button onClick={save} disabled={busy || dr + cr === 0}>
-          {busy ? "Saving…" : `Save ${VOUCHER_LABEL[type].toLowerCase()}`}
+          {busy ? "Saving…" : "Save entry"}
         </Button>
       </div>
     </div>

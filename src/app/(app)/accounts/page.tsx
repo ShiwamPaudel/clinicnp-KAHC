@@ -6,6 +6,7 @@ import { profitBetween } from "@/lib/repos/ledger";
 import { accountsAsOf } from "@/lib/accounts-range";
 import { formatPaisa } from "@/lib/money";
 import { cn } from "@/lib/cn";
+import { VOUCHER_LABEL } from "@/lib/accounting";
 
 export default async function AccountsOverviewPage() {
   const user = await requirePermission(["accounts.view", "accounts.post", "accounts.setup"]);
@@ -23,14 +24,14 @@ export default async function AccountsOverviewPage() {
         <p className="text-[13px] text-sage-500">{today.label}</p>
         {can(user, "accounts.post") && (
           <div className="flex flex-wrap gap-2">
-            {(["payment", "receipt", "contra", "journal"] as const).map((t) => (
+            {(["payment", "receipt", "contra"] as const).map((t) => (
               <Link
                 key={t}
                 href={`/accounts/vouchers/new?type=${t}`}
                 className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-line bg-cream-50 px-3 text-[13px] font-medium text-sage-900 hover:bg-cream-200"
               >
                 <Plus className="h-4 w-4" />
-                {t === "payment" ? "Pay an expense" : t === "receipt" ? "Receive money" : t === "contra" ? "Cash ↔ bank" : "Journal"}
+                {VOUCHER_LABEL[t]}
               </Link>
             ))}
           </div>
@@ -38,8 +39,8 @@ export default async function AccountsOverviewPage() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Tile label="Owed to the clinic" value={owedToUs} href="/accounts/aging?side=receivable" />
-        <Tile label="The clinic owes" value={weOwe} href="/accounts/aging?side=payable" />
+        <Tile label="Owed to the clinic" value={owedToUs} href="/accounts/parties?show=owed" />
+        <Tile label="The clinic owes" value={weOwe} href="/accounts/parties?show=owing" />
         <Tile label="Profit this fiscal year" value={profit} href="/accounts/profit-loss?preset=fy" strong />
       </div>
 

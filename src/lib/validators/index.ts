@@ -461,9 +461,9 @@ export const labPartnerPaymentSchema = z.object({
 
 export const accountSchema = z.object({
   id: z.string().optional(),
-  code: z.string().trim().min(1, "Give the account a code").max(12),
-  name: z.string().trim().min(1, "Give the account a name").max(80),
-  grp: z.string().min(1, "Choose where the account belongs"),
+  code: z.string().trim().min(1, "Give the account head a code").max(12),
+  name: z.string().trim().min(1, "Give the account head a name").max(80),
+  grp: z.string().min(1, "Choose the account head's type"),
   isBank: z.boolean(),
   segment: z.enum(["pharmacy", "clinic", "lab"]).nullable(),
   note: z.string().max(300),
@@ -472,7 +472,7 @@ export const accountSchema = z.object({
 
 export const partySchema = z.object({
   id: z.string().optional(),
-  name: z.string().trim().min(1, "Enter the party's name").max(120),
+  name: z.string().trim().min(1, "Enter the name").max(120),
   side: z.enum(["debtor", "creditor"]),
   category: z.string(),
   panNo: z.string().max(20),

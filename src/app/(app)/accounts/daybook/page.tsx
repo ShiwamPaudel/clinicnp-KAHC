@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requirePermission } from "@/lib/session";
 import { dayBookLines } from "@/lib/repos/ledger";
 import { accountsRange } from "@/lib/accounts-range";
-import { amountOrBlank, bsOf, partyHref, SOURCE_LABEL } from "@/lib/accounts-view";
+import { amountOrBlank, bsOf, MIXED_SIDES, partyHref, SOURCE_LABEL } from "@/lib/accounts-view";
 import { formatPaisa } from "@/lib/money";
 import { RangeBar } from "@/components/accounts/range-bar";
 import { Statement } from "@/components/accounts/statement";
@@ -36,7 +36,7 @@ export default async function DayBookPage({
 
   return (
     <Statement
-      title="Day book"
+      title="Daily list"
       actions={<ExportLink report="daybook" />}
       period={range.label}
       controls={<RangeBar preset={range.preset} fromBs={range.fromBs} toBs={range.toBs} label={range.label} />}
@@ -49,10 +49,10 @@ export default async function DayBookPage({
             <TR>
               <TH>Date</TH>
               <TH>What</TH>
-              <TH>Account</TH>
+              <TH>Account head</TH>
               <TH>Detail</TH>
-              <TH numeric>Debit</TH>
-              <TH numeric>Credit</TH>
+              <TH numeric>{MIXED_SIDES[0]}</TH>
+              <TH numeric>{MIXED_SIDES[1]}</TH>
             </TR>
           </THead>
           <tbody>

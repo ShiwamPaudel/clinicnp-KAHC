@@ -56,21 +56,21 @@ export default async function VouchersPage({
             href={`/accounts/vouchers/new?type=${type && type !== "opening" ? type : "payment"}`}
             className="inline-flex h-10 items-center gap-1.5 rounded-[8px] bg-sage-700 px-4 text-[14px] font-medium text-cream-50 hover:bg-sage-600"
           >
-            <Plus className="h-4 w-4" /> New voucher
+            <Plus className="h-4 w-4" /> New entry
           </Link>
         )}
       </div>
       {rows.length === 0 ? (
-        <EmptyState icon={ReceiptText} message="No vouchers in this period. Bills, purchases and payments go into the books by themselves." />
+        <EmptyState icon={ReceiptText} message="No entries in this period. Bills, purchases and payments go into the books by themselves." />
       ) : (
         <Table>
           <THead>
             <TR>
               <TH>Number</TH>
               <TH>Date</TH>
-              <TH>Kind</TH>
+              <TH>Type</TH>
               <TH>Accounts and people</TH>
-              <TH>Narration</TH>
+              <TH>Description</TH>
               <TH numeric>Amount</TH>
             </TR>
           </THead>

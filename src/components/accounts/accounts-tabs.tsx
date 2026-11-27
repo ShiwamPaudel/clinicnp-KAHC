@@ -6,17 +6,17 @@ import { Header } from "@/components/app/header";
 import { cn } from "@/lib/cn";
 import type { Permission } from "@/lib/permissions";
 
+// Basic accounting (owner, 2083-08-11): six tabs in plain words. Aging, Trial
+// balance, Balance sheet and Checks are hidden, not deleted: their pages still
+// open by address (/accounts/aging, /accounts/trial-balance,
+// /accounts/balance-sheet, /accounts/checks), and a line here brings one back.
 const TABS: { href: string; label: string; perm: Permission[]; exact?: boolean }[] = [
-  { href: "/accounts", label: "Overview", perm: ["accounts.view"], exact: true },
-  { href: "/accounts/vouchers", label: "Vouchers", perm: ["accounts.view", "accounts.post"] },
-  { href: "/accounts/daybook", label: "Day book", perm: ["accounts.view"] },
-  { href: "/accounts/parties", label: "Parties", perm: ["accounts.view", "accounts.setup"] },
-  { href: "/accounts/aging", label: "Aging", perm: ["accounts.view"] },
-  { href: "/accounts/trial-balance", label: "Trial balance", perm: ["accounts.view"] },
+  { href: "/accounts", label: "Summary", perm: ["accounts.view"], exact: true },
+  { href: "/accounts/vouchers", label: "Entries", perm: ["accounts.view", "accounts.post"] },
+  { href: "/accounts/daybook", label: "Daily list", perm: ["accounts.view"] },
+  { href: "/accounts/parties", label: "Who owes", perm: ["accounts.view", "accounts.setup"] },
   { href: "/accounts/profit-loss", label: "Profit and loss", perm: ["accounts.view"] },
-  { href: "/accounts/balance-sheet", label: "Balance sheet", perm: ["accounts.view"] },
-  { href: "/accounts/chart", label: "Chart of accounts", perm: ["accounts.view", "accounts.setup"] },
-  { href: "/accounts/checks", label: "Checks", perm: ["accounts.view"] },
+  { href: "/accounts/chart", label: "Account heads", perm: ["accounts.view", "accounts.setup"] },
 ];
 
 /** The Accounts tab strip. Each tab shows only to a role that may open it. */

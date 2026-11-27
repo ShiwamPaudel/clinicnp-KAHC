@@ -98,10 +98,10 @@ export default async function ProfitLossPage({
         <tbody>
           {section("Sales and services", pl.directIncome)}
           {section("Direct costs", pl.directExpense)}
-          {totalRow("Gross profit", pl.grossProfit)}
+          {totalRow("Profit before running costs", pl.grossProfit)}
           {section("Other income", pl.indirectIncome)}
           {section("Running costs", pl.indirectExpense)}
-          {totalRow(pl.netProfit.total >= 0 ? "Net profit" : "Net loss", pl.netProfit, true)}
+          {totalRow(pl.netProfit.total >= 0 ? "Profit" : "Loss", pl.netProfit, true)}
         </tbody>
       </Table>
     </Statement>

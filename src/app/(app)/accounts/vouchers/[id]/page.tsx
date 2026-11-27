@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { requirePermission, can } from "@/lib/session";
 import { getVoucher } from "@/lib/repos/accounts";
 import { VOUCHER_LABEL } from "@/lib/accounting";
-import { amountOrBlank, partyHref } from "@/lib/accounts-view";
+import { amountOrBlank, MIXED_SIDES, partyHref } from "@/lib/accounts-view";
 import { formatPaisa } from "@/lib/money";
 import { Statement } from "@/components/accounts/statement";
 import { CancelVoucher } from "@/components/accounts/cancel-voucher";
@@ -23,7 +23,7 @@ export default async function VoucherPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <Link href="/accounts/vouchers" className="no-print mb-3 inline-flex items-center gap-1.5 text-[13px] text-sage-500 hover:text-sage-700">
-        <ArrowLeft className="h-4 w-4" /> All vouchers
+        <ArrowLeft className="h-4 w-4" /> All entries
       </Link>
       <Statement
         title={`${VOUCHER_LABEL[v.type]} ${v.voucherNo}`}
@@ -48,8 +48,8 @@ export default async function VoucherPage({ params }: { params: Promise<{ id: st
               <TH>Account</TH>
               <TH>Person</TH>
               <TH>Note</TH>
-              <TH numeric>Debit</TH>
-              <TH numeric>Credit</TH>
+              <TH numeric>{MIXED_SIDES[0]}</TH>
+              <TH numeric>{MIXED_SIDES[1]}</TH>
             </TR>
           </THead>
           <tbody>
@@ -86,7 +86,7 @@ export default async function VoucherPage({ params }: { params: Promise<{ id: st
             </TR>
           </tbody>
         </Table>
-        {v.narration && <p className="mt-3 text-[14px] text-sage-700">Narration: {v.narration}</p>}
+        {v.narration && <p className="mt-3 text-[14px] text-sage-700">Description: {v.narration}</p>}
         <div className="print-only mt-16 grid grid-cols-3 gap-8 text-center text-[11px]">
           <div className="border-t border-black pt-1">Prepared by</div>
           <div className="border-t border-black pt-1">Checked by</div>

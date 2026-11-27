@@ -5,7 +5,7 @@ import { getAccount } from "@/lib/repos/accounts";
 import { accountLines, accountTotals, DAWN, dayBefore } from "@/lib/repos/ledger";
 import { fiscalYearStartOf } from "@/lib/repos/ledger-reports";
 import { accountsRange } from "@/lib/accounts-range";
-import { amountOrBlank, bsOf, drCr, partyHref, SOURCE_LABEL } from "@/lib/accounts-view";
+import { accountSides, amountOrBlank, bsOf, partyHref, plainBalance, SOURCE_LABEL } from "@/lib/accounts-view";
 import { ACCOUNT_GROUPS } from "@/lib/accounting";
 import { formatPaisa } from "@/lib/money";
 import { RangeBar } from "@/components/accounts/range-bar";
@@ -41,7 +41,9 @@ export default async function AccountLedgerPage({
   });
   const dr = lines.reduce((s, l) => s + l.drPaisa, 0);
   const cr = lines.reduce((s, l) => s + l.crPaisa, 0);
-  const title = account.grp === "cash_bank" ? `${account.name}: cash and bank book` : `${account.name}: ledger`;
+  const title = account.grp === "cash_bank" ? `${account.name}: cash and bank book` : `${account.name}: history`;
+  const [sideIn, sideOut] = accountSides(account.kind, account.grp);
+  const bal = (paisa: number) => plainBalance(paisa, account.kind);
 
   return (
     <Statement
@@ -60,19 +62,19 @@ export default async function AccountLedgerPage({
             <TH>Date</TH>
             <TH>What</TH>
             <TH>Detail</TH>
-            <TH numeric>Debit</TH>
-            <TH numeric>Credit</TH>
+            <TH numeric>{sideIn}</TH>
+            <TH numeric>{sideOut}</TH>
             <TH numeric>Balance</TH>
           </TR>
         </THead>
         <tbody>
           <TR className="bg-cream-100">
             <TD>{range.fromBs}</TD>
-            <TD className="font-medium">Opening balance</TD>
+            <TD className="font-medium">Balance at start</TD>
             <TD> </TD>
             <TD numeric> </TD>
             <TD numeric> </TD>
-            <TD numeric className="font-medium">{drCr(opening)}</TD>
+            <TD numeric className="font-medium">{bal(opening)}</TD>
           </TR>
           {rows.map((l, i) => (
             <TR key={i}>
@@ -93,16 +95,16 @@ export default async function AccountLedgerPage({
               </TD>
               <TD numeric>{amountOrBlank(l.drPaisa)}</TD>
               <TD numeric>{amountOrBlank(l.crPaisa)}</TD>
-              <TD numeric>{drCr(l.running)}</TD>
+              <TD numeric>{bal(l.running)}</TD>
             </TR>
           ))}
           <TR className="bg-sage-75 font-semibold">
             <TD> </TD>
-            <TD>Closing balance</TD>
+            <TD>Balance at end</TD>
             <TD> </TD>
             <TD numeric>{formatPaisa(dr, false)}</TD>
             <TD numeric>{formatPaisa(cr, false)}</TD>
-            <TD numeric>{drCr(running)}</TD>
+            <TD numeric>{bal(running)}</TD>
           </TR>
         </tbody>
       </Table>

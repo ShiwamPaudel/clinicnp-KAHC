@@ -77,9 +77,27 @@ by hand. A voucher dated in a closed year is refused.
 
 ## Screens and permissions
 
-`/accounts` — Overview, Vouchers, Day book, Parties, Aging, Trial balance,
-Profit and loss (Pharmacy / Clinic / Laboratory / Whole clinic), Balance
-sheet, Chart of accounts, Checks. Ledgers at `/accounts/ledger/[account]`
+**Basic accounting (owner, 2083-08-11, D-230).** `/accounts` shows six tabs
+in plain words: **Summary** (`/accounts`), **Entries** (`/accounts/vouchers`),
+**Daily list** (day book), **Who owes** (parties), **Profit and loss**
+(Pharmacy / Clinic / Laboratory / Whole clinic), **Account heads** (chart of
+accounts). Aging, Trial balance, Balance sheet and Checks are **hidden, not
+deleted**: no tab or link, but each page still opens by its address and a line
+in `accounts-tabs.tsx` brings it back.
+
+On screen a voucher is an **entry**: Payment → **Expense**, Receipt → **Money
+received**, Contra → **Cash ↔ bank**, Journal → **Adjustment**, Opening balance
+→ **Starting balances**; Narration → Description; a party → a person or
+company. Debit / Credit read as what the money did (`lib/accounts-view.ts`):
+one account's history says Money in / Money out (cash and bank), Spent /
+Taken back (an expense head), Taken back / Earned (an income head); a person's
+statement says Owed / Paid and a balance "to receive" or "to pay"; screens
+that mix accounts (an entry, the Daily list, an Adjustment) say In / Out.
+Balances carry no Dr / Cr: an account's own way round, with a minus when
+turned. The Excel downloads keep Debit / Credit for whoever keeps the books.
+The code, routes and tables keep their names (vouchers, parties, ledger).
+
+Pages: Ledgers at `/accounts/ledger/[account]`
 (cash book and bank book included), statements at
 `/accounts/parties/[type]/[id]`. Every statement prints and the main ones
 download to Excel (`/api/accounts-export/*`).

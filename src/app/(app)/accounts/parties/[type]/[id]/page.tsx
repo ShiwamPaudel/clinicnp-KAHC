@@ -5,7 +5,8 @@ import { partyLines, partyBalanceAt, partyMovements, dayBefore, partyDisplayName
 import { listDuePeople } from "@/lib/repos/dues";
 import { accountsRange, accountsAsOf } from "@/lib/accounts-range";
 import { ageItems, AGING_BUCKETS, isPartyType, openItemsOldestFirst, PARTY_TYPE_LABEL, type PartyType } from "@/lib/accounting";
-import { amountOrBlank, bsOf, drCr, SOURCE_LABEL } from "@/lib/accounts-view";
+import { amountOrBlank, bsOf, partyBalance, partySides, SOURCE_LABEL } from "@/lib/accounts-view";
+import { listParties } from "@/lib/repos/accounts";
 import { formatPaisa } from "@/lib/money";
 import { RangeBar } from "@/components/accounts/range-bar";
 import { Statement } from "@/components/accounts/statement";
@@ -70,6 +71,11 @@ export default async function PartyStatementPage({
     }
   }
   const aged = ageItems(open, today.iso);
+  // Patients and customers owe the clinic; suppliers, laboratories and
+  // doctors are owed by it; another person or company as it was set up.
+  const clinicIsOwed =
+    type === "patient" || type === "walkin" || (type === "party" && (await listParties()).find((x) => x.id === id)?.side === "debtor");
+  const [sideDr, sideCr] = partySides(clinicIsOwed);
   const pay = can(user, ["accounts.post", "dues.collect", "suppliers.manage", "reports.all"]) ? payHere(type, id) : null;
 
   return (
@@ -97,19 +103,19 @@ export default async function PartyStatementPage({
             <TH>Date</TH>
             <TH>What</TH>
             <TH>Detail</TH>
-            <TH numeric>Debit</TH>
-            <TH numeric>Credit</TH>
+            <TH numeric>{sideDr}</TH>
+            <TH numeric>{sideCr}</TH>
             <TH numeric>Balance</TH>
           </TR>
         </THead>
         <tbody>
           <TR className="bg-cream-100">
             <TD>{range.fromBs}</TD>
-            <TD className="font-medium">Opening balance</TD>
+            <TD className="font-medium">Balance at start</TD>
             <TD> </TD>
             <TD numeric> </TD>
             <TD numeric> </TD>
-            <TD numeric className="font-medium">{drCr(opening)}</TD>
+            <TD numeric className="font-medium">{partyBalance(opening)}</TD>
           </TR>
           {rows.map((l, i) => (
             <TR key={i}>
@@ -123,24 +129,24 @@ export default async function PartyStatementPage({
               <TD className="text-[13px] text-sage-600">{l.narration}</TD>
               <TD numeric>{amountOrBlank(l.drPaisa)}</TD>
               <TD numeric>{amountOrBlank(l.crPaisa)}</TD>
-              <TD numeric>{drCr(l.running)}</TD>
+              <TD numeric>{partyBalance(l.running)}</TD>
             </TR>
           ))}
           <TR className="bg-sage-75 font-semibold">
             <TD> </TD>
-            <TD>Closing balance</TD>
+            <TD>Balance at end</TD>
             <TD> </TD>
             <TD numeric>{formatPaisa(lines.reduce((s, l) => s + l.drPaisa, 0), false)}</TD>
             <TD numeric>{formatPaisa(lines.reduce((s, l) => s + l.crPaisa, 0), false)}</TD>
-            <TD numeric>{drCr(running)}</TD>
+            <TD numeric>{partyBalance(running)}</TD>
           </TR>
         </tbody>
       </Table>
 
-      <h3 className="mb-2 mt-6 text-[14px] font-semibold text-sage-900">Open bills today, by age</h3>
+      <h3 className="mb-2 mt-6 text-[14px] font-semibold text-sage-900">Unpaid bills today</h3>
       {open.length === 0 ? (
         <p className="text-[13px] text-sage-500">
-          Nothing is open.{advance !== 0 && ` ${formatPaisa(Math.abs(advance))} has been paid ahead.`}
+          Nothing is owed.{advance !== 0 && ` ${formatPaisa(Math.abs(advance))} has been paid ahead.`}
         </p>
       ) : (
         <>
@@ -150,7 +156,7 @@ export default async function PartyStatementPage({
                 <TH>Bill</TH>
                 <TH>Date</TH>
                 <TH numeric>Days</TH>
-                <TH numeric>Still open</TH>
+                <TH numeric>Still owed</TH>
               </TR>
             </THead>
             <tbody>

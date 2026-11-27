@@ -66,12 +66,12 @@ export function PartiesManager({ parties, canEdit }: { parties: PartyRow[]; canE
       {canEdit && (
         <div className="mb-3 flex justify-end">
           <Button onClick={() => setEditing({ ...EMPTY })}>
-            <Plus className="h-4 w-4" /> Add a party
+            <Plus className="h-4 w-4" /> Add a person or company
           </Button>
         </div>
       )}
       {parties.length === 0 ? (
-        <EmptyState icon={Users} message="No other parties yet." />
+        <EmptyState icon={Users} message="No people or companies added yet." />
       ) : (
         <Table>
           <THead>
@@ -112,7 +112,7 @@ export function PartiesManager({ parties, canEdit }: { parties: PartyRow[]; canE
         </Table>
       )}
 
-      <Dialog open={editing !== null} onClose={() => setEditing(null)} title={editing?.id ? "Edit party" : "Add a party"}>
+      <Dialog open={editing !== null} onClose={() => setEditing(null)} title={editing?.id ? "Edit person or company" : "Add a person or company"}>
         {editing && (
           <div className="flex flex-col gap-4">
             <Field label="Name">

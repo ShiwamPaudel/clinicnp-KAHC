@@ -11,9 +11,9 @@ export type AccountKind = "asset" | "liability" | "equity" | "income" | "expense
 export const ACCOUNT_KINDS: readonly AccountKind[] = ["asset", "liability", "equity", "income", "expense"];
 
 export const KIND_LABEL: Record<AccountKind, string> = {
-  asset: "Assets",
-  liability: "Liabilities",
-  equity: "Capital",
+  asset: "What the clinic owns",
+  liability: "What the clinic owes",
+  equity: "Owner's money",
   income: "Income",
   expense: "Expenses",
 };
@@ -23,13 +23,13 @@ export const ACCOUNT_GROUPS = {
   cash_bank: { label: "Cash and bank", kind: "asset" },
   receivable: { label: "Money owed to the clinic", kind: "asset" },
   stock: { label: "Stock", kind: "asset" },
-  current_asset: { label: "Other current assets", kind: "asset" },
-  fixed_asset: { label: "Fixed assets", kind: "asset" },
+  current_asset: { label: "Other things the clinic owns", kind: "asset" },
+  fixed_asset: { label: "Equipment, furniture and buildings", kind: "asset" },
   payable: { label: "Money the clinic owes", kind: "liability" },
   duty_tax: { label: "Taxes", kind: "liability" },
   loan: { label: "Loans", kind: "liability" },
-  current_liability: { label: "Other liabilities", kind: "liability" },
-  capital: { label: "Capital", kind: "equity" },
+  current_liability: { label: "Other amounts the clinic owes", kind: "liability" },
+  capital: { label: "Owner's money", kind: "equity" },
   direct_income: { label: "Sales and services", kind: "income" },
   indirect_income: { label: "Other income", kind: "income" },
   direct_expense: { label: "Direct costs", kind: "expense" },
@@ -77,12 +77,13 @@ export type VoucherType = "receipt" | "payment" | "contra" | "journal" | "openin
 
 export const VOUCHER_TYPES: readonly VoucherType[] = ["payment", "receipt", "contra", "journal", "opening"];
 
+/** What each kind of entry is called on screen: plain words (owner, 2083-08-11). */
 export const VOUCHER_LABEL: Record<VoucherType, string> = {
-  payment: "Payment",
-  receipt: "Receipt",
-  contra: "Cash and bank transfer",
-  journal: "Journal",
-  opening: "Opening balance",
+  payment: "Expense",
+  receipt: "Money received",
+  contra: "Cash ↔ bank",
+  journal: "Adjustment",
+  opening: "Starting balances",
 };
 
 export const VOUCHER_PREFIX: Record<VoucherType, string> = {
@@ -111,7 +112,7 @@ export const PARTY_TYPE_LABEL: Record<PartyType, string> = {
   supplier: "Supplier",
   lab_partner: "Outside laboratory",
   doctor: "Doctor",
-  party: "Other party",
+  party: "Other",
 };
 
 export function isPartyType(v: unknown): v is PartyType {
@@ -192,7 +193,7 @@ export function checkVoucher(
 ): number {
   const used = lines.filter((l) => l.debitPaisa !== 0 || l.creditPaisa !== 0);
   if (used.length < (type === "opening" ? 1 : 2)) {
-    throw new VoucherProblem(type === "opening" ? "Enter at least one balance." : "A voucher needs at least two lines.");
+    throw new VoucherProblem(type === "opening" ? "Enter at least one balance." : "An entry needs at least two lines.");
   }
   let dr = 0;
   let cr = 0;
@@ -214,8 +215,8 @@ export function checkVoucher(
       if (!l.partyType || !l.partyId || !allowedParties.includes(l.partyType)) {
         throw new VoucherProblem(
           type === "opening"
-            ? "Choose a supplier, laboratory, doctor or other party."
-            : "Payments to suppliers and laboratories are recorded on their own pages. Choose a doctor or another party.",
+            ? "Choose a supplier, laboratory, doctor or another person or company."
+            : "Payments to suppliers and laboratories are recorded on their own pages. Choose a doctor or another person or company.",
         );
       }
       if (partyAccount(l.partyType, l.partyId) !== l.accountId) {
@@ -229,7 +230,7 @@ export function checkVoucher(
   }
   if (dr === 0 && cr === 0) throw new VoucherProblem("Enter an amount.");
   if (type !== "opening" && dr !== cr) {
-    throw new VoucherProblem("Both sides must add up to the same amount.");
+    throw new VoucherProblem("In and Out must add up to the same amount.");
   }
 
   const accs = used.map((l) => ({ l, a: accountById(l.accountId)! }));
@@ -247,7 +248,7 @@ export function checkVoucher(
     }
   } else if (type === "opening") {
     if (accs.some(({ a }) => a.kind === "income" || a.kind === "expense")) {
-      throw new VoucherProblem("Opening balances are for what the clinic owns and owes, not income or expenses.");
+      throw new VoucherProblem("Starting balances are for what the clinic owns and owes, not income or expenses.");
     }
   }
   return Math.max(dr, cr);

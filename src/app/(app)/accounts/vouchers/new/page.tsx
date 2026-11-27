@@ -34,7 +34,7 @@ export default async function NewVoucherPage({
           </Link>
         ))}
       </div>
-      <h2 className="text-[16px] font-semibold text-sage-900">New {VOUCHER_LABEL[type].toLowerCase()}</h2>
+      <h2 className="text-[16px] font-semibold text-sage-900">New entry: {VOUCHER_LABEL[type]}</h2>
       <VoucherForm
         key={type}
         type={type}

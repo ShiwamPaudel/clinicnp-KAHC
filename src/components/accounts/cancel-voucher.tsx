@@ -33,9 +33,9 @@ export function CancelVoucher({ id }: { id: string }) {
   return (
     <>
       <Button variant="secondary" onClick={() => setOpen(true)}>
-        Cancel voucher
+        Cancel entry
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Cancel this voucher?">
+      <Dialog open={open} onClose={() => setOpen(false)} title="Cancel this entry?">
         <p className="mb-4 text-[14px] text-sage-700">
           It is reversed today and kept, marked cancelled.
         </p>
@@ -47,7 +47,7 @@ export function CancelVoucher({ id }: { id: string }) {
             Keep it
           </Button>
           <Button variant="destructive" onClick={go} disabled={busy || !reason.trim()}>
-            {busy ? "Cancelling…" : "Cancel voucher"}
+            {busy ? "Cancelling…" : "Cancel entry"}
           </Button>
         </div>
       </Dialog>

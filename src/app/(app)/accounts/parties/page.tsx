@@ -26,7 +26,7 @@ export default async function PartiesPage({ searchParams }: { searchParams: Prom
   return (
     <div className="flex flex-col gap-8">
       {can(user, "accounts.view") && (
-        <Statement title="Party balances" period={today.label}>
+        <Statement title="Who owes" period={today.label}>
           <div className="no-print mb-3 flex gap-1.5">
             {(
               [
@@ -54,7 +54,7 @@ export default async function PartiesPage({ searchParams }: { searchParams: Prom
               {byType.map((g) => (
                 <section key={g.t}>
                   <h3 className="mb-2 text-[14px] font-semibold text-sage-900">
-                    {g.t === "walkin" ? "Customers on dues (not registered)" : `${PARTY_TYPE_LABEL[g.t]}s`}
+                    {g.t === "walkin" ? "Customers on dues (not registered)" : g.t === "party" ? "Other people and companies" : `${PARTY_TYPE_LABEL[g.t]}s`}
                   </h3>
                   <Table>
                     <THead>
@@ -86,7 +86,7 @@ export default async function PartiesPage({ searchParams }: { searchParams: Prom
       )}
 
       <section className="no-print">
-        <h2 className="mb-1 text-[16px] font-semibold text-sage-900">Other parties</h2>
+        <h2 className="mb-1 text-[16px] font-semibold text-sage-900">Other people and companies</h2>
         <PartiesManager parties={parties} canEdit={can(user, "accounts.setup")} />
       </section>
     </div>
