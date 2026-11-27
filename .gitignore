@@ -33,3 +33,6 @@ KAHC - ClinicNP User Manual.pdf
 
 # local database backups (patient data): never committed
 /.backups/
+
+# the owner's sample report files (other labs' reports with patients' names): never committed
+/test_folder/

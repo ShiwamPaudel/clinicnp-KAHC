@@ -68,6 +68,7 @@
 - 2083-08-07 C-036: typecheck clean, **59 files / 624 tests** green.
 - 2083-08-08 C-037: typecheck clean, **60 files / 633 tests** green, `pnpm build` passes on a scratch DB.
 - 2083-08-09: **0032 applied to KAHC** (owner allowed it; 32 migrations). Deploy this code only with 0032 in place: saving results writes `lab_orders.received_at`.
+- 2083-08-11 C-043: typecheck clean, **66 files / 677 tests** green; 17 tests and 2 profiles from the owner's test_folder files on live (D-229), notes print their line breaks, note limit 2,000. No migration. **Deploy the code** for the notes' line breaks and the Iron note's length (1,044) to save from the test editor.
 - 2083-08-09 C-042: typecheck clean, **66 files / 669 tests** green, `pnpm build` passes; one note per profile / department (D-222); duplicate Whole Body service deleted on live (D-223). No migration.
 - 2083-08-09 C-041: typecheck clean, **65 files / 664 tests** green, `pnpm build` passes; **0035 applied to KAHC**; formulas, defaults and Stool on live (D-220); follow-up booking (D-221).
 - 2083-08-09 C-040: the live lab catalogue now holds 53 tests, 10 profiles and the Whole Body Checkup package (D-219); no code change.
@@ -359,6 +360,7 @@
 | D-226 | **The report's footer (signatures, page note, footer image) sits at the foot of every printed page, the last one too.** Printed, a copy fixed at the bottom of each page is drawn; the table footer stays as an invisible spacer of the same height so results never run under it. On screen it shows once after the results | Owner, 2083-08-09: "the footer must stay at the last of the page, even though it is a last page". |
 | D-227 | **How a bill discount typed as a percentage becomes rupees is a setting** (0036 `company.percent_discount_method`, Settings → Company → "Bill discount in percent", its own card and save, audit `settings.percent_discount_method`). **of_subtotal** (default, as before): 10% of 4,000 = 400. **inclusive**: the net plus the percentage makes the sub total, x + 10% = 4,000, so net = round(4,000 ÷ 1.10) = 3,636.36 and discount 363.64. Only the counter's percentage changes (`resolveBillDiscount`, `counterTotals`); a discount typed in rupees, the server, the bill and the purchase form are unchanged (the bill still stores and prints the rupee discount). The counter's hint reads "x + 10% = रू 4,000.00" under the new method. If 0036 is not yet on a database the counter keeps the old method rather than failing | Owner, 2083-08-10: "the discount of 10% isn't applied on the sub total … x + 10% = 100 … make this configurable from settings, so the current functionality stays … don't change anything else". 0036 applied to live 2026-11-26 after backup `.backups/kahc-before-0036-2026-11-26T12-34-21-698Z.json.gz`; live is on of_subtotal until switched. Checked on a local copy: 400.00 vs 363.64 at the counter; the saved bill stored 36,364 paisa discount, total 3,636.36, printed with words. |
 | D-228 | **A reference range printed as text can take several lines** (`range-editor.tsx`): the "Print as (optional)", "Reference, as printed" and gender/age "Print as" boxes are multi-line (Enter starts a new line; the box grows). The report, Result entry and Approval keep the line breaks. Storage, the save rules and the 200-character limit are unchanged; no migration. A result keeps the range copied when its values were saved, so a change shows on results saved after it | Owner, 2083-08-10: "the option 'Print as (optional)' sometimes the reference ranges are to be entered and typed, meaning have to be multiple line". Checked on a local copy: a three-line Vitamin D range saved with its line breaks and printed as three lines in the Reference range column. |
+| D-229 | **Tests and profiles from the owner's report files** (`test_folder/`, 11 xlsx + 1 docx, not committed: other labs' reports with patients' names). New, all Rs 0, billed on their own: profile **Apolipoprotein A1 & B, Serum** (`apo`: Apo A1 `≥ 120`, Apo B five bands, Apo B/A1 Ratio `{apob} / {apoa1}` 2 decimals, Calculated) and **Iron Profile** (`iron`: Total Iron, Total Iron Binding Capacity, Ferritin, Transferrin Saturation, typed not worked out, as in the file); single GGT, Glucose Random, ESR, HbA1c, CRP Quantitative, Vitamin B12 (Cyanocobalamin), Tacrolimus, H. Pylori Stool Antigen (Rapid), VDRL, RA Factor Quantitative. **VDRL added to Serology Test** (so the Whole Body Checkup holds it). Triglyceride's note gains the NCEP ATP III table above the fasting line. Owner's choices: names Title Case, spelling fixed, units as the catalogue (mg/dL, µg/dL); range words Title Case, numbers / symbols / line breaks as printed; "< 7.0" fixed to "< 0.7"; B12 label and number joined with ": "; a gender range (ESR `M( 0-9),F( 0-20)`, GGT `M: 0 to 55 - F :0 to 38`) prints whole for everyone and flags by gender (override text = the whole line); banded ranges (Apo B, ratio, HbA1c, B12) print only, no L/H; plain ranges flag. Departments: Biochemistry (Apo, Iron, GGT, Glucose Random), Hematology (ESR), Immunology (HbA1c, CRP, B12, Tacrolimus), Serology (H. Pylori stool, VDRL, RA quantitative). The CBC in `ra factor quantitative.xlsx` (shifted ranges) was **not** used. **Notes print with their line breaks** (`report-sheet.tsx`, pre-line) and the test note limit is 2,000 (the Iron note is 1,044) | Owner, 2083-08-11: "include those in the system if not already, exactly as it is … multi-lined, add it exactly how it is"; each choice above answered in this session. Backup `.backups/kahc-before-lab-tests-from-files-2026-11-27T12-55-07-585Z.json.gz`. |
 *(Add D-036+ as they happen. Assumptions use the `ASSUMPTION:` prefix.)*
 
 ---
@@ -1235,3 +1237,18 @@ Lipid note saved on its last test (LDL/HDL Ratio) and came back after a
 reload; the printed report showed "Note: …" once after LDL/HDL Ratio, and the
 urine note after Crystal.
 
+
+### C-043  ·  2083-08-11  ·  Tests and profiles from the owner's report files
+
+17 tests, 2 profiles, VDRL into Serology Test and the NCEP table on the lipid
+note, from `test_folder/` (D-229). Already there and left as they were: Lipid
+Profile, Glucose Fasting / PP, RA Factor, Anti-HCV, HIV, HBsAg, CBC. Entered
+through `saveTest` / `saveProfile` with audit entries under admin by a
+temporary vitest file (deleted): a backup, a local copy rebuilt from it where
+both bills were printed and checked in Chromium (bands on their lines, the
+gender line whole, ESR H for a man and not a woman, GGT H for a woman, VDRL
+under Serology Test in the package, notes on their lines), then live with a
+fresh backup first. **Live:** tests 59 → 76, profiles 14, services +19,
+audit +21, `PRAGMA foreign_key_check` clean. Code: notes keep line breaks on
+the report, note limit 2,000, a report test for it.
+**Verified:** typecheck; full suite 677; every field read back from live.

@@ -24,7 +24,7 @@ product's name appears nowhere in ClinicNP (owner's instruction).
 | Reference ranges | Entered by KAHC's **lab in-charge**. Never seeded, guessed or copied in (Rules §2.2). |
 | Sent-out tests | KAHC does **both**: its own laboratory, and some samples sent out (owner, 2083-08-03). **From Result entry, per test** (2083-08-04, 0027) — the counter-side send-out (`services.outsourced`, a partner picked at billing, `/sendout`) is retired; its old rows stay readable in statements and the books. |
 | What a laboratory charges | **Each outside laboratory has its own price list** (Settings → Outside labs → the lab). A test sent there appears on it by itself; the owner fills in the price (2083-08-04). |
-| Catalogue | **Emptied on 2083-08-09 (D-218)**; the owner adds tests, profiles and packages one by one. Same day, from the owner's report photos (D-219): 53 tests, 10 profiles and the Whole Body Checkup package (wbc, Rs 4000), tests and profiles at Rs 0 until priced. Before that: copied from the bgp install with **no rates and no ranges** (2083-08-04): 258 lab tests, 17 profiles; its 91 non-lab items became Clinic services. Histopathology became a lab department so its tests can be sent out. |
+| Catalogue | **Emptied on 2083-08-09 (D-218)**; the owner adds tests, profiles and packages one by one. Same day, from the owner's report photos (D-219): 53 tests, 10 profiles and the Whole Body Checkup package (wbc, Rs 4000), tests and profiles at Rs 0 until priced. 2083-08-11 (D-229), from the owner's report files: 17 more tests (76), the Apolipoprotein A1 & B, Serum and Iron Profile profiles, VDRL in Serology Test. Before that: copied from the bgp install with **no rates and no ranges** (2083-08-04): 258 lab tests, 17 profiles; its 91 non-lab items became Clinic services. Histopathology became a lab department so its tests can be sent out. |
 | Rates | **Aster Path Labs' MRP list** (2083-08-05, `import-templates/aster-price-list.xlsx`): 222 tests and profiles priced, 672 tests added (930 in all; departments Molecular & Genetics and Health Packages added). `import-templates/aster-price-match.csv` records every match and gap. Reference ranges are still the lab's to enter. |
 
 ## How a bill becomes a lab order
@@ -83,6 +83,8 @@ product's name appears nowhere in ClinicNP (owner's instruction).
 - A choice "Other" or "Others" opens a text box for any other answer.
 
 ## Notes (D-222)
+
+A test's Note on the report (up to 2,000 characters) prints with the line breaks it was typed with (D-229).
 
 One optional note per report box (a profile, or a department's tests billed on
 their own), typed after the box's last test in Result entry and printed after

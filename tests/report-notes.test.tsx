@@ -96,6 +96,20 @@ describe("a test's note", () => {
     expect(at(html, "Vitamin D note.")).toBeLessThan(notes);
     expect(html.match(/T3 note\./g)).toHaveLength(1);
   });
+
+  it("keeps the lines it was typed in, under its test, after its group and in a package", () => {
+    const lines = "As per ADA Guidelines\nBelow 5.7% :Normal\n>=6.5% : Diabetic";
+    // the element holding the note text keeps its line breaks when printed
+    const kept = (html: string) => {
+      const start = html.indexOf(lines.replaceAll(">", "&gt;"));
+      expect(start).toBeGreaterThan(-1);
+      const open = html.lastIndexOf("<div", start);
+      expect(html.slice(open, html.indexOf(">", open))).toContain("white-space:pre-line");
+    };
+    kept(renderToStaticMarkup(<ReportBody d={view([result("HbA1c", { description: lines })])} />));
+    kept(renderToStaticMarkup(<ReportBody d={view([result("Total Iron", { groupName: "Iron Profile", description: lines })])} />));
+    kept(renderToStaticMarkup(<ReportBody d={view([result("Triglyceride", { groupName: "Lipid", packageName: "Whole Body Checkup", description: lines })])} />));
+  });
 });
 
 describe("the lab's note on a box (owner, 2083-08-09)", () => {

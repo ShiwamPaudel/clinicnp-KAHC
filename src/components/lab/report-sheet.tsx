@@ -231,7 +231,8 @@ export function ReportBody({ d }: { d: ReportViewData }) {
             {boxes.map((b) => {
               const inGroup = Boolean(b.name);
               const noteRow = (r: OrderResult, first: boolean) => (
-                <div key={`note-${r.id}`} style={{ ...line, padding: `${first ? 3 : 1}px 6px 1px 6px`, breakInside: "avoid" }}>
+                // a note keeps the lines it was typed in (a guideline table, a list)
+                <div key={`note-${r.id}`} style={{ ...line, padding: `${first ? 3 : 1}px 6px 1px 6px`, whiteSpace: "pre-line", breakInside: "avoid" }}>
                   {inGroup && <span style={{ fontStyle: "normal", fontWeight: 600, color: INK }}>{r.testName}: </span>}
                   {r.description}
                 </div>
@@ -322,7 +323,7 @@ export function ReportBody({ d }: { d: ReportViewData }) {
         <div style={{ marginTop: 12, fontSize: 10.5, color: MUTED }}>
           <div style={{ fontWeight: 700, fontSize: 12, color: INK, marginBottom: 2 }}>Notes</div>
           {packageNotes.map((r) => (
-            <div key={r.id} style={{ fontStyle: "italic", marginBottom: 2, breakInside: "avoid" }}>
+            <div key={r.id} style={{ fontStyle: "italic", marginBottom: 2, whiteSpace: "pre-line", breakInside: "avoid" }}>
               <span style={{ fontStyle: "normal", fontWeight: 600, color: INK }}>{r.testName}: </span>
               {r.description}
             </div>

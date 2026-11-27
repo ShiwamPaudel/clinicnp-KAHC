@@ -296,7 +296,7 @@ const testSchema = z.object({
   departmentId: z.string().nullable(),
   sampleTypeId: z.string().nullable(),
   method: z.string().max(160),
-  description: z.string().max(1000),
+  description: z.string().max(2000, "Keep the note on the report under 2,000 characters"),
   resultType: z.enum(["numeric", "text", "select", "pos_neg", "multi", "none"]),
   unit: z.string().max(40),
   selectOptions: z.array(z.string().max(80)).max(40),
